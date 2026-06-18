@@ -8,6 +8,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Info,
+  X,
 } from "lucide-react";
 import { useApp } from "../context";
 import logo from "../../assets/logo.png";
@@ -35,13 +36,43 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const [otpError, setOtpError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const MOCK_OTP = "123456";
+  const [currentOtp, setCurrentOtp] = useState("");
+  const [showOtpNotification, setShowOtpNotification] = useState(false);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [resendCooldown]);
+
+  const otpNotificationEl = showOtpNotification && (
+    <div 
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] w-[90%] max-w-sm bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-4 shadow-2xl border border-white/10 flex items-start gap-3"
+      style={{
+        animation: "slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+      }}
+    >
+      <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shrink-0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5h11c2.5 0 4.5 2 4.5 4.5V17z"/><path d="m22 9-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 9"/></svg>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center mb-0.5">
+          <span className="font-extrabold text-[10px] text-red-400 uppercase tracking-wider">Webmail UMM</span>
+          <span className="text-[9px] text-white/50 font-medium">Baru saja</span>
+        </div>
+        <p className="font-bold text-xs text-white mb-0.5">Kode OTP LapakJasMerah</p>
+        <p className="text-[11px] text-white/80 leading-snug">
+          Kode verifikasi Anda adalah <span className="font-black text-red-300 tracking-wider text-xs">{currentOtp}</span>. Rahasiakan kode ini.
+        </p>
+      </div>
+      <button 
+        onClick={() => setShowOtpNotification(false)}
+        className="text-white/40 hover:text-white shrink-0 p-1 transition-colors"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
 
   function validate() {
     const e: Record<string, string> = {};
@@ -62,7 +93,16 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     if (!isLogin) {
       // Send OTP flow
       setLoading(true);
-      setTimeout(() => { setLoading(false); setStep("otp"); setResendCooldown(60); }, 1000);
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setCurrentOtp(code);
+      setTimeout(() => {
+        setLoading(false);
+        setStep("otp");
+        setResendCooldown(60);
+        setTimeout(() => {
+          setShowOtpNotification(true);
+        }, 500);
+      }, 1000);
     } else {
       setLoading(true);
       setTimeout(() => { setLoading(false); setScreen("app"); }, 1200);
@@ -97,23 +137,30 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   function handleVerifyOtp() {
     const entered = otp.join("");
     if (entered.length < 6) { setOtpError("Masukkan 6 digit kode OTP"); return; }
-    if (entered !== MOCK_OTP) { setOtpError("Kode OTP salah. Coba lagi."); setOtp(["","","","","",""]); otpRefs.current[0]?.focus(); return; }
+    if (entered !== currentOtp && entered !== "123456") { setOtpError("Kode OTP salah. Coba lagi."); setOtp(["","","","","",""]); otpRefs.current[0]?.focus(); return; }
     setLoading(true);
     setTimeout(() => { setLoading(false); setScreen("app"); }, 1000);
   }
 
   function handleResend() {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setCurrentOtp(code);
     setOtp(["","","","","",""]);
     setOtpError("");
     setResendCooldown(60);
     otpRefs.current[0]?.focus();
+    setTimeout(() => {
+      setShowOtpNotification(true);
+    }, 500);
   }
 
   // ── OTP SCREEN ──
   if (step === "otp") {
     const maskedEmail = form.email.replace(/(.{2}).+(@.+)/, "$1****$2");
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <>
+        {otpNotificationEl}
+        <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         {/* Header */}
         <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
@@ -216,13 +263,16 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           </button>
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}
 
   // ── FORGOT PASSWORD: EMAIL SCREEN ──
   if (step === "forgot") {
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <>
+        {otpNotificationEl}
+        <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 220 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
@@ -289,7 +339,18 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
                 if (!forgotEmail.trim()) { setForgotError("Email wajib diisi"); return; }
                 if (!forgotEmail.toLowerCase().endsWith("@webmail.umm.ac.id")) { setForgotError("Harus menggunakan email @webmail.umm.ac.id"); return; }
                 setLoading(true);
-                setTimeout(() => { setLoading(false); setStep("forgot-otp"); setOtp(["","","","","",""]); setOtpError(""); setResendCooldown(60); }, 1000);
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                setCurrentOtp(code);
+                setTimeout(() => {
+                  setLoading(false);
+                  setStep("forgot-otp");
+                  setOtp(["","","","","",""]);
+                  setOtpError("");
+                  setResendCooldown(60);
+                  setTimeout(() => {
+                    setShowOtpNotification(true);
+                  }, 500);
+                }, 1000);
               }}
               disabled={loading}
               className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -306,14 +367,17 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           </div>
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}
 
   // ── FORGOT PASSWORD: OTP SCREEN ──
   if (step === "forgot-otp") {
     const maskedForgotEmail = forgotEmail.replace(/(.{2}).+(@.+)/, "$1****$2");
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <>
+        {otpNotificationEl}
+        <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
@@ -392,7 +456,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             onClick={() => {
               const entered = otp.join("");
               if (entered.length < 6) { setOtpError("Masukkan 6 digit kode OTP"); return; }
-              if (entered !== MOCK_OTP) { setOtpError("Kode OTP salah. Coba lagi."); setOtp(["","","","","",""]); otpRefs.current[0]?.focus(); return; }
+              if (entered !== currentOtp && entered !== "123456") { setOtpError("Kode OTP salah. Coba lagi."); setOtp(["","","","","",""]); otpRefs.current[0]?.focus(); return; }
               setStep("forgot-reset");
             }}
             disabled={otp.join("").length < 6}
@@ -403,13 +467,16 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           </button>
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}
 
   // ── FORGOT PASSWORD: RESET SCREEN ──
   if (step === "forgot-reset") {
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <>
+        {otpNotificationEl}
+        <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
@@ -530,12 +597,15 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           </div>
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}
 
   // ── FORM SCREEN ──
   return (
-    <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <>
+      {otpNotificationEl}
+      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
       {/* Top decoration */}
       <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: isLogin ? 220 : 200 }}>
@@ -696,5 +766,6 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }

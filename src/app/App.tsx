@@ -89,50 +89,74 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>(() => {
-    const path = window.location.pathname;
-    if (path.includes("login.html") || path.endsWith("/login")) return "login";
-    if (path.includes("register.html") || path.endsWith("/register")) return "register";
-    if (path.includes("/admin/")) return "admin";
-    if (
-      path.includes("marketplace.html") ||
-      path.includes("profile.html") ||
-      path.endsWith("/marketplace") ||
-      path.endsWith("/profile") ||
-      path === "/categories" ||
-      path === "/sell" ||
-      path === "/chat" ||
-      path === "/about" ||
-      path.startsWith("/profile/")
-    ) return "app";
-    return "landing";
-  });
-  const [activeTab, setActiveTab] = useState(() => {
-    const path = window.location.pathname;
-    if (path === "/categories") return "categories";
-    if (path === "/sell") return "sell";
-    if (path === "/chat") return "chat";
-    if (path.includes("profile.html") || path.includes("/profile") || path === "/about") return "profile";
-    return "home";
-  });
+  // 1. Buat satu fungsi utama untuk membaca URL dan mengatur state
+  const resolvePathToState = (path: string) => {
+    let newScreen: Screen = "landing";
+    let newTab = "home";
+    let newSubPage: ProfileSubPage = null;
+
+    // Cek Screen Auth & Admin
+    if (path.includes("login.html") || path.endsWith("/login")) {
+      newScreen = "login";
+    } else if (path.includes("register.html") || path.endsWith("/register")) {
+      newScreen = "register";
+    } else if (path.includes("/admin/")) {
+      newScreen = "admin";
+    } 
+    // Cek Screen App Utama
+    else if (
+      path.includes("marketplace.html") || 
+      path.startsWith("/profile") ||
+      ["/marketplace", "/categories", "/sell", "/chat", "/about"].includes(path)
+    ) {
+      newScreen = "app";
+      
+      // Tentukan Tab yang Aktif
+      if (path.includes("/categories")) newTab = "categories";
+      else if (path.includes("/sell")) newTab = "sell";
+      else if (path.includes("/chat")) newTab = "chat";
+      else if (path.includes("profile.html") || path.startsWith("/profile") || path === "/about") newTab = "profile";
+
+      // Tentukan Sub-page Profil jika ada
+      if (path.includes("/penjualan")) newSubPage = "penjualan";
+      else if (path.includes("/pembelian")) newSubPage = "pembelian";
+      else if (path.includes("/editbarang")) newSubPage = "editbarang";
+      else if (path.includes("/edit")) newSubPage = "editprofil";
+      else if (path.includes("/keamanan")) newSubPage = "keamanan";
+      else if (path.includes("/notifikasi")) newSubPage = "notifikasi";
+      else if (path.includes("/bantuan")) newSubPage = "bantuan";
+      else if (path.includes("/kebijakan")) newSubPage = "kebijakan";
+      else if (path === "/about") newSubPage = "tentang";
+    }
+
+    // Set semua state secara bersamaan agar selalu sinkron
+    setScreen(newScreen);
+    setActiveTab(newTab);
+    setProfileSubPage(newSubPage);
+  };
+
+  // 2. Gunakan fungsi tersebut untuk inisialisasi awal (hapus callback () => {...} di useState)
+  const [screen, setScreen] = useState<Screen>("landing");
+  const [activeTab, setActiveTab] = useState("home");
+  const [profileSubPage, setProfileSubPage] = useState<ProfileSubPage>(null);
   const [activeBanner, setActiveBanner] = useState(0);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [profileSubPage, setProfileSubPage] = useState<ProfileSubPage>(() => {
-    const path = window.location.pathname;
-    if (path === "/profile/penjualan") return "penjualan";
-    if (path === "/profile/pembelian") return "pembelian";
-    if (path === "/profile/edit") return "editprofil";
-    if (path === "/profile/editbarang") return "editbarang";
-    if (path === "/profile/keamanan") return "keamanan";
-    if (path === "/profile/notifikasi") return "notifikasi";
-    if (path === "/profile/bantuan") return "bantuan";
-    if (path === "/profile/kebijakan") return "kebijakan";
-    if (path === "/about") return "tentang";
-    return null;
-  });
 
+  // Jalankan sekali saat komponen pertama kali dimuat
+  useEffect(() => {
+    resolvePathToState(window.location.pathname);
+  }, []);
+
+  // 3. Gunakan fungsi yang sama persis di dalam event popstate
+  useEffect(() => {
+    const handlePopState = () => resolvePathToState(window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Wrapped path state setters (needed for menu button handlers)
   const setScreenAndPath = (s: Screen) => {
     setScreen(s);
     let path = "/";
@@ -173,115 +197,6 @@ export default function App() {
       window.history.pushState(null, "", path);
     }
   };
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path.includes("/admin/")) {
-        setScreen("admin");
-        return;
-      }
-      
-      if (path === "/login" || path.includes("login.html")) {
-        setScreen("login");
-        return;
-      }
-      if (path === "/register" || path.includes("register.html")) {
-        setScreen("register");
-        return;
-      }
-      
-      if (path === "/marketplace" || path.includes("marketplace.html")) {
-        setScreen("app");
-        setActiveTab("home");
-        setProfileSubPage(null);
-        return;
-      }
-      if (path === "/categories") {
-        setScreen("app");
-        setActiveTab("categories");
-        setProfileSubPage(null);
-        return;
-      }
-      if (path === "/sell") {
-        setScreen("app");
-        setActiveTab("sell");
-        setProfileSubPage(null);
-        return;
-      }
-      if (path === "/chat") {
-        setScreen("app");
-        setActiveTab("chat");
-        setProfileSubPage(null);
-        return;
-      }
-      if (path === "/profile" || path.includes("profile.html")) {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage(null);
-        return;
-      }
-      if (path === "/profile/penjualan") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("penjualan");
-        return;
-      }
-      if (path === "/profile/pembelian") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("pembelian");
-        return;
-      }
-      if (path === "/profile/edit") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("editprofil");
-        return;
-      }
-      if (path === "/profile/editbarang") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("editbarang");
-        return;
-      }
-      if (path === "/profile/keamanan") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("keamanan");
-        return;
-      }
-      if (path === "/profile/notifikasi") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("notifikasi");
-        return;
-      }
-      if (path === "/profile/bantuan") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("bantuan");
-        return;
-      }
-      if (path === "/profile/kebijakan") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("kebijakan");
-        return;
-      }
-      if (path === "/about") {
-        setScreen("app");
-        setActiveTab("profile");
-        setProfileSubPage("tentang");
-        return;
-      }
-      
-      setScreen("landing");
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [activeTab, profileSubPage]);
   const [editingItem, setEditingItem] = useState<{ id: number; name: string; price: number; image: string; status: string } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -2222,21 +2137,21 @@ export default function App() {
     >
       {/* ── LANDING / AUTH SCREENS ── */}
       {screen === "landing" && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto", background: "#f8f8f8" }}>
+        <div className="fixed inset-0 z-[100] overflow-y-auto animate-page" style={{ maxWidth: 430, margin: "0 auto", background: "#f8f8f8" }}>
           <LandingPage />
         </div>
       )}
       {(screen === "login" || screen === "register") && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto", background: "#f8f8f8" }}>
+        <div className="fixed inset-0 z-[100] overflow-y-auto animate-page" style={{ maxWidth: 430, margin: "0 auto", background: "#f8f8f8" }}>
           <AuthPage mode={screen as "login" | "register"} />
         </div>
       )}
 
       {/* ── ORDER TRACKING ── */}
-      {trackingOrder && <OrderTrackingPage />}
+      {trackingOrder && <div className="animate-page"><OrderTrackingPage /></div>}
 
       {/* ── SEARCH RESULTS ── */}
-      {showSearchResults && <SearchResultsPage />}
+      {showSearchResults && <div className="animate-page"><SearchResultsPage /></div>}
 
       {/* ── REPORT MODAL ── */}
       {showReportModal && <ReportModal />}
@@ -2248,50 +2163,50 @@ export default function App() {
       {showPostRequestModal && <PostRequestModal />}
 
       {/* ── STORE PAGE ── */}
-      {viewStoreSeller && <StorePage sellerName={viewStoreSeller} />}
+      {viewStoreSeller && <div className="animate-page"><StorePage sellerName={viewStoreSeller} /></div>}
 
       {/* ── SALES STATS PAGE ── */}
-      {showSalesStats && <SalesStatsPage />}
+      {showSalesStats && <div className="animate-page"><SalesStatsPage /></div>}
 
       {/* ── NOTIFICATION PANEL ── */}
-      {showNotif && <NotifPanel />}
+      {showNotif && <div className="animate-page"><NotifPanel /></div>}
 
       {/* ── WISHLIST PANEL ── */}
-      {showWishlist && <WishlistPage />}
+      {showWishlist && <div className="animate-page"><WishlistPage /></div>}
 
       {/* ── PRODUCT DETAIL PAGE ── */}
-      {selectedProduct && <ProductDetailPage product={selectedProduct} />}
+      {selectedProduct && <div className="animate-page"><ProductDetailPage product={selectedProduct} /></div>}
 
       {/* ── SELL PAGE ── */}
       {activeTab === "sell" && (
-        <div className="fixed inset-0 z-50 bg-background overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-50 bg-background overflow-y-auto animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
           <SellPage />
         </div>
       )}
 
       {/* ── CHAT PAGE (full-screen takeover) ── */}
       {activeTab === "chat" && activeChatId !== null && (
-        <div className="fixed inset-0 z-50 bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-50 bg-background animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
           <ChatPage />
         </div>
       )}
 
       {/* ── CHAT LIST PAGE ── */}
       {activeTab === "chat" && activeChatId === null && (
-        <>
+        <div className="animate-page">
           <ChatPage />
           {/* Bottom nav for chat list */}
-        </>
+        </div>
       )}
 
       {/* ── PROFILE PAGE ── */}
-      {activeTab === "profile" && <ProfilePage />}
+      {activeTab === "profile" && <div className="animate-page"><ProfilePage /></div>}
 
-      {activeTab === "categories" && <CategoriesPage />}
+      {activeTab === "categories" && <div className="animate-page"><CategoriesPage /></div>}
 
       {/* ── HOME PAGE ── */}
       {activeTab !== "chat" && activeTab !== "sell" && activeTab !== "profile" && activeTab !== "categories" && (
-        <>
+        <div className="animate-page">
       {/* ── HEADER ── */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
         <div className="px-4 pt-4 pb-3">
@@ -2683,7 +2598,7 @@ export default function App() {
 
       </main>
 
-        </>
+        </div>
       )}
 
       {/* ── BOTTOM NAVIGATION ── */}

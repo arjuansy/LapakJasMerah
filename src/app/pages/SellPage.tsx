@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -35,6 +35,8 @@ export default function SellPage() {
     phone: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [shake, setShake] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [conditionOpen, setConditionOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -50,17 +52,51 @@ export default function SellPage() {
     "Sengkaling", "Lowokwaru", "Dau", "Online / Kirim",
   ];
 
-  const mockPhotos = [
-    "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=200&h=200&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=200&h=200&fit=crop&auto=format",
-  ];
+  function triggerFileInput() {
+    fileInputRef.current?.click();
+  }
 
-  function addPhoto() {
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files) return;
+
     const maxPhotos = adPackage === "gratis" ? 3 : 5;
-    if (photos.length < maxPhotos) {
-      setPhotos((p) => [...p, mockPhotos[p.length % mockPhotos.length]]);
+    const remaining = maxPhotos - photos.length;
+    if (remaining <= 0) {
+      setErrors((prev) => ({
+        ...prev,
+        photos: `Paket iklan ini maksimal ${maxPhotos} foto.`
+      }));
+      return;
     }
+
+    const filesArray = Array.from(files).slice(0, remaining);
+    
+    filesArray.forEach((file) => {
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({ ...prev, photos: "File yang diunggah harus berupa gambar" }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, photos: "Ukuran file foto maksimal 5MB" }));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setPhotos((prev) => [...prev, event.target!.result as string]);
+          setErrors((prev) => {
+            const next = { ...prev };
+            delete next.photos;
+            return next;
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = "";
   }
 
   function removePhoto(i: number) {
@@ -90,7 +126,12 @@ export default function SellPage() {
   function handleSubmit() {
     const e = validate();
     setErrors(e);
-    if (Object.keys(e).length === 0) setStep("success");
+    if (Object.keys(e).length === 0) {
+      setStep("success");
+    } else {
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    }
   }
 
   function formatRupiah(val: string) {
@@ -193,7 +234,7 @@ export default function SellPage() {
       <div className="px-4 space-y-5 pt-5">
 
         {/* ── FOTO ── */}
-        <section>
+        <section className={`transition-all duration-300 ${errors.photos ? "bg-red-50/20 p-3.5 rounded-2xl border border-red-100/60" : ""} ${errors.photos && shake ? "animate-shake" : ""}`}>
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="text-foreground font-bold text-sm">Foto Produk <span className="text-primary">*</span></h3>
@@ -203,6 +244,14 @@ export default function SellPage() {
           </div>
 
           <div className="flex gap-2.5 flex-wrap">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
             {photos.map((src, i) => (
               <div key={i} className="relative" style={{ width: 80, height: 80 }}>
                 <img src={src} alt="" className="w-full h-full object-cover rounded-xl border border-border" />
@@ -212,6 +261,7 @@ export default function SellPage() {
                   </span>
                 )}
                 <button
+                  type="button"
                   onClick={() => removePhoto(i)}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground rounded-full flex items-center justify-center shadow"
                 >
@@ -221,7 +271,8 @@ export default function SellPage() {
             ))}
             {photos.length < 5 && (
               <button
-                onClick={addPhoto}
+                type="button"
+                onClick={triggerFileInput}
                 className="flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-card hover:bg-secondary transition-colors"
                 style={{ width: 80, height: 80 }}
               >
@@ -247,7 +298,7 @@ export default function SellPage() {
 
           <div className="divide-y divide-border">
             {/* Judul */}
-            <div className="px-4 py-3.5">
+            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.title ? "bg-red-50/20" : ""} ${errors.title && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
                 Judul Iklan <span className="text-primary">*</span>
               </label>
@@ -268,7 +319,7 @@ export default function SellPage() {
             </div>
 
             {/* Kategori */}
-            <div className="px-4 py-3.5 relative">
+            <div className={`px-4 py-3.5 relative transition-all duration-300 ${errors.category ? "bg-red-50/20" : ""} ${errors.category && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
                 Kategori <span className="text-primary">*</span>
               </label>
@@ -299,7 +350,7 @@ export default function SellPage() {
             </div>
 
             {/* Kondisi */}
-            <div className="px-4 py-3.5 relative">
+            <div className={`px-4 py-3.5 relative transition-all duration-300 ${errors.condition ? "bg-red-50/20" : ""} ${errors.condition && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-2">
                 Kondisi <span className="text-primary">*</span>
               </label>
@@ -323,7 +374,7 @@ export default function SellPage() {
             </div>
 
             {/* Deskripsi */}
-            <div className="px-4 py-3.5">
+            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.description ? "bg-red-50/20" : ""} ${errors.description && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
                 Deskripsi <span className="text-primary">*</span>
               </label>
@@ -354,7 +405,7 @@ export default function SellPage() {
           </div>
 
           <div className="divide-y divide-border">
-            <div className="px-4 py-3.5">
+            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.price ? "bg-red-50/20" : ""} ${errors.price && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
                 Harga Jual (Rp) <span className="text-primary">*</span>
               </label>
@@ -408,7 +459,7 @@ export default function SellPage() {
 
           <div className="divide-y divide-border">
             {/* Lokasi */}
-            <div className="px-4 py-3.5 relative">
+            <div className={`px-4 py-3.5 relative transition-all duration-300 ${errors.location ? "bg-red-50/20" : ""} ${errors.location && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
                 Lokasi <span className="text-primary">*</span>
               </label>
@@ -555,7 +606,7 @@ export default function SellPage() {
       {/* ── SUBMIT BUTTON (fixed) ── */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl" style={{ maxWidth: 430 }}>
         {Object.keys(errors).length > 0 && (
-          <p className="text-primary text-[11px] font-semibold text-center mb-2 flex items-center justify-center gap-1">
+          <p className={`text-primary text-[11px] font-semibold text-center mb-2 flex items-center justify-center gap-1 ${shake ? "animate-shake" : ""}`}>
             <AlertCircle size={11} /> Mohon lengkapi data yang masih kosong
           </p>
         )}

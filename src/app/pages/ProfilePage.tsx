@@ -1883,15 +1883,15 @@ export default function ProfilePage() {
   const [showBadgePay, setShowBadgePay] = useState(false);
   const [badgePaid, setBadgePaid] = useState(false);
 
-  if (profileSubPage === "penjualan") return <SalesPage />;
-  if (profileSubPage === "pembelian") return <PurchasePage />;
-  if (profileSubPage === "editprofil") return <EditProfilePage />;
-  if (profileSubPage === "editbarang") return <EditItemPage />;
-  if (profileSubPage === "keamanan") return <SecurityPrivacyPage />;
-  if (profileSubPage === "notifikasi") return <NotificationSettingsPage />;
-  if (profileSubPage === "bantuan") return <HelpCenterPage />;
-  if (profileSubPage === "kebijakan") return <TermsPoliciesPage />;
-  if (profileSubPage === "tentang") return <AboutPage />;
+  if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage /></div>;
+  if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage /></div>;
+  if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage /></div>;
+  if (profileSubPage === "editbarang") return <div className="animate-page"><EditItemPage /></div>;
+  if (profileSubPage === "keamanan") return <div className="animate-page"><SecurityPrivacyPage /></div>;
+  if (profileSubPage === "notifikasi") return <div className="animate-page"><NotificationSettingsPage /></div>;
+  if (profileSubPage === "bantuan") return <div className="animate-page"><HelpCenterPage /></div>;
+  if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage /></div>;
+  if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage /></div>;
 
   const myListings = [
     {

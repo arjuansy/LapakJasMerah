@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowLeft, Search, Star, Heart, MapPin, X, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Search, Star, Heart, MapPin, X, SlidersHorizontal, ChevronDown, Clock, Trash2, TrendingUp } from "lucide-react";
 import { useApp } from "../context";
 import { allProducts, formatPrice } from "../data";
 import type { Product } from "../data";
@@ -14,7 +14,58 @@ export default function SearchResultsPage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [showFilter, setShowFilter] = useState(false);
 
-  const query = globalSearch.trim().toLowerCase();
+  const [debouncedQuery, setDebouncedQuery] = useState(globalSearch);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    const history = localStorage.getItem("search_history");
+    let parsedHistory: string[] = [];
+    if (history) {
+      try {
+        parsedHistory = JSON.parse(history);
+        setSearchHistory(parsedHistory);
+      } catch (e) {
+        setSearchHistory([]);
+      }
+    }
+
+    if (globalSearch.trim()) {
+      const trimmed = globalSearch.trim();
+      const nextHistory = [
+        trimmed,
+        ...parsedHistory.filter((item) => item.toLowerCase() !== trimmed.toLowerCase()),
+      ].slice(0, 5);
+      setSearchHistory(nextHistory);
+      localStorage.setItem("search_history", JSON.stringify(nextHistory));
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(globalSearch);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [globalSearch]);
+
+  function saveToHistory(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const nextHistory = [
+      trimmed,
+      ...searchHistory.filter((item) => item.toLowerCase() !== trimmed.toLowerCase()),
+    ].slice(0, 5);
+    setSearchHistory(nextHistory);
+    localStorage.setItem("search_history", JSON.stringify(nextHistory));
+  }
+
+  function removeFromHistory(text: string) {
+    const nextHistory = searchHistory.filter((item) => item !== text);
+    setSearchHistory(nextHistory);
+    localStorage.setItem("search_history", JSON.stringify(nextHistory));
+  }
+
+  const query = debouncedQuery.trim().toLowerCase();
 
   const results = allProducts.filter((p) => {
     const matchQuery = !query ||
@@ -29,7 +80,6 @@ export default function SearchResultsPage() {
     if (sortBy === "termahal") return b.price - a.price;
     if (sortBy === "terlaris") return b.sold - a.sold;
     if (sortBy === "rating") return b.rating - a.rating;
-    // relevan: boost exact name match
     const aExact = a.name.toLowerCase().includes(query) ? 1 : 0;
     const bExact = b.name.toLowerCase().includes(query) ? 1 : 0;
     return bExact - aExact;
@@ -40,6 +90,14 @@ export default function SearchResultsPage() {
   }
 
   const activeFilters = [filterCondition, filterLocation, minPrice || maxPrice ? "Harga" : ""].filter(Boolean);
+
+  const popularSearches = ["Jaket Almamater", "Buku Kalkulus", "Kost Putri", "Casio", "Sepeda"];
+
+  const suggestions = globalSearch.trim()
+    ? allProducts
+        .filter((p) => p.name.toLowerCase().includes(globalSearch.toLowerCase().trim()))
+        .slice(0, 5)
+    : [];
 
   return (
     <div className="fixed inset-0 z-[55] bg-background flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
@@ -59,6 +117,14 @@ export default function SearchResultsPage() {
               type="text"
               value={globalSearch}
               onChange={(e) => setGlobalSearch(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  saveToHistory(globalSearch);
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
               placeholder="Cari produk, penjual..."
               autoFocus
               className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
@@ -103,6 +169,112 @@ export default function SearchResultsPage() {
           ))}
         </div>
       </div>
+
+      {/* Suggestions and History Overlay */}
+      {isFocused && (
+        <div className="absolute inset-x-0 bottom-0 top-[148px] bg-background z-40 overflow-y-auto px-4 py-4 space-y-5 animate-page">
+          {/* If query is empty, show History and Popular Searches */}
+          {!globalSearch.trim() ? (
+            <>
+              {/* Riwayat Pencarian */}
+              {searchHistory.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Pencarian Terakhir</h4>
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setSearchHistory([]);
+                        localStorage.removeItem("search_history");
+                      }}
+                      className="text-[11px] text-primary font-bold"
+                    >
+                      Hapus Semua
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {searchHistory.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between py-2 border-b border-border/40">
+                        <button
+                          onMouseDown={() => {
+                            setGlobalSearch(item);
+                            saveToHistory(item);
+                            setIsFocused(false);
+                          }}
+                          className="flex items-center gap-2.5 text-sm text-foreground font-semibold flex-1 text-left"
+                        >
+                          <Clock size={14} className="text-muted-foreground" />
+                          {item}
+                        </button>
+                        <button
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            removeFromHistory(item);
+                          }}
+                          className="p-1 hover:bg-secondary rounded-lg text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pencarian Populer */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Pencarian Populer 🔥</h4>
+                <div className="flex flex-wrap gap-2">
+                  {popularSearches.map((item) => (
+                    <button
+                      key={item}
+                      onMouseDown={() => {
+                        setGlobalSearch(item);
+                        saveToHistory(item);
+                        setIsFocused(false);
+                      }}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-card border border-border text-xs font-bold text-foreground hover:border-primary/30 transition-all hover:bg-secondary"
+                    >
+                      <TrendingUp size={11} className="text-primary" />
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            /* If typing, show suggestions */
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Saran Pencarian</h4>
+              {suggestions.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-2">Tidak ada saran yang cocok</p>
+              ) : (
+                <div className="space-y-1">
+                  {suggestions.map((p) => (
+                    <button
+                      key={p.id}
+                      onMouseDown={() => {
+                        setGlobalSearch(p.name);
+                        saveToHistory(p.name);
+                        setIsFocused(false);
+                        setSelectedProduct(p);
+                        setShowSearchResults(false);
+                      }}
+                      className="w-full flex items-center justify-between py-2.5 border-b border-border/40 text-left hover:bg-secondary transition-colors rounded-xl px-2"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Search size={14} className="text-primary shrink-0" />
+                        <span className="text-sm font-semibold text-foreground truncate">{p.name}</span>
+                      </div>
+                      <span className="text-xs text-primary font-bold shrink-0">{formatPrice(p.price)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Filter panel */}
       {showFilter && (
