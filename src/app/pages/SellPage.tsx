@@ -141,7 +141,7 @@ export default function SellPage() {
 
   if (step === "success") {
     return (
-      <div className="flex flex-col min-h-screen bg-background items-center justify-center px-8 pb-24">
+      <div className="flex flex-col h-full bg-background items-center justify-center px-8 pb-10 overflow-y-auto">
         <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
           <CheckCircle2 size={48} className="text-green-500" />
         </div>
@@ -193,9 +193,9 @@ export default function SellPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-32">
+    <div className="relative flex flex-col h-full bg-background overflow-hidden">
       {/* Header */}
-      <div className="bg-primary text-white px-4 pt-10 pb-4 sticky top-0 z-40 shadow-md">
+      <div className="bg-primary text-white px-4 pt-10 pb-4 z-40 shadow-md">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveTab("home")}
@@ -231,7 +231,7 @@ export default function SellPage() {
         </div>
       </div>
 
-      <div className="px-4 space-y-5 pt-5">
+      <div className="flex-1 overflow-y-auto px-4 space-y-5 pt-5 pb-36">
 
         {/* ── FOTO ── */}
         <section className={`transition-all duration-300 ${errors.photos ? "bg-red-50/20 p-3.5 rounded-2xl border border-red-100/60" : ""} ${errors.photos && shake ? "animate-shake" : ""}`}>
@@ -604,7 +604,7 @@ export default function SellPage() {
       </div>
 
       {/* ── SUBMIT BUTTON (fixed) ── */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl" style={{ maxWidth: 430 }}>
+      <div className="absolute bottom-0 left-0 right-0 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl">
         {Object.keys(errors).length > 0 && (
           <p className={`text-primary text-[11px] font-semibold text-center mb-2 flex items-center justify-center gap-1 ${shake ? "animate-shake" : ""}`}>
             <AlertCircle size={11} /> Mohon lengkapi data yang masih kosong

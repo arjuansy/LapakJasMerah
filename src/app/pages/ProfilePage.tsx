@@ -40,7 +40,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useApp } from "../context";
-import { formatPrice, productDescriptions } from "../data";
+import { formatPrice, productDescriptions, allProducts } from "../data";
 
 // ── DAFTAR PENJUALAN ──
 function SalesPage() {
@@ -1876,24 +1876,19 @@ export default function ProfilePage() {
     setProfileAvatar,
     profileBanner,
     setProfileBanner,
+    triggerToast,
+    setSelectedProduct,
+    toggleWishlist,
+    wishlist,
   } = useApp();
 
   const [activeProfileTab, setActiveProfileTab] = useState<"iklan" | "terjual" | "disukai">("iklan");
   const [badgeOwned, setBadgeOwned] = useState(false);
   const [showBadgePay, setShowBadgePay] = useState(false);
   const [badgePaid, setBadgePaid] = useState(false);
+  const [showKtm, setShowKtm] = useState(false);
 
-  if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage /></div>;
-  if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage /></div>;
-  if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage /></div>;
-  if (profileSubPage === "editbarang") return <div className="animate-page"><EditItemPage /></div>;
-  if (profileSubPage === "keamanan") return <div className="animate-page"><SecurityPrivacyPage /></div>;
-  if (profileSubPage === "notifikasi") return <div className="animate-page"><NotificationSettingsPage /></div>;
-  if (profileSubPage === "bantuan") return <div className="animate-page"><HelpCenterPage /></div>;
-  if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage /></div>;
-  if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage /></div>;
-
-  const myListings = [
+  const [listings, setListings] = useState([
     {
       id: 101, name: "Laptop Lenovo ThinkPad X1", price: 8500000,
       image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop&auto=format",
@@ -1909,7 +1904,17 @@ export default function ProfilePage() {
       image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=200&h=200&fit=crop&auto=format",
       views: 55, likes: 9, status: "habis",
     },
-  ];
+  ]);
+
+  if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage /></div>;
+  if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage /></div>;
+  if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage /></div>;
+  if (profileSubPage === "editbarang") return <div className="animate-page"><EditItemPage /></div>;
+  if (profileSubPage === "keamanan") return <div className="animate-page"><SecurityPrivacyPage /></div>;
+  if (profileSubPage === "notifikasi") return <div className="animate-page"><NotificationSettingsPage /></div>;
+  if (profileSubPage === "bantuan") return <div className="animate-page"><HelpCenterPage /></div>;
+  if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage /></div>;
+  if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage /></div>;
 
   const soldItems = [
     {
@@ -1954,7 +1959,7 @@ export default function ProfilePage() {
       title: "Akun",
       items: [
         { icon: Edit3, label: "Edit Profil", badge: null, color: "#8B5CF6", onPress: () => setProfileSubPage("editprofil") },
-        { icon: BadgeCheck, label: "Verifikasi Mahasiswa", badge: "Terverifikasi", color: "#10B981", onPress: undefined },
+        { icon: BadgeCheck, label: "Verifikasi Mahasiswa", badge: "Terverifikasi", color: "#10B981", onPress: () => setShowKtm(true) },
         { icon: Lock, label: "Keamanan & Privasi", badge: null, color: "#6B7280", onPress: () => setProfileSubPage("keamanan") },
         { icon: BellIcon, label: "Notifikasi", badge: null, color: "#F97316", onPress: () => setProfileSubPage("notifikasi") },
       ],
@@ -2008,7 +2013,10 @@ export default function ProfilePage() {
         </label>
 
         {/* Settings button */}
-        <button className="absolute top-10 right-4 w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center border border-white/20 transition-colors shadow z-10">
+        <button 
+          onClick={() => setProfileSubPage("editprofil")}
+          className="absolute top-10 right-4 w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center border border-white/20 transition-colors shadow z-10"
+        >
           <Settings size={18} className="text-white" />
         </button>
 
@@ -2173,11 +2181,9 @@ export default function ProfilePage() {
 
         {/* Payment Sheet */}
         {showBadgePay && (
-          <div className="fixed inset-0 z-[90] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
-            <div className="absolute inset-0 bg-black/50" onClick={() => { setShowBadgePay(false); setBadgePaid(false); }} />
-            <div className="relative bg-card rounded-t-3xl shadow-2xl p-5 pb-8">
-              <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
-
+          <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+            <div className="absolute inset-0 bg-black/60" onClick={() => { setShowBadgePay(false); setBadgePaid(false); }} />
+            <div className="relative bg-card rounded-3xl shadow-2xl p-5 pb-6 w-full max-w-[380px] z-10">
               {badgePaid ? (
                 <div className="flex flex-col items-center py-6 text-center">
                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -2277,7 +2283,7 @@ export default function ProfilePage() {
       <div className="px-4 pt-3 pb-1">
         {activeProfileTab === "iklan" && (
           <div className="space-y-3">
-            {myListings.map((item) => (
+            {listings.map((item) => (
               <div key={item.id} className="bg-card rounded-2xl border border-border flex items-center gap-3 p-3 shadow-sm">
                 <div className="relative shrink-0">
                   <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover bg-muted" />
@@ -2310,11 +2316,27 @@ export default function ProfilePage() {
                 <div className="flex flex-col gap-1.5 shrink-0">
                   <button
                     onClick={() => { setEditingItem(item); setProfileSubPage("editbarang"); }}
-                    className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center"
+                    className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center cursor-pointer active:scale-95"
                   >
                     <Edit3 size={13} className="text-primary" />
                   </button>
-                  <button className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center">
+                  <button 
+                    onClick={() => {
+                      setListings((prev) =>
+                        prev.map((it) =>
+                          it.id === item.id
+                            ? { ...it, status: it.status === "aktif" ? "habis" : "aktif" }
+                            : it
+                        )
+                      );
+                      triggerToast(
+                        `Status "${item.name}" diubah menjadi ${
+                          item.status === "aktif" ? "Stok Habis" : "Aktif"
+                        }`
+                      );
+                    }}
+                    className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center cursor-pointer active:scale-95"
+                  >
                     <MoreVertical size={13} className="text-muted-foreground" />
                   </button>
                 </div>
@@ -2350,21 +2372,31 @@ export default function ProfilePage() {
 
         {activeProfileTab === "disukai" && (
           <div className="grid grid-cols-2 gap-3">
-            {likedItems.map((item) => (
-              <div key={item.id} className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                <div className="relative">
-                  <img src={item.image} alt={item.name} className="w-full h-32 object-cover bg-muted" />
-                  <button className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow">
-                    <Heart size={13} className="text-primary fill-primary" />
-                  </button>
+            {likedItems.map((item) => {
+              const prod = allProducts.find((p) => p.id === item.id) || item;
+              return (
+                <div 
+                  key={item.id} 
+                  onClick={() => setSelectedProduct(prod as Product)}
+                  className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm cursor-pointer active:scale-95 transition-transform"
+                >
+                  <div className="relative">
+                    <img src={item.image} alt={item.name} className="w-full h-32 object-cover bg-muted" />
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); toggleWishlist(item.id); }}
+                      className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow cursor-pointer text-primary"
+                    >
+                      <Heart size={13} className="text-primary fill-primary" />
+                    </button>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-foreground font-semibold text-xs truncate">{item.name}</p>
+                    <p className="text-primary font-black text-sm mt-0.5">{formatPrice(item.price)}</p>
+                    <p className="text-muted-foreground text-[10px] mt-0.5">{item.seller}</p>
+                  </div>
                 </div>
-                <div className="p-2.5">
-                  <p className="text-foreground font-semibold text-xs truncate">{item.name}</p>
-                  <p className="text-primary font-black text-sm mt-0.5">{formatPrice(item.price)}</p>
-                  <p className="text-muted-foreground text-[10px] mt-0.5">{item.seller}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -2422,6 +2454,64 @@ export default function ProfilePage() {
           Lapak Jas Merah v1.0.0 · Khusus Civitas UMM
         </p>
       </div>
+
+      {showKtm && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowKtm(false)} />
+          <div className="relative bg-gradient-to-br from-red-700 via-red-800 to-slate-900 rounded-3xl shadow-2xl p-6 w-full max-w-[360px] text-white border border-white/10 z-10">
+            {/* Header UMM */}
+            <div className="flex items-center justify-between border-b border-white/15 pb-4 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-primary font-black text-xs">UMM</span>
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[11px] tracking-wider uppercase leading-none text-white">Universitas</h4>
+                  <h4 className="font-extrabold text-[9px] text-white/70 tracking-widest uppercase leading-none mt-1">Muhammadiyah Malang</h4>
+                </div>
+              </div>
+              <BadgeCheck size={20} className="text-blue-400 fill-blue-500/20" />
+            </div>
+
+            {/* KTM Body */}
+            <div className="flex gap-4">
+              {/* Photo */}
+              <div className="w-24 h-32 rounded-xl border border-white/20 bg-white/5 overflow-hidden shrink-0">
+                <img src={profileAvatar} alt="" className="w-full h-full object-cover" />
+              </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0 flex flex-col justify-between">
+                <div>
+                  <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">Nama Lengkap</p>
+                  <p className="font-bold text-sm truncate leading-tight mb-2 text-white">Ahmad Rizky Pratama</p>
+                  
+                  <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">NIM</p>
+                  <p className="font-mono font-bold text-sm mb-2 text-white">202210370311001</p>
+
+                  <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">Fakultas / Prodi</p>
+                  <p className="font-bold text-[10px] text-white/90 truncate leading-tight">Teknik / Informatika</p>
+                </div>
+
+                <div className="inline-flex items-center gap-1 bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 self-start mt-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-[9px] text-green-300 font-extrabold tracking-wide uppercase">Mahasiswa Aktif</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-5 pt-3.5 border-t border-white/10 flex justify-between items-center text-[8px] text-white/40 font-mono">
+              <span>KTM DIGITAL LAPAK JAS MERAH</span>
+              <button 
+                onClick={() => setShowKtm(false)}
+                className="bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-1.5 rounded-lg font-sans text-[9px] transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -99,6 +99,11 @@ export type AppContextType = {
   setProfileAvatar: (url: string) => void;
   profileBanner: string;
   setProfileBanner: (url: string) => void;
+  triggerToast: (msg: string) => void;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  listings: any[];
+  setListings: React.Dispatch<React.SetStateAction<any[]>>;
 };
 
 export const AppContext = createContext<AppContextType>(null!);

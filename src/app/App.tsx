@@ -140,7 +140,14 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [profileSubPage, setProfileSubPage] = useState<ProfileSubPage>(null);
   const [activeBanner, setActiveBanner] = useState(0);
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [wishlist, setWishlist] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem("wishlist");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -237,8 +244,66 @@ export default function App() {
     { id: "TRX-005", product: "Jaket Almamater UMM", price: 185000, buyer: "Hana_Hukum22", buyerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=60&h=60&fit=crop&auto=format", date: "8 Jun 2026", status: "diproses", image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=120&h=120&fit=crop&auto=format", qty: 1 },
   ]);
 
-  const [profileAvatar, setProfileAvatar] = useState<string>("https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop&auto=format");
-  const [profileBanner, setProfileBanner] = useState<string>("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80");
+  const [profileAvatar, setProfileAvatar] = useState<string>(() => {
+    return localStorage.getItem("profile_avatar") || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop&auto=format";
+  });
+  const [profileBanner, setProfileBanner] = useState<string>(() => {
+    return localStorage.getItem("profile_banner") || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80";
+  });
+
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem("all_products");
+      return saved ? JSON.parse(saved) : allProducts;
+    } catch (e) {
+      return allProducts;
+    }
+  });
+
+  const [listings, setListings] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem("my_listings");
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 101, name: "Laptop Lenovo ThinkPad X1", price: 8500000,
+          image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop&auto=format",
+          views: 142, likes: 18, status: "aktif",
+        },
+        {
+          id: 102, name: "Buku Kalkulus Jilid 1 & 2", price: 90000,
+          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&auto=format",
+          views: 87, likes: 6, status: "aktif",
+        },
+        {
+          id: 103, name: "Meja Belajar Lipat", price: 250000,
+          image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=200&h=200&fit=crop&auto=format",
+          views: 55, likes: 9, status: "habis",
+        },
+      ];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  useEffect(() => {
+    localStorage.setItem("profile_avatar", profileAvatar);
+  }, [profileAvatar]);
+
+  useEffect(() => {
+    localStorage.setItem("profile_banner", profileBanner);
+  }, [profileBanner]);
+
+  useEffect(() => {
+    localStorage.setItem("all_products", JSON.stringify(products));
+  }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem("my_listings", JSON.stringify(listings));
+  }, [listings]);
 
   function toggleWishlist(id: number) {
     setWishlist((prev) =>
@@ -294,7 +359,7 @@ export default function App() {
       product.image.replace("w=300&h=300", "w=300&h=300").replace("auto=format", "auto=format&bri=10"),
     ];
 
-    const related = allProducts.filter((p) => p.id !== product.id).slice(0, 4);
+    const related = products.filter((p) => p.id !== product.id).slice(0, 4);
 
     // on ordered → launch tracking then dismiss
     const paymentLabels: Record<string, string> = {
@@ -812,11 +877,10 @@ export default function App() {
             <>
               {/* Payment Picker Sheet */}
               {showPaymentPicker && (
-                <div className="fixed inset-0 z-30 flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
-                  <div className="absolute inset-0 bg-black/50" onClick={() => setShowPaymentPicker(false)} />
-                  <div className="relative bg-card rounded-t-3xl shadow-2xl pb-8 max-h-[80vh] flex flex-col">
-                    <div className="p-5 border-b border-border shrink-0">
-                      <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+                <div className="fixed inset-0 z-30 flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+                  <div className="absolute inset-0 bg-black/60" onClick={() => setShowPaymentPicker(false)} />
+                  <div className="relative bg-card rounded-3xl shadow-2xl pb-6 max-h-[80vh] flex flex-col w-full max-w-[380px] z-10">
+                    <div className="p-5 border-b border-border shrink-0 text-center">
                       <h3 className="text-foreground font-black text-lg">Pilih Metode Pembayaran</h3>
                     </div>
                     <div className="overflow-y-auto flex-1">
@@ -859,11 +923,10 @@ export default function App() {
               )}
 
               {/* Confirmation sheet */}
-              <div className="fixed inset-0 z-20 flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
-                <div className="absolute inset-0 bg-black/40" onClick={() => setShowOrder(false)} />
-                <div className="relative bg-card rounded-t-3xl shadow-2xl p-5 pb-8">
-                  <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
-                  <h3 className="text-foreground font-black text-lg mb-4">Konfirmasi Pembelian</h3>
+              <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+                <div className="absolute inset-0 bg-black/50" onClick={() => setShowOrder(false)} />
+                <div className="relative bg-card rounded-3xl shadow-2xl p-5 pb-6 w-full max-w-[380px] z-10">
+                  <h3 className="text-foreground font-black text-lg mb-4 text-center">Konfirmasi Pembelian</h3>
 
                   {/* Product */}
                   <div className="flex items-center gap-3 bg-muted rounded-2xl p-3 mb-4">
@@ -1468,7 +1531,7 @@ export default function App() {
   // ── STORE PAGE ──
   function StorePage({ sellerName }: { sellerName: string }) {
     const avatar = sellerAvatars[sellerName] ?? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&auto=format";
-    const storeProducts = allProducts.filter((p) => p.seller === sellerName);
+    const storeProducts = products.filter((p) => p.seller === sellerName);
     const [activeTab, setActiveTab] = useState<"produk" | "ulasan">("produk");
 
     const storeReviews = [
@@ -1840,7 +1903,7 @@ export default function App() {
 
   // ── WISHLIST PAGE ──
   function WishlistPage() {
-    const wishlisted = allProducts.filter((p) => wishlist.includes(p.id));
+    const wishlisted = products.filter((p) => wishlist.includes(p.id));
 
     return (
       <>
@@ -1959,7 +2022,7 @@ export default function App() {
       "Lainnya":      [],
     };
 
-    const filtered = allProducts
+    const filtered = products
       .filter((p) => {
         const keywords = categoryKeywords[activeCategory] ?? [];
         const nameLower = p.name.toLowerCase();
@@ -2119,6 +2182,9 @@ export default function App() {
     salesData, setSalesData,
     profileAvatar, setProfileAvatar,
     profileBanner, setProfileBanner,
+    triggerToast,
+    products, setProducts,
+    listings, setListings,
   };
 
   if (screen === "admin") {
@@ -2148,38 +2214,66 @@ export default function App() {
       )}
 
       {/* ── ORDER TRACKING ── */}
-      {trackingOrder && <div className="animate-page"><OrderTrackingPage /></div>}
-
+      {trackingOrder && (
+        <div className="fixed inset-0 z-[60] bg-background overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <OrderTrackingPage />
+        </div>
+      )}
+      
       {/* ── SEARCH RESULTS ── */}
-      {showSearchResults && <div className="animate-page"><SearchResultsPage /></div>}
-
+      {showSearchResults && (
+        <div className="fixed inset-0 z-[55] bg-background overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <SearchResultsPage />
+        </div>
+      )}
+      
       {/* ── REPORT MODAL ── */}
       {showReportModal && <ReportModal />}
-
+      
       {/* ── SUGGESTION BOX MODAL ── */}
       {showSuggestionBox && <SuggestionBoxModal />}
-
+      
       {/* ── POST REQUEST MODAL ── */}
       {showPostRequestModal && <PostRequestModal />}
-
+      
       {/* ── STORE PAGE ── */}
-      {viewStoreSeller && <div className="animate-page"><StorePage sellerName={viewStoreSeller} /></div>}
-
+      {viewStoreSeller && (
+        <div className="fixed inset-0 z-[60] bg-background overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <StorePage sellerName={viewStoreSeller} />
+        </div>
+      )}
+      
       {/* ── SALES STATS PAGE ── */}
-      {showSalesStats && <div className="animate-page"><SalesStatsPage /></div>}
-
+      {showSalesStats && (
+        <div className="fixed inset-0 z-[65] bg-background overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <SalesStatsPage />
+        </div>
+      )}
+      
       {/* ── NOTIFICATION PANEL ── */}
-      {showNotif && <div className="animate-page"><NotifPanel /></div>}
-
+      {showNotif && (
+        <div className="fixed inset-0 z-[70] bg-transparent overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <NotifPanel />
+        </div>
+      )}
+      
       {/* ── WISHLIST PANEL ── */}
-      {showWishlist && <div className="animate-page"><WishlistPage /></div>}
-
+      {showWishlist && (
+        <div className="fixed inset-0 z-[70] bg-transparent overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <WishlistPage />
+        </div>
+      )}
+      
       {/* ── PRODUCT DETAIL PAGE ── */}
-      {selectedProduct && <div className="animate-page"><ProductDetailPage product={selectedProduct} /></div>}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-[60] bg-background overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <ProductDetailPage product={selectedProduct} />
+        </div>
+      )}
 
       {/* ── SELL PAGE ── */}
       {activeTab === "sell" && (
-        <div className="fixed inset-0 z-50 bg-background overflow-y-auto animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-50 bg-background overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
           <SellPage />
         </div>
       )}
@@ -2531,7 +2625,7 @@ export default function App() {
             </button>
           </div>
           <div className="grid grid-cols-2 gap-3 px-4">
-            {recentProducts.map((p) => (
+            {products.filter((p) => p.id > 4 || p.isNew).slice(0, 6).map((p) => (
               <div
                 key={p.id}
                 onClick={() => setSelectedProduct(p)}
