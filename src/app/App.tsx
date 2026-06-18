@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Bell,
@@ -76,7 +76,7 @@ import {
 } from "./data";
 import type { Message, Product, RequestItem } from "./data";
 import { AppContext } from "./context";
-import type { PurchaseOrder, SalesOrder } from "./context";
+import type { PurchaseOrder, SalesOrder, ProfileSubPage, Screen } from "./context";
 import logo from "../assets/logo.png";
 import ChatPage from "./pages/ChatPage";
 import LandingPage from "./pages/LandingPage";
@@ -89,23 +89,199 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 
 export default function App() {
-  const [screen, setScreen] = useState<"landing" | "login" | "register" | "app" | "admin">(() => {
+  const [screen, setScreen] = useState<Screen>(() => {
     const path = window.location.pathname;
     if (path.includes("login.html") || path.endsWith("/login")) return "login";
-    if (path.includes("marketplace.html") || path.includes("profile.html") || path.endsWith("/marketplace") || path.endsWith("/profile")) return "app";
+    if (path.includes("register.html") || path.endsWith("/register")) return "register";
     if (path.includes("/admin/")) return "admin";
+    if (
+      path.includes("marketplace.html") ||
+      path.includes("profile.html") ||
+      path.endsWith("/marketplace") ||
+      path.endsWith("/profile") ||
+      path === "/categories" ||
+      path === "/sell" ||
+      path === "/chat" ||
+      path === "/about" ||
+      path.startsWith("/profile/")
+    ) return "app";
     return "landing";
   });
   const [activeTab, setActiveTab] = useState(() => {
     const path = window.location.pathname;
-    if (path.includes("profile.html") || path.endsWith("/profile")) return "profile";
+    if (path === "/categories") return "categories";
+    if (path === "/sell") return "sell";
+    if (path === "/chat") return "chat";
+    if (path.includes("profile.html") || path.includes("/profile") || path === "/about") return "profile";
     return "home";
   });
   const [activeBanner, setActiveBanner] = useState(0);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [profileSubPage, setProfileSubPage] = useState<null | "penjualan" | "pembelian" | "editprofil" | "editbarang">(null);
+  const [profileSubPage, setProfileSubPage] = useState<ProfileSubPage>(() => {
+    const path = window.location.pathname;
+    if (path === "/profile/penjualan") return "penjualan";
+    if (path === "/profile/pembelian") return "pembelian";
+    if (path === "/profile/edit") return "editprofil";
+    if (path === "/profile/editbarang") return "editbarang";
+    if (path === "/profile/keamanan") return "keamanan";
+    if (path === "/profile/notifikasi") return "notifikasi";
+    if (path === "/profile/bantuan") return "bantuan";
+    if (path === "/profile/kebijakan") return "kebijakan";
+    if (path === "/about") return "tentang";
+    return null;
+  });
+
+  const setScreenAndPath = (s: Screen) => {
+    setScreen(s);
+    let path = "/";
+    if (s === "login") path = "/login";
+    else if (s === "register") path = "/register";
+    else if (s === "admin") path = "/admin/dashboard";
+    else if (s === "app") {
+      if (activeTab === "home") path = "/marketplace";
+      else path = `/${activeTab}`;
+    }
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, "", path);
+    }
+  };
+
+  const setActiveTabAndPath = (t: string) => {
+    setActiveTab(t);
+    let path = t === "home" ? "/marketplace" : `/${t}`;
+    if (t === "profile") {
+      if (profileSubPage) {
+        path = profileSubPage === "tentang" ? "/about" : `/profile/${profileSubPage}`;
+      } else {
+        path = "/profile";
+      }
+    }
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, "", path);
+    }
+  };
+
+  const setProfileSubPageAndPath = (sub: ProfileSubPage) => {
+    setProfileSubPage(sub);
+    let path = "/profile";
+    if (sub) {
+      path = sub === "tentang" ? "/about" : `/profile/${sub}`;
+    }
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, "", path);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.includes("/admin/")) {
+        setScreen("admin");
+        return;
+      }
+      
+      if (path === "/login" || path.includes("login.html")) {
+        setScreen("login");
+        return;
+      }
+      if (path === "/register" || path.includes("register.html")) {
+        setScreen("register");
+        return;
+      }
+      
+      if (path === "/marketplace" || path.includes("marketplace.html")) {
+        setScreen("app");
+        setActiveTab("home");
+        setProfileSubPage(null);
+        return;
+      }
+      if (path === "/categories") {
+        setScreen("app");
+        setActiveTab("categories");
+        setProfileSubPage(null);
+        return;
+      }
+      if (path === "/sell") {
+        setScreen("app");
+        setActiveTab("sell");
+        setProfileSubPage(null);
+        return;
+      }
+      if (path === "/chat") {
+        setScreen("app");
+        setActiveTab("chat");
+        setProfileSubPage(null);
+        return;
+      }
+      if (path === "/profile" || path.includes("profile.html")) {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage(null);
+        return;
+      }
+      if (path === "/profile/penjualan") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("penjualan");
+        return;
+      }
+      if (path === "/profile/pembelian") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("pembelian");
+        return;
+      }
+      if (path === "/profile/edit") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("editprofil");
+        return;
+      }
+      if (path === "/profile/editbarang") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("editbarang");
+        return;
+      }
+      if (path === "/profile/keamanan") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("keamanan");
+        return;
+      }
+      if (path === "/profile/notifikasi") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("notifikasi");
+        return;
+      }
+      if (path === "/profile/bantuan") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("bantuan");
+        return;
+      }
+      if (path === "/profile/kebijakan") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("kebijakan");
+        return;
+      }
+      if (path === "/about") {
+        setScreen("app");
+        setActiveTab("profile");
+        setProfileSubPage("tentang");
+        return;
+      }
+      
+      setScreen("landing");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [activeTab, profileSubPage]);
   const [editingItem, setEditingItem] = useState<{ id: number; name: string; price: number; image: string; status: string } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -2001,15 +2177,15 @@ export default function App() {
   // ── SELL PAGE ──
 
   const contextValue = {
-    screen, setScreen,
-    activeTab, setActiveTab,
+    screen, setScreen: setScreenAndPath,
+    activeTab, setActiveTab: setActiveTabAndPath,
     selectedProduct, setSelectedProduct,
     wishlist, toggleWishlist,
     activeChatId, setActiveChatId,
     messages, setMessages,
     inputText, setInputText,
     chatSearch, setChatSearch,
-    profileSubPage, setProfileSubPage,
+    profileSubPage, setProfileSubPage: setProfileSubPageAndPath,
     editingItem, setEditingItem,
     showNotif, setShowNotif,
     showWishlist, setShowWishlist,

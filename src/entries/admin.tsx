@@ -180,17 +180,17 @@ function AdminApp() {
 
   // Determine Tab
   let defaultTab: any = "dashboard";
-  if (path.includes("users.html")) {
+  if (path.includes("users.html") || path.includes("/admin/users")) {
     defaultTab = "users";
-  } else if (path.includes("listings.html")) {
+  } else if (path.includes("listings.html") || path.includes("/admin/listings")) {
     defaultTab = "listings";
-  } else if (path.includes("reports.html")) {
+  } else if (path.includes("reports.html") || path.includes("/admin/reports")) {
     defaultTab = "reports";
-  } else if (path.includes("payments.html")) {
+  } else if (path.includes("payments.html") || path.includes("/admin/payments")) {
     const hash = currentHash.replace("#", "");
     defaultTab = hash === "subscriptions" ? "subscriptions" : "transactions";
   } else {
-    // dashboard.html
+    // dashboard.html / clean path dashboard
     const hash = currentHash.replace("#", "");
     const validTabs = ["dashboard", "sellers", "categories", "admins", "settings"];
     defaultTab = validTabs.includes(hash) ? hash : "dashboard";

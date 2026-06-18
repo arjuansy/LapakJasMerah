@@ -1,8 +1,9 @@
 import { createContext, useContext } from "react";
 import type { Message, Product } from "./data";
 
-export type ProfileSubPage = null | "penjualan" | "pembelian" | "editprofil" | "editbarang" | "keamanan" | "notifikasi" | "bantuan" | "kebijakan";
+export type ProfileSubPage = null | "penjualan" | "pembelian" | "editprofil" | "editbarang" | "keamanan" | "notifikasi" | "bantuan" | "kebijakan" | "tentang";
 export type Screen = "landing" | "login" | "register" | "app" | "admin";
+
 export type EditingItem = { id: number; name: string; price: number; image: string; status: string };
 export type TrackingOrder = {
   id: string; product: string; image: string; seller: string;

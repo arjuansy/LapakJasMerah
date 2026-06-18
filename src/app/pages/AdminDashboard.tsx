@@ -581,8 +581,9 @@ export default function AdminDashboard({
 
                       const basePath = window.location.pathname.split("/admin/")[0];
                       const currentHtml = window.location.pathname.split("/").pop() || "";
+                      const normalizedCurrent = currentHtml.endsWith(".html") ? currentHtml : (currentHtml ? `${currentHtml}.html` : "dashboard.html");
                       
-                      if (currentHtml === pageName) {
+                      if (normalizedCurrent === pageName) {
                         window.location.hash = hash;
                         setActiveTab(item.id as any);
                         setSidebarOpen(false);

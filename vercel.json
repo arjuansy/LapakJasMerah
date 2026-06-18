@@ -1,0 +1,93 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/admin/login",
+      "destination": "/admin/login.html"
+    },
+    {
+      "source": "/admin/dashboard",
+      "destination": "/admin/dashboard.html"
+    },
+    {
+      "source": "/admin/users",
+      "destination": "/admin/users.html"
+    },
+    {
+      "source": "/admin/listings",
+      "destination": "/admin/listings.html"
+    },
+    {
+      "source": "/admin/reports",
+      "destination": "/admin/reports.html"
+    },
+    {
+      "source": "/admin/payments",
+      "destination": "/admin/payments.html"
+    },
+    {
+      "source": "/marketplace",
+      "destination": "/marketplace.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/register",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/categories",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/sell",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/chat",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/profile/penjualan",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/pembelian",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/edit",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/editbarang",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/keamanan",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/notifikasi",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/bantuan",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/profile/kebijakan",
+      "destination": "/profile.html"
+    }
+  ]
+}
