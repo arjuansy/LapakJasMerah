@@ -76,6 +76,8 @@ import {
 } from "./data";
 import type { Message, Product, RequestItem } from "./data";
 import { AppContext } from "./context";
+import type { PurchaseOrder, SalesOrder } from "./context";
+import logo from "../assets/logo.png";
 import ChatPage from "./pages/ChatPage";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
@@ -126,8 +128,24 @@ export default function App() {
   const [trackingOrder, setTrackingOrder] = useState<{
     id: string; product: string; image: string; seller: string;
     price: number; qty: number; payment: string; location: string;
-    status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai";
+    status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
   } | null>(null);
+
+  const [purchaseData, setPurchaseData] = useState<PurchaseOrder[]>([
+    { id: "ORD-101", product: "Powerbank 20000mAh", price: 220000, seller: "ElektroMurahMlg", sellerAvatar: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=60&h=60&fit=crop&auto=format", date: "17 Jun 2026", status: "diproses", image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=120&h=120&fit=crop&auto=format", qty: 1 },
+    { id: "ORD-102", product: "Nasi Kotak Menu Lengkap", price: 75000, seller: "MakanEnak_UMM", sellerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=60&h=60&fit=crop&auto=format", date: "15 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=120&h=120&fit=crop&auto=format", qty: 5 },
+    { id: "ORD-103", product: "Jasa Desain Poster", price: 35000, seller: "DesainCreative22", sellerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&auto=format", date: "10 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=120&h=120&fit=crop&auto=format", qty: 1 },
+    { id: "ORD-104", product: "Kalkulator Casio FX-991", price: 180000, seller: "TokoBukuUMM", sellerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&auto=format", date: "3 Jun 2026", status: "dibatalkan", image: "https://images.unsplash.com/photo-1574607383077-39ca78e7dd51?w=120&h=120&fit=crop&auto=format", qty: 1 },
+  ]);
+
+  const [salesData, setSalesData] = useState<SalesOrder[]>([
+    { id: "TRX-001", product: "Laptop Asus VivoBook 14", price: 4500000, buyer: "Dinda_Psikologi", buyerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&auto=format", date: "17 Jun 2026", status: "diproses", image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=120&h=120&fit=crop&auto=format", qty: 1 },
+    { id: "TRX-002", product: "Kalkulator Casio FX-991", price: 180000, buyer: "Arief_Teknik22", buyerAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&auto=format", date: "15 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1574607383077-39ca78e7dd51?w=120&h=120&fit=crop&auto=format", qty: 2 },
+    { id: "TRX-003", product: "Buku Metode Penelitian", price: 45000, buyer: "Siti_FKIP23", buyerAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&auto=format", date: "12 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&auto=format", qty: 1 },
+    { id: "TRX-004", product: "Earphone Bluetooth TWS", price: 95000, buyer: "Budi_FEB21", buyerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&auto=format", date: "10 Jun 2026", status: "dibatalkan", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=120&h=120&fit=crop&auto=format", qty: 1 },
+    { id: "TRX-005", product: "Jaket Almamater UMM", price: 185000, buyer: "Hana_Hukum22", buyerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=60&h=60&fit=crop&auto=format", date: "8 Jun 2026", status: "diproses", image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=120&h=120&fit=crop&auto=format", qty: 1 },
+  ]);
+
   const [profileAvatar, setProfileAvatar] = useState<string>("https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop&auto=format");
   const [profileBanner, setProfileBanner] = useState<string>("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80");
 
@@ -195,8 +213,10 @@ export default function App() {
     };
 
     function launchTracking() {
-      setTrackingOrder({
-        id: `ORD-${Date.now().toString().slice(-6)}`,
+      const orderIdNum = Date.now().toString().slice(-6);
+      const orderId = `ORD-${orderIdNum}`;
+      const newOrderData = {
+        id: orderId,
         product: product.name,
         image: product.image,
         seller: product.seller,
@@ -204,8 +224,33 @@ export default function App() {
         qty,
         payment: paymentLabels[selectedPayment] ?? selectedPayment,
         location: product.location,
-        status: "dikonfirmasi",
-      });
+        status: "dikonfirmasi" as const,
+      };
+
+      setTrackingOrder(newOrderData);
+
+      // Add to purchaseData (acting as buyer)
+      const newPurchase: PurchaseOrder = {
+        ...newOrderData,
+        sellerAvatar: sellerAvatar,
+        date: "Hari ini",
+      };
+      setPurchaseData((prev) => [newPurchase, ...prev]);
+
+      // Add to salesData (acting as seller)
+      const newSale: SalesOrder = {
+        id: `TRX-${orderIdNum}`,
+        product: product.name,
+        price: product.price,
+        buyer: "Ahmad Rizky", // Current user
+        buyerAvatar: profileAvatar,
+        date: "Hari ini",
+        status: "dikonfirmasi" as const,
+        image: product.image,
+        qty,
+      };
+      setSalesData((prev) => [newSale, ...prev]);
+
       setOrdered(false);
       setSelectedProduct(null);
     }
@@ -1979,6 +2024,8 @@ export default function App() {
     globalSearch, setGlobalSearch,
     showSearchResults, setShowSearchResults,
     trackingOrder, setTrackingOrder,
+    purchaseData, setPurchaseData,
+    salesData, setSalesData,
     profileAvatar, setProfileAvatar,
     profileBanner, setProfileBanner,
   };
@@ -2075,8 +2122,8 @@ export default function App() {
           {/* Top row */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-primary font-black text-xs leading-none">UMM</span>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="text-white/70 text-[10px] leading-none mb-0.5">Selamat datang 👋</p>

@@ -7,7 +7,31 @@ export type EditingItem = { id: number; name: string; price: number; image: stri
 export type TrackingOrder = {
   id: string; product: string; image: string; seller: string;
   price: number; qty: number; payment: string; location: string;
-  status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai";
+  status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
+};
+
+export type PurchaseOrder = {
+  id: string;
+  product: string;
+  price: number;
+  seller: string;
+  sellerAvatar: string;
+  date: string;
+  status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
+  image: string;
+  qty: number;
+};
+
+export type SalesOrder = {
+  id: string;
+  product: string;
+  price: number;
+  buyer: string;
+  buyerAvatar: string;
+  date: string;
+  status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
+  image: string;
+  qty: number;
 };
 
 export type AppContextType = {
@@ -66,6 +90,10 @@ export type AppContextType = {
   setShowSearchResults: (v: boolean) => void;
   trackingOrder: TrackingOrder | null;
   setTrackingOrder: (o: TrackingOrder | null) => void;
+  purchaseData: PurchaseOrder[];
+  setPurchaseData: React.Dispatch<React.SetStateAction<PurchaseOrder[]>>;
+  salesData: SalesOrder[];
+  setSalesData: React.Dispatch<React.SetStateAction<SalesOrder[]>>;
   profileAvatar: string;
   setProfileAvatar: (url: string) => void;
   profileBanner: string;
@@ -74,3 +102,4 @@ export type AppContextType = {
 
 export const AppContext = createContext<AppContextType>(null!);
 export const useApp = () => useContext(AppContext);
+

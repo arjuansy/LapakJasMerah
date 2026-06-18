@@ -37,32 +37,29 @@ const STEPS = [
   },
 ] as const;
 
-type Status = "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai";
+type Status = "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
 
 export default function OrderTrackingPage() {
-  const { trackingOrder, setTrackingOrder, setActiveTab } = useApp();
+  const {
+    trackingOrder,
+    setTrackingOrder,
+    setActiveTab,
+    purchaseData,
+    setPurchaseData,
+    salesData,
+    setSalesData,
+  } = useApp();
   const [showReview, setShowReview] = useState(false);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [simulatedStatus, setSimulatedStatus] = useState<Status>(
-    trackingOrder?.status ?? "dikonfirmasi"
-  );
-
-  // Auto-progress demo every 4 seconds
-  useEffect(() => {
-    if (simulatedStatus === "selesai") return;
-    const order: Status[] = ["dikonfirmasi", "diproses", "menuju_lokasi", "selesai"];
-    const next = order[order.indexOf(simulatedStatus) + 1];
-    if (!next) return;
-    const t = setTimeout(() => setSimulatedStatus(next), 4000);
-    return () => clearTimeout(t);
-  }, [simulatedStatus]);
 
   if (!trackingOrder) return null;
 
-  const currentIdx = STEPS.findIndex((s) => s.key === simulatedStatus);
+  const currentStatus = trackingOrder.status;
+
+  const currentIdx = Math.max(0, STEPS.findIndex((s) => s.key === currentStatus));
   const currentStep = STEPS[currentIdx];
 
   const estimateMap: Record<Status, string> = {
@@ -70,7 +67,29 @@ export default function OrderTrackingPage() {
     diproses: "Estimasi COD: ±20 menit",
     menuju_lokasi: "Estimasi COD: ±5 menit",
     selesai: "Transaksi selesai",
+    dibatalkan: "Transaksi dibatalkan",
   };
+
+  function handleConfirmReceipt() {
+    if (!trackingOrder) return;
+    const orderIdNum = trackingOrder.id.slice(-6);
+
+    // Update active trackingOrder
+    setTrackingOrder({
+      ...trackingOrder,
+      status: "selesai",
+    });
+
+    // Update purchase list
+    setPurchaseData((prev) =>
+      prev.map((p) => p.id === trackingOrder.id ? { ...p, status: "selesai" } : p)
+    );
+
+    // Update sales list
+    setSalesData((prev) =>
+      prev.map((s) => s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
+    );
+  }
 
   function handleCopyId() {
     setCopied(true);
@@ -179,7 +198,7 @@ export default function OrderTrackingPage() {
           </button>
           <div className="flex-1">
             <h1 className="text-white font-black text-lg">Lacak Pesanan</h1>
-            <p className="text-white/60 text-[11px]">{estimateMap[simulatedStatus]}</p>
+            <p className="text-white/60 text-[11px]">{estimateMap[currentStatus]}</p>
           </div>
           <button className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <Share2 size={16} className="text-white" />
@@ -202,7 +221,7 @@ export default function OrderTrackingPage() {
               <p className="text-white font-black text-sm">{currentStep.label}</p>
               <p className="text-white/70 text-[11px]">{currentStep.sub}</p>
             </div>
-            {simulatedStatus !== "selesai" && (
+            {currentStatus !== "selesai" && currentStatus !== "dibatalkan" && (
               <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin shrink-0" />
             )}
           </div>
@@ -283,7 +302,7 @@ export default function OrderTrackingPage() {
                         >
                           {step.label}
                         </p>
-                        {active && simulatedStatus !== "selesai" && (
+                         {active && currentStatus !== "selesai" && currentStatus !== "dibatalkan" && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                             style={{ background: step.color + "20", color: step.color }}>
                             Sekarang
@@ -352,14 +371,14 @@ export default function OrderTrackingPage() {
         <div className="px-4 pt-4">
           <div className="flex items-center gap-2 justify-center text-muted-foreground text-xs">
             <RefreshCw size={11} className="animate-spin" style={{ animationDuration: "3s" }} />
-            Status diperbarui otomatis setiap beberapa menit
+            Menunggu konfirmasi proses dari penjual...
           </div>
         </div>
       </div>
 
       {/* Bottom actions */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 shadow-2xl z-10" style={{ maxWidth: 430 }}>
-        {simulatedStatus === "selesai" ? (
+        {currentStatus === "selesai" ? (
           <div className="space-y-2">
             <button
               onClick={() => setShowReview(true)}
@@ -374,6 +393,13 @@ export default function OrderTrackingPage() {
               Kembali ke Beranda
             </button>
           </div>
+        ) : currentStatus === "dibatalkan" ? (
+          <button
+            onClick={() => { setTrackingOrder(null); setActiveTab("home"); }}
+            className="w-full bg-secondary border border-border text-foreground font-bold py-3.5 rounded-2xl text-sm"
+          >
+            Kembali ke Beranda
+          </button>
         ) : (
           <div className="flex gap-2">
             <button
@@ -383,7 +409,7 @@ export default function OrderTrackingPage() {
               <MessageSquare size={15} /> Chat Penjual
             </button>
             <button
-              onClick={() => setSimulatedStatus("selesai")}
+              onClick={handleConfirmReceipt}
               className="flex-1 bg-primary text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
             >
               <CheckCircle2 size={15} /> Konfirmasi Terima

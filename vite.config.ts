@@ -28,6 +28,7 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      '@vercel/analytics/next': '@vercel/analytics/react',
     },
   },
 

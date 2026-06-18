@@ -37,37 +37,65 @@ import {
   Flag,
   ShoppingBag,
   Search,
+  Clock,
 } from "lucide-react";
 import { useApp } from "../context";
 import { formatPrice, productDescriptions } from "../data";
 
 // ── DAFTAR PENJUALAN ──
 function SalesPage() {
-  const { setProfileSubPage, setShowReportModal } = useApp();
+  const {
+    setProfileSubPage,
+    setShowReportModal,
+    salesData,
+    setSalesData,
+    purchaseData,
+    setPurchaseData,
+    trackingOrder,
+    setTrackingOrder,
+    setActiveTab,
+  } = useApp();
   const [salesTab, setSalesTab] = useState<"semua" | "proses" | "selesai" | "dibatalkan">("semua");
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
-  const [salesData, setSalesData] = useState([
-    { id: "TRX-001", product: "Laptop Asus VivoBook 14", price: 4500000, buyer: "Dinda_Psikologi", buyerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&auto=format", date: "17 Jun 2026", status: "proses", image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=120&h=120&fit=crop&auto=format", qty: 1 },
-    { id: "TRX-002", product: "Kalkulator Casio FX-991", price: 180000, buyer: "Arief_Teknik22", buyerAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&auto=format", date: "15 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1574607383077-39ca78e7dd51?w=120&h=120&fit=crop&auto=format", qty: 2 },
-    { id: "TRX-003", product: "Buku Metode Penelitian", price: 45000, buyer: "Siti_FKIP23", buyerAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&auto=format", date: "12 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&auto=format", qty: 1 },
-    { id: "TRX-004", product: "Earphone Bluetooth TWS", price: 95000, buyer: "Budi_FEB21", buyerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&auto=format", date: "10 Jun 2026", status: "dibatalkan", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=120&h=120&fit=crop&auto=format", qty: 1 },
-    { id: "TRX-005", product: "Jaket Almamater UMM", price: 185000, buyer: "Hana_Hukum22", buyerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=60&h=60&fit=crop&auto=format", date: "8 Jun 2026", status: "proses", image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=120&h=120&fit=crop&auto=format", qty: 1 },
-  ]);
 
   const statusConfig = {
-    proses:      { label: "Diproses",   bg: "#FEF3C7", text: "#92400E" },
-    selesai:     { label: "Selesai",    bg: "#D1FAE5", text: "#065F46" },
-    dibatalkan:  { label: "Dibatalkan", bg: "#FEE2E2", text: "#991B1B" },
+    dikonfirmasi: { label: "Dikonfirmasi", bg: "#E0F2FE", text: "#0369A1" },
+    diproses:     { label: "Diproses",     bg: "#FEF3C7", text: "#92400E" },
+    menuju_lokasi:{ label: "Menuju COD",   bg: "#F5F3FF", text: "#6D28D9" },
+    selesai:      { label: "Selesai",      bg: "#D1FAE5", text: "#065F46" },
+    dibatalkan:   { label: "Dibatalkan",   bg: "#FEE2E2", text: "#991B1B" },
   };
 
-  function confirmShipped(id: string) {
+  function updateOrderStatus(saleId: string, newStatus: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan") {
     setSalesData((prev) =>
-      prev.map((s) => s.id === id ? { ...s, status: "selesai" } : s)
+      prev.map((s) => s.id === saleId ? { ...s, status: newStatus } : s)
     );
+
+    const orderIdNum = saleId.slice(-6);
+
+    setPurchaseData((prev) =>
+      prev.map((p) => p.id.slice(-6) === orderIdNum ? { ...p, status: newStatus } : p)
+    );
+
+    if (trackingOrder && trackingOrder.id.slice(-6) === orderIdNum) {
+      setTrackingOrder({
+        ...trackingOrder,
+        status: newStatus,
+      });
+    }
+  }
+
+  function confirmShipped(id: string) {
+    updateOrderStatus(id, "selesai");
     setShowConfirmModal(null);
   }
 
-  const filtered = salesTab === "semua" ? salesData : salesData.filter((s) => s.status === salesTab);
+  const filtered = salesTab === "semua"
+    ? salesData
+    : salesTab === "proses"
+      ? salesData.filter((s) => s.status === "dikonfirmasi" || s.status === "diproses" || s.status === "menuju_lokasi")
+      : salesData.filter((s) => s.status === salesTab);
+
   const totalPendapatan = salesData.filter((s) => s.status === "selesai").reduce((sum, s) => sum + s.price * s.qty, 0);
 
   return (
@@ -96,7 +124,9 @@ function SalesPage() {
               <p className="text-white/60 text-[10px] mt-0.5">Selesai</p>
             </div>
             <div>
-              <p className="text-white font-black text-lg leading-none">{salesData.filter((s) => s.status === "proses").length}</p>
+              <p className="text-white font-black text-lg leading-none">
+                {salesData.filter((s) => s.status === "dikonfirmasi" || s.status === "diproses" || s.status === "menuju_lokasi").length}
+              </p>
               <p className="text-white/60 text-[10px] mt-0.5">Proses</p>
             </div>
           </div>
@@ -124,7 +154,7 @@ function SalesPage() {
           </div>
         )}
         {filtered.map((sale) => {
-          const cfg = statusConfig[sale.status as keyof typeof statusConfig];
+          const cfg = statusConfig[sale.status as keyof typeof statusConfig] || { label: sale.status, bg: "#E5E7EB", text: "#374151" };
           return (
             <div key={sale.id} className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
               {/* Header row */}
@@ -150,21 +180,54 @@ function SalesPage() {
               </div>
 
               {/* Actions */}
-              {sale.status === "proses" && (
-                <div className="flex gap-2 px-4 pb-3">
-                  <button className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl">Chat Pembeli</button>
-                  <button
-                    onClick={() => setShowConfirmModal(sale.id)}
-                    className="flex-1 bg-primary text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
-                  >
-                    Konfirmasi Dikirim
-                  </button>
-                  <button
-                    onClick={() => setShowReportModal({ type: "pembeli", name: sale.buyer })}
-                    className="w-8 h-8 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center shrink-0"
-                  >
-                    <Flag size={13} className="text-red-500" />
-                  </button>
+              {(sale.status === "dikonfirmasi" || sale.status === "diproses" || sale.status === "menuju_lokasi") && (
+                <div className="flex flex-col gap-2 px-4 pb-3">
+                  <div className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1 bg-muted/30 p-2 rounded-xl border border-border/40">
+                    <Clock size={11} className="text-primary animate-pulse shrink-0" />
+                    <span>
+                      {sale.status === "dikonfirmasi" && "Pesanan baru masuk, harap konfirmasi untuk mulai menyiapkan."}
+                      {sale.status === "diproses" && "Barang sedang disiapkan. Klik kirim jika siap bertemu."}
+                      {sale.status === "menuju_lokasi" && "Sedang menuju lokasi COD."}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setProfileSubPage(null); setActiveTab("chat"); }}
+                      className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl"
+                    >
+                      Chat Pembeli
+                    </button>
+                    {sale.status === "dikonfirmasi" && (
+                      <button
+                        onClick={() => updateOrderStatus(sale.id, "diproses")}
+                        className="flex-1 bg-primary text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                      >
+                        Siapkan Barang
+                      </button>
+                    )}
+                    {sale.status === "diproses" && (
+                      <button
+                        onClick={() => updateOrderStatus(sale.id, "menuju_lokasi")}
+                        className="flex-1 bg-amber-500 text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                      >
+                        Kirim ke COD
+                      </button>
+                    )}
+                    {sale.status === "menuju_lokasi" && (
+                      <button
+                        onClick={() => setShowConfirmModal(sale.id)}
+                        className="flex-1 bg-green-600 text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                      >
+                        Selesaikan
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowReportModal({ type: "pembeli", name: sale.buyer })}
+                      className="w-8 h-8 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center shrink-0"
+                    >
+                      <Flag size={13} className="text-red-500" />
+                    </button>
+                  </div>
                 </div>
               )}
               {sale.status === "selesai" && (
@@ -231,28 +294,50 @@ function SalesPage() {
 
 // ── DAFTAR PEMBELIAN ──
 function PurchasePage() {
-  const { setProfileSubPage, setActiveTab: setGlobalTab } = useApp();
+  const {
+    setProfileSubPage,
+    setActiveTab: setGlobalTab,
+    purchaseData,
+    setPurchaseData,
+    salesData,
+    setSalesData,
+    trackingOrder,
+    setTrackingOrder,
+  } = useApp();
   const [purchaseTab, setPurchaseTab] = useState<"semua" | "diproses" | "selesai" | "dibatalkan">("semua");
   const [showConfirmReceive, setShowConfirmReceive] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitted, setReviewSubmitted] = useState<string[]>([]);
-  const [purchaseData, setPurchaseData] = useState([
-    { id: "ORD-101", product: "Powerbank 20000mAh", price: 220000, seller: "ElektroMurahMlg", sellerAvatar: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=60&h=60&fit=crop&auto=format", date: "17 Jun 2026", status: "diproses", image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=120&h=120&fit=crop&auto=format", qty: 1 },
-    { id: "ORD-102", product: "Nasi Kotak Menu Lengkap", price: 75000, seller: "MakanEnak_UMM", sellerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=60&h=60&fit=crop&auto=format", date: "15 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=120&h=120&fit=crop&auto=format", qty: 5 },
-    { id: "ORD-103", product: "Jasa Desain Poster", price: 35000, seller: "DesainCreative22", sellerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&auto=format", date: "10 Jun 2026", status: "selesai", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=120&h=120&fit=crop&auto=format", qty: 1 },
-    { id: "ORD-104", product: "Kalkulator Casio FX-991", price: 180000, seller: "TokoBukuUMM", sellerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&auto=format", date: "3 Jun 2026", status: "dibatalkan", image: "https://images.unsplash.com/photo-1574607383077-39ca78e7dd51?w=120&h=120&fit=crop&auto=format", qty: 1 },
-  ]);
 
   const statusConfig = {
-    diproses:   { label: "Diproses",   bg: "#FEF3C7", text: "#92400E" },
-    selesai:    { label: "Selesai",    bg: "#D1FAE5", text: "#065F46" },
-    dibatalkan: { label: "Dibatalkan", bg: "#FEE2E2", text: "#991B1B" },
+    dikonfirmasi: { label: "Dikonfirmasi", bg: "#E0F2FE", text: "#0369A1" },
+    diproses:     { label: "Diproses",     bg: "#FEF3C7", text: "#92400E" },
+    menuju_lokasi:{ label: "Menuju COD",   bg: "#F5F3FF", text: "#6D28D9" },
+    selesai:      { label: "Selesai",      bg: "#D1FAE5", text: "#065F46" },
+    dibatalkan:   { label: "Dibatalkan",   bg: "#FEE2E2", text: "#991B1B" },
   };
 
   function confirmReceive(id: string) {
+    const orderIdNum = id.slice(-6);
+
+    // Update purchase list
     setPurchaseData((prev) => prev.map((p) => p.id === id ? { ...p, status: "selesai" } : p));
+
+    // Update sales list
+    setSalesData((prev) =>
+      prev.map((s) => s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
+    );
+
+    // Update active trackingOrder
+    if (trackingOrder && trackingOrder.id.slice(-6) === orderIdNum) {
+      setTrackingOrder({
+        ...trackingOrder,
+        status: "selesai",
+      });
+    }
+
     setShowConfirmReceive(null);
   }
 
@@ -263,7 +348,12 @@ function PurchasePage() {
     setReviewRating(5);
   }
 
-  const filtered = purchaseTab === "semua" ? purchaseData : purchaseData.filter((p) => p.status === purchaseTab);
+  const filtered = purchaseTab === "semua"
+    ? purchaseData
+    : purchaseTab === "diproses"
+      ? purchaseData.filter((p) => p.status === "dikonfirmasi" || p.status === "diproses" || p.status === "menuju_lokasi")
+      : purchaseData.filter((p) => p.status === purchaseTab);
+
   const totalBelanja = purchaseData.filter((p) => p.status === "selesai").reduce((sum, p) => sum + p.price * p.qty, 0);
 
   return (
@@ -292,7 +382,9 @@ function PurchasePage() {
               <p className="text-white/60 text-[10px] mt-0.5">Selesai</p>
             </div>
             <div>
-              <p className="text-white font-black text-lg leading-none">{purchaseData.filter((p) => p.status === "diproses").length}</p>
+              <p className="text-white font-black text-lg leading-none">
+                {purchaseData.filter((p) => p.status === "dikonfirmasi" || p.status === "diproses" || p.status === "menuju_lokasi").length}
+              </p>
               <p className="text-white/60 text-[10px] mt-0.5">Diproses</p>
             </div>
           </div>
@@ -320,7 +412,7 @@ function PurchasePage() {
           </div>
         )}
         {filtered.map((order) => {
-          const cfg = statusConfig[order.status as keyof typeof statusConfig];
+          const cfg = statusConfig[order.status as keyof typeof statusConfig] || { label: order.status, bg: "#E5E7EB", text: "#374151" };
           const isReviewed = reviewSubmitted.includes(order.id);
           return (
             <div key={order.id} className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -347,46 +439,49 @@ function PurchasePage() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 px-4 pb-3">
-                {order.status === "diproses" && (
-                  <>
-                    <button className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl">Chat Penjual</button>
+              {(order.status === "dikonfirmasi" || order.status === "diproses" || order.status === "menuju_lokasi") && (
+                <div className="flex gap-2 px-4 pb-3">
+                  <button
+                    onClick={() => { setProfileSubPage(null); setGlobalTab("chat"); }}
+                    className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl"
+                  >
+                    Chat Penjual
+                  </button>
+                  <button
+                    onClick={() => setShowConfirmReceive(order.id)}
+                    className="flex-1 bg-primary text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                  >
+                    Konfirmasi Terima
+                  </button>
+                </div>
+              )}
+              {order.status === "selesai" && (
+                <div className="flex gap-2 px-4 pb-3">
+                  <button
+                    onClick={() => { setProfileSubPage(null); setGlobalTab("home"); }}
+                    className="flex-1 bg-secondary border border-border text-foreground text-xs font-bold py-2 rounded-xl"
+                  >
+                    Beli Lagi
+                  </button>
+                  {isReviewed ? (
+                    <div className="flex-1 bg-green-50 border border-green-200 text-green-700 text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1">
+                      <CheckCircle2 size={11} /> Diulas
+                    </div>
+                  ) : (
                     <button
-                      onClick={() => setShowConfirmReceive(order.id)}
-                      className="flex-1 bg-primary text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                      onClick={() => setShowReviewModal(order.id)}
+                      className="flex-1 bg-accent text-foreground text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1"
                     >
-                      Konfirmasi Terima
+                      <Star size={11} /> Beri Ulasan
                     </button>
-                  </>
-                )}
-                {order.status === "selesai" && (
-                  <>
-                    <button
-                      onClick={() => { setProfileSubPage(null); setGlobalTab("home"); }}
-                      className="flex-1 bg-secondary border border-border text-foreground text-xs font-bold py-2 rounded-xl"
-                    >
-                      Beli Lagi
-                    </button>
-                    {isReviewed ? (
-                      <div className="flex-1 bg-green-50 border border-green-200 text-green-700 text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1">
-                        <CheckCircle2 size={11} /> Diulas
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setShowReviewModal(order.id)}
-                        className="flex-1 bg-accent text-foreground text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1"
-                      >
-                        <Star size={11} /> Beri Ulasan
-                      </button>
-                    )}
-                  </>
-                )}
-                {order.status === "dibatalkan" && (
-                  <div className="flex-1 text-[11px] text-muted-foreground flex items-center gap-1.5 py-1">
-                    <AlertCircle size={11} className="text-red-400 shrink-0" /> Pesanan dibatalkan oleh sistem
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
+              {order.status === "dibatalkan" && (
+                <div className="flex-1 text-[11px] text-muted-foreground flex items-center gap-1.5 py-1">
+                  <AlertCircle size={11} className="text-red-400 shrink-0" /> Pesanan dibatalkan oleh sistem
+                </div>
+              )}
             </div>
           );
         })}

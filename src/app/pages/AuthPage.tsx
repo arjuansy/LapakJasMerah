@@ -10,6 +10,7 @@ import {
   Info,
 } from "lucide-react";
 import { useApp } from "../context";
+import logo from "../../assets/logo.png";
 
 export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const { setScreen } = useApp();
@@ -121,10 +122,10 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
               <ArrowLeft size={18} className="text-white" />
             </button>
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-primary font-black text-[11px]">UMM</span>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
               </div>
-              <span className="text-white font-black text-base">Marketplace</span>
+              <span className="text-white font-black text-base">LapakJasMerah</span>
             </div>
           </div>
           <div className="relative z-10 px-6 pt-5">
@@ -546,10 +547,10 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-primary font-black text-[11px]">UMM</span>
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="text-white font-black text-base">Marketplace</span>
+            <span className="text-white font-black text-base">LapakJasMerah</span>
           </div>
         </div>
 

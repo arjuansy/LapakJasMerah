@@ -1,6 +1,7 @@
 import { Shield, Tag, MessageSquare, MapPin, Star, Zap, ShoppingBag } from "lucide-react";
 import { useApp } from "../context";
 import { allProducts, formatPrice } from "../data";
+import logo from "../../assets/logo.png";
 
 export default function LandingPage() {
   const { setScreen } = useApp();
@@ -39,11 +40,11 @@ export default function LandingPage() {
           {/* Logo row */}
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-primary font-black text-sm">UMM</span>
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
-                <p className="text-white font-black text-lg leading-none">Marketplace</p>
+                <p className="text-white font-black text-lg leading-none">LapakJasMerah</p>
                 <p className="text-white/60 text-[11px]">Universitas Muhammadiyah Malang</p>
               </div>
             </div>

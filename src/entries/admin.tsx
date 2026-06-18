@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { useState, useEffect } from "react";
 import AdminDashboard from "../app/pages/AdminDashboard";
 import { Shield, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Analytics } from "@vercel/analytics/next";
 import "../styles/index.css";
 
 // Admin Accounts list matching initial admins in data
@@ -205,4 +206,9 @@ function AdminApp() {
   return <AdminDashboard onLogout={handleLogout} defaultTab={defaultTab} />;
 }
 
-createRoot(document.getElementById("root")!).render(<AdminApp />);
+createRoot(document.getElementById("root")!).render(
+  <>
+    <AdminApp />
+    <Analytics />
+  </>
+);
