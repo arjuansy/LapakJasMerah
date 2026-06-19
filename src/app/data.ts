@@ -207,17 +207,6 @@ export interface Product {
   isNew?: boolean;
 }
 
-    { id: 3, text: "Sini aja kak, ini detailnya: tema hijau, logo UMM, tanggal 20 Juni", fromMe: true, time: "Kemarin 08:10", status: "read" },
-    { id: 4, text: "Revisi sudah saya kirim via email ya", fromMe: false, time: "Kemarin 19:30", status: "read" },
-  ],
-  5: [
-    { id: 1, text: "Pesan nasi kotak 5 porsi untuk besok bisa kak?", fromMe: true, time: "Senin 10:00", status: "read" },
-    { id: 2, text: "Bisa kak! Menu apa yang diinginkan?", fromMe: false, time: "Senin 10:02", status: "read" },
-    { id: 3, text: "Mix menu aja kak, anggaran 15rb/kotak", fromMe: true, time: "Senin 10:05", status: "read" },
-    { id: 4, text: "Pesanan 5 kotak sudah siap kak!", fromMe: false, time: "Senin 11:00", status: "read" },
-  ],
-};
-
 export const extraProducts: Product[] = [
   { id: 11, name: "Buku Statistika Terapan", price: 55000, rating: 4.6, sold: 31, image: "https://images.unsplash.com/photo-1509266272358-7701da638078?w=300&h=300&fit=crop&auto=format", seller: "BukuBekas_Malang", location: "Sengkaling" },
   { id: 12, name: "Modul Praktikum Kimia UMM", price: 30000, rating: 4.8, sold: 67, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=300&fit=crop&auto=format", seller: "TokoBukuUMM", location: "Kampus 2" },
