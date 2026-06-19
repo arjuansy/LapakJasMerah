@@ -513,19 +513,28 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           </button>
         </div>
 
-        <div className="mt-8 text-center flex flex-col items-center">
-          <p className="text-muted-foreground text-xs font-semibold">
-            {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
-          </p>
+        <div className="mt-8 text-center flex flex-col items-center gap-5">
+          <div>
+            <p className="text-muted-foreground text-xs font-semibold">
+              {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
+            </p>
+            <button
+              onClick={() => {
+                setErrors({});
+                setForm({ nim: "", email: "", name: "", password: "", newPassword: "" });
+                navigate(isLogin ? "/register" : "/login");
+              }}
+              className="text-primary font-black text-sm mt-1"
+            >
+              {isLogin ? "Daftar Sekarang" : "Masuk di sini"}
+            </button>
+          </div>
+
           <button
-            onClick={() => {
-              setErrors({});
-              setForm({ nim: "", email: "", name: "", password: "", newPassword: "" });
-              navigate(isLogin ? "/register" : "/login");
-            }}
-            className="text-primary font-black text-sm mt-1"
+            onClick={() => navigate("/")}
+            className="text-muted-foreground font-bold text-xs hover:text-foreground transition-colors py-2 px-6 rounded-full border-2 border-border/50 hover:border-border active:scale-95"
           >
-            {isLogin ? "Daftar Sekarang" : "Masuk di sini"}
+            Lewati untuk lihat-lihat
           </button>
         </div>
       </div>
