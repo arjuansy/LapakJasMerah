@@ -4,8 +4,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import api from "./api";
 
 import {
-  categories, banners, recentProducts, chatContacts, initialMessages,
-  extraProducts, allProducts, sellerAvatars, productDescriptions, formatPrice, requestBoard, notifData
+  categories, banners, recentProducts, initialMessages,
+  extraProducts, allProducts, sellerAvatars, productDescriptions, formatPrice, requestBoard
 } from "./data";
 import type { Message, Product, RequestItem } from "./data";
 import { AppContext } from "./context";
@@ -71,6 +71,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<any>(null);
   const [trackingOrder, setTrackingOrder] = useState<TrackingOrder | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadChatCount, setUnreadChatCount] = useState<number>(0);
 
   const toggleWishlist = async (id: string) => {
     if (!user) {
@@ -244,9 +246,71 @@ export default function App() {
         formattedSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setSalesData(formattedSales);
       }
+
+      // Fetch Notifications
+      const { data: notifs } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (notifs) setNotifications(notifs);
+
+      // Fetch Unread Chats count
+      const fetchUnreadChats = async () => {
+        // Find chats where user is participant
+        const { data: myChats } = await supabase
+          .from('chats')
+          .select('id')
+          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+        
+        if (myChats && myChats.length > 0) {
+          const chatIds = myChats.map(c => c.id);
+          const { count } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .in('chat_id', chatIds)
+            .eq('is_read', false)
+            .neq('sender_id', user.id);
+          
+          setUnreadChatCount(count || 0);
+        }
+      };
+      fetchUnreadChats();
     };
 
     fetchOrdersAndWishlist();
+
+    // Subscribe to notifications
+    const notifChannel = supabase
+      .channel('realtime:notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
+        setNotifications(prev => [payload.new, ...prev]);
+        toast.success(payload.new.title); // Show popup notification
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
+        setNotifications(prev => prev.map(n => n.id === payload.new.id ? payload.new : n));
+      })
+      .subscribe();
+
+    // Subscribe to new messages for unread count
+    const msgChannel = supabase
+      .channel('realtime:messages_unread')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        if (payload.new.sender_id !== user.id) {
+          // Verify if it's for this user's chat
+          supabase.from('chats').select('id').eq('id', payload.new.chat_id).single().then(({ data }) => {
+            if (data) {
+              setUnreadChatCount(prev => prev + 1);
+            }
+          });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notifChannel);
+      supabase.removeChannel(msgChannel);
+    };
   }, [user]);
 
   const contextValue = {
@@ -255,6 +319,8 @@ export default function App() {
     messages, setMessages,
     inputText, setInputText,
     chatSearch, setChatSearch,
+    notifications, setNotifications,
+    unreadChatCount, setUnreadChatCount,
     editingItem, setEditingItem,
     showNotif, setShowNotif,
     showWishlist, setShowWishlist,

@@ -175,68 +175,7 @@ export const recentProducts = [
 ];
 
 // ── CHAT DATA ──
-export const chatContacts = [
-  {
-    id: 1,
-    name: "Rizki_FT2022",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&auto=format",
-    product: "Laptop Asus VivoBook 14",
-    productImg: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=60&h=60&fit=crop&auto=format",
-    lastMsg: "Mas, apakah barangnya masih ada?",
-    time: "10:32",
-    unread: 2,
-    online: true,
-    role: "penjual" as const,
-  },
-  {
-    id: 2,
-    name: "TokoBukuUMM",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&auto=format",
-    product: "Kalkulator Casio FX-991",
-    productImg: "https://images.unsplash.com/photo-1574607383077-39ca78e7dd51?w=60&h=60&fit=crop&auto=format",
-    lastMsg: "Oke kak, transfer ke BCA ya 😊",
-    time: "09:15",
-    unread: 0,
-    online: true,
-    role: "penjual" as const,
-  },
-  {
-    id: 3,
-    name: "KostDinoyo",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&auto=format",
-    product: "Kos Putri Full Furnished",
-    productImg: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=60&h=60&fit=crop&auto=format",
-    lastMsg: "Bisa survey besok jam 2 siang kak",
-    time: "Kemarin",
-    unread: 1,
-    online: false,
-    role: "pembeli" as const,
-  },
-  {
-    id: 4,
-    name: "DesainCreative22",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&auto=format",
-    product: "Jasa Desain Poster & PPT",
-    productImg: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=60&h=60&fit=crop&auto=format",
-    lastMsg: "Revisi sudah saya kirim via email ya",
-    time: "Kemarin",
-    unread: 0,
-    online: false,
-    role: "pembeli" as const,
-  },
-  {
-    id: 5,
-    name: "MakanEnak_UMM",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&auto=format",
-    product: "Nasi Kotak Menu Lengkap",
-    productImg: "https://images.unsplash.com/photo-1547592180-85f173990554?w=60&h=60&fit=crop&auto=format",
-    lastMsg: "Pesanan 5 kotak sudah siap kak!",
-    time: "Senin",
-    unread: 0,
-    online: true,
-    role: "penjual" as const,
-  },
-];
+export const chatContacts = [];
 
 export type Message = {
   id: number;
@@ -268,30 +207,6 @@ export interface Product {
   isNew?: boolean;
 }
 
-export const initialMessages: Record<number, Message[]> = {
-  1: [
-    { id: 1, text: "Halo kak, saya tertarik dengan laptop Asus VivoBooknya", fromMe: true, time: "10:20", status: "read" },
-    { id: 2, text: "Halo! Masih ada kok kak 😊 Kondisi mulus banget, baru pakai 6 bulan", fromMe: false, time: "10:22", status: "read" },
-    { id: 3, text: "Spesifikasinya gimana kak? RAM-nya berapa?", fromMe: true, time: "10:25", status: "read" },
-    { id: 4, text: "RAM 16GB, SSD 512GB, Ryzen 5 5500U. Sudah saya upgrade RAM-nya dari 8GB ya kak", fromMe: false, time: "10:27", status: "read" },
-    { id: 5, text: "Wah mantap! Bisa COD di kampus ga kak?", fromMe: true, time: "10:30", status: "read" },
-    { id: 6, text: "Mas, apakah barangnya masih ada?", fromMe: false, time: "10:32", status: "read" },
-  ],
-  2: [
-    { id: 1, text: "Kak mau beli kalkulator Casio, masih ada stoknya?", fromMe: true, time: "09:00", status: "read", productCard: true },
-    { id: 2, text: "Masih ada kak! Harga 180rb ya, ori garansi toko", fromMe: false, time: "09:05", status: "read" },
-    { id: 3, text: "Deal kak! Saya ambil 1. Bayar transfer bisa?", fromMe: true, time: "09:10", status: "read" },
-    { id: 4, text: "Oke kak, transfer ke BCA ya 😊", fromMe: false, time: "09:15", status: "read" },
-  ],
-  3: [
-    { id: 1, text: "Halo, kamarnya masih tersedia ga?", fromMe: true, time: "Kemarin 14:00", status: "read" },
-    { id: 2, text: "Masih kak! Ada 2 kamar tersisa. Fasilitas: AC, WiFi, kamar mandi dalam", fromMe: false, time: "Kemarin 14:10", status: "read" },
-    { id: 3, text: "Boleh survey dulu ga kak?", fromMe: true, time: "Kemarin 14:20", status: "read" },
-    { id: 4, text: "Bisa survey besok jam 2 siang kak", fromMe: false, time: "Kemarin 14:25", status: "read" },
-  ],
-  4: [
-    { id: 1, text: "Kak minta tolong desain poster seminar ya, deadline besok", fromMe: true, time: "Kemarin 08:00", status: "read" },
-    { id: 2, text: "Siap kak! Brief-nya dikirim via WA atau sini aja?", fromMe: false, time: "Kemarin 08:05", status: "read" },
     { id: 3, text: "Sini aja kak, ini detailnya: tema hijau, logo UMM, tanggal 20 Juni", fromMe: true, time: "Kemarin 08:10", status: "read" },
     { id: 4, text: "Revisi sudah saya kirim via email ya", fromMe: false, time: "Kemarin 19:30", status: "read" },
   ],

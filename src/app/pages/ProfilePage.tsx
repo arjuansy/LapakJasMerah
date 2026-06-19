@@ -567,19 +567,20 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
 
 // ── EDIT PROFIL ──
 function EditProfilePage({ onBack }: { onBack: () => void }) {
-  const {  profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
-  const userInfoStr = localStorage.getItem("userInfo");
-  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
+  const { profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
+  const { user, profile: authProfile, refreshSession } = useAuth();
+  
   const [profile, setProfile] = useState({
-    name: userInfo?.name || "Pengguna Tamu",
-    username: "rizky.pratama",
-    nim: "202210370311042",
-    prodi: "Teknik Informatika",
-    angkatan: "2022",
-    bio: "Mahasiswa TI UMM. Jual beli barang bekas berkualitas.",
-    phone: "081234567890",
-    location: "Lowokwaru, Malang",
+    name: authProfile?.full_name || user?.user_metadata?.full_name || "Pengguna Tamu",
+    username: authProfile?.username || "",
+    nim: authProfile?.nim || user?.user_metadata?.nim || "",
+    prodi: authProfile?.major || "",
+    angkatan: authProfile?.angkatan || "",
+    bio: authProfile?.bio || "",
+    phone: authProfile?.phone || "",
+    location: authProfile?.location || "",
   });
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -592,12 +593,39 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
     return e;
   }
 
-  function handleSave() {
+  async function handleSave() {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    
+    if (!user) {
+      toast.error("Anda harus login untuk menyimpan profil");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await authService.updateProfile(user.id, {
+        full_name: profile.name,
+        username: profile.username,
+        nim: profile.nim,
+        major: profile.prodi,
+        angkatan: profile.angkatan,
+        bio: profile.bio,
+        phone: profile.phone,
+        location: profile.location,
+        avatar_url: profileAvatar,
+        banner_url: profileBanner
+      });
+      await refreshSession();
+      setSaved(true);
+      toast.success("Profil berhasil diperbarui!");
+      setTimeout(() => setSaved(false), 2500);
+    } catch (error: any) {
+      toast.error(error.message || "Gagal menyimpan profil");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const prodiOptions = ["Teknik Informatika", "Teknik Sipil", "Manajemen", "Akuntansi", "Psikologi", "Hukum", "Kedokteran", "Farmasi", "PGSD", "Ilmu Komunikasi"];
@@ -811,9 +839,10 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl" style={{ maxWidth: 430 }}>
         <button
           onClick={handleSave}
-          className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+          disabled={saving}
+          className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center gap-2"
         >
-          {saved ? <><CheckCircle2 size={18} /> Tersimpan!</> : "Simpan Perubahan"}
+          {saving ? "Menyimpan..." : saved ? <><CheckCircle2 size={18} /> Tersimpan!</> : "Simpan Perubahan"}
         </button>
       </div>
     </div>
@@ -1914,7 +1943,31 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [profileSubPage, setProfileSubPage] = useState<any>(null);
 
-  const { user, profile } = useAuth();
+  const { user, profile, refreshSession } = useAuth();
+
+  const handlePurchaseBadge = async () => {
+    if (!user) {
+      toast.error("Anda harus login untuk membeli badge");
+      return;
+    }
+    
+    setIsProcessingPayment(true);
+    
+    // Simulasi proses payment gateway
+    setTimeout(async () => {
+      try {
+        await authService.updateProfile(user.id, { is_verified_seller: true });
+        await refreshSession();
+        
+        setIsProcessingPayment(false);
+        setBadgePaid(true);
+        toast.success("Pembayaran berhasil!");
+      } catch (err: any) {
+        setIsProcessingPayment(false);
+        toast.error("Gagal memperbarui profil: " + err.message);
+      }
+    }, 2000);
+  };
   const isLoggedIn = !!user;
   const displayName = profile?.full_name || user?.user_metadata?.full_name || (isLoggedIn ? "Mahasiswa" : "Pengguna Tamu");
   const displayRole = profile?.role === 'ADMIN' ? 'Admin' : (isLoggedIn ? "Mahasiswa UMM" : "Tamu");
@@ -1944,10 +1997,11 @@ export default function ProfilePage() {
   } = useApp();
 
   const [activeProfileTab, setActiveProfileTab] = useState<"iklan" | "terjual" | "disukai">("iklan");
-  const [badgeOwned, setBadgeOwned] = useState(false);
-  const [showBadgePay, setShowBadgePay] = useState(false);
-  const [badgePaid, setBadgePaid] = useState(false);
+
   const [showKtm, setShowKtm] = useState(false);
+  const [showBadgePay, setShowBadgePay] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [badgePaid, setBadgePaid] = useState(false);
 
   useEffect(() => {
     if (user && products) {
@@ -2078,14 +2132,19 @@ export default function ProfilePage() {
       <div className="pt-16 pb-4 px-4 text-center">
         <div className="flex items-center justify-center gap-1.5 mb-1">
           <h2 className="text-foreground font-black text-xl">{displayName}</h2>
-          {isLoggedIn && <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />}
+          {profile?.is_verified_seller && <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />}
         </div>
         <p className="text-muted-foreground text-sm mb-1">
-          {isLoggedIn ? `@${displayName.replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
+          {isLoggedIn ? `@${profile?.username || displayName.replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
         </p>
+        
+        {profile?.bio && (
+          <p className="text-sm text-foreground mb-3 px-6">{profile.bio}</p>
+        )}
+
         <div className="flex items-center justify-center gap-1 mb-4">
           <MapPin size={12} className="text-muted-foreground" />
-          <span className="text-muted-foreground text-xs">{isLoggedIn ? 'Universitas Muhammadiyah Malang' : 'Belum Login'}</span>
+          <span className="text-muted-foreground text-xs">{isLoggedIn ? (profile?.location || 'Universitas Muhammadiyah Malang') : 'Belum Login'}</span>
         </div>
 
         {/* Rating & stats */}
@@ -2118,10 +2177,127 @@ export default function ProfilePage() {
 
         {/* Bergabung */}
         <div className="inline-flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
-          <BadgeCheck size={12} className="text-primary" />
-          <span className="text-primary text-[11px] font-bold">NIM Terverifikasi · Bergabung Mar 2024</span>
+          <BadgeCheck size={12} className={isLoggedIn ? "text-primary" : "text-muted-foreground"} />
+          <span className={`${isLoggedIn ? "text-primary" : "text-muted-foreground"} text-[11px] font-bold`}>
+            {isLoggedIn ? "NIM Terverifikasi" : "Belum Terverifikasi"} · Bergabung {user?.created_at ? new Date(user.created_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }).replace('mrt', 'Mar').replace('mei', 'Mei').replace('agu', 'Agt').replace('okt', 'Okt').replace('des', 'Des') : 'Mar 2024'}
+          </span>
         </div>
       </div>
+
+      {/* ── BADGE PENJUAL TERVERIFIKASI ── */}
+      <div className="px-4 mb-5">
+        <button
+          onClick={() => !profile?.is_verified_seller && setShowBadgePay(true)}
+          className={`w-full rounded-2xl border-2 p-4 flex items-center gap-3 text-left transition-all shadow-sm ${
+            profile?.is_verified_seller
+              ? "bg-blue-50 border-blue-100"
+              : "bg-card border-border active:scale-[0.98] hover:border-blue-200"
+          }`}
+        >
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+            profile?.is_verified_seller ? "bg-blue-500" : "bg-secondary"
+          }`}>
+            <BadgeCheck size={20} className={profile?.is_verified_seller ? "text-white" : "text-muted-foreground"} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+              Badge Penjual Terverifikasi
+              {profile?.is_verified_seller && <CheckCircle2 size={12} className="text-blue-500" />}
+            </h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+              {profile?.is_verified_seller 
+                ? "Kepercayaan pembeli meningkat dengan lencana ini." 
+                : "Tingkatkan kepercayaan pembeli dengan lencana biru di profilmu."}
+            </p>
+          </div>
+          {!profile?.is_verified_seller && (
+            <div className="shrink-0 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-xs font-bold">
+              Beli
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* Payment Sheet */}
+      {showBadgePay && (
+        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isProcessingPayment && setShowBadgePay(false)} />
+          
+          <div className="bg-background w-full rounded-3xl p-6 relative z-10 shadow-2xl animate-in slide-in-from-bottom-8">
+            <button 
+              onClick={() => !isProcessingPayment && setShowBadgePay(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-secondary rounded-full flex items-center justify-center"
+            >
+              <X size={16} className="text-muted-foreground" />
+            </button>
+            
+            {badgePaid ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCheck size={32} className="text-green-500" />
+                </div>
+                <h3 className="text-foreground font-black text-xl mb-2">Pembayaran Berhasil!</h3>
+                <p className="text-muted-foreground text-sm mb-6">Badge penjual terverifikasi telah ditambahkan ke profil Anda.</p>
+                <button
+                  onClick={() => setShowBadgePay(false)}
+                  className="w-full bg-primary text-white font-bold py-3.5 rounded-xl"
+                >
+                  Tutup
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+                    <BadgeCheck size={24} className="text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-foreground font-black text-lg">Badge Terverifikasi</h3>
+                    <p className="text-muted-foreground text-[11px]">Berlaku selamanya untuk akun ini</p>
+                  </div>
+                </div>
+                
+                <div className="bg-secondary rounded-2xl p-4 mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-muted-foreground text-sm">Harga</span>
+                    <span className="text-foreground font-bold text-sm">Rp 5.000</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-muted-foreground text-sm">Biaya Admin</span>
+                    <span className="text-foreground font-bold text-sm">Rp 0</span>
+                  </div>
+                  <div className="w-full h-px bg-border my-3" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-foreground font-black">Total Tagihan</span>
+                    <span className="text-primary font-black text-lg">Rp 5.000</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowBadgePay(false)}
+                    disabled={isProcessingPayment}
+                    className="flex-1 bg-secondary text-foreground font-bold py-3.5 rounded-xl disabled:opacity-50"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handlePurchaseBadge}
+                    disabled={isProcessingPayment}
+                    className="flex-[2] bg-primary text-white font-black py-3.5 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100"
+                  >
+                    {isProcessingPayment ? (
+                      <span className="animate-pulse">Memproses...</span>
+                    ) : (
+                      <>Bayar Sekarang</>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── TOTAL PENJUALAN CARD ── */}
       {(() => {
@@ -2162,111 +2338,6 @@ export default function ProfilePage() {
         );
       })()}
 
-      {/* ── BADGE PENJUAL TERVERIFIKASI ── */}
-      <div className="px-4 mb-5">
-        <button
-          onClick={() => !badgeOwned && setShowBadgePay(true)}
-          className="w-full rounded-2xl border-2 p-4 flex items-center gap-3 text-left transition-all active:scale-[0.98] shadow-sm"
-          style={{
-            borderColor: badgeOwned ? "#3B82F6" : "rgba(59,130,246,0.25)",
-            background: badgeOwned ? "rgba(59,130,246,0.06)" : "var(--card)",
-          }}
-        >
-          {/* Icon */}
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "#3B82F610" }}>
-            <BadgeCheck size={24} className="text-blue-500" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-foreground font-black text-sm">Badge Penjual Terverifikasi</span>
-              {badgeOwned
-                ? <span className="bg-blue-100 text-blue-700 text-[9px] font-black px-2 py-0.5 rounded-full">AKTIF ✓</span>
-                : <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full">BARU</span>
-              }
-            </div>
-            <p className="text-muted-foreground text-[11px] leading-relaxed">
-              {badgeOwned
-                ? "Centang biru aktif di semua iklanmu. Pembeli lebih percaya!"
-                : "Tampilkan ✓ biru di iklan, prioritas pencarian & label \"Terpercaya\""}
-            </p>
-          </div>
-
-          <div className="text-right shrink-0">
-            {badgeOwned
-              ? <CheckCircle2 size={22} className="text-blue-500" />
-              : <>
-                <p className="text-blue-600 font-black text-base">Rp 5.000</p>
-                <p className="text-muted-foreground text-[10px]">per bulan</p>
-              </>
-            }
-          </div>
-        </button>
-
-        {/* Payment Sheet */}
-        {showBadgePay && (
-          <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
-            <div className="absolute inset-0 bg-black/60" onClick={() => { setShowBadgePay(false); setBadgePaid(false); }} />
-            <div className="relative bg-card rounded-3xl shadow-2xl p-5 pb-6 w-full max-w-[380px] z-10">
-              {badgePaid ? (
-                <div className="flex flex-col items-center py-6 text-center">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                    <BadgeCheck size={40} className="text-blue-500" />
-                  </div>
-                  <h3 className="text-foreground font-black text-xl mb-2">Badge Aktif! 🎉</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                    Centang biru kini tampil di semua iklanmu. Selamat berjualan lebih terpercaya!
-                  </p>
-                  <button
-                    onClick={() => { setShowBadgePay(false); setBadgeOwned(true); setBadgePaid(false); }}
-                    className="w-full bg-blue-500 text-white font-black py-3.5 rounded-2xl text-sm"
-                  >
-                    Tutup
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <h3 className="text-foreground font-black text-lg mb-1">Beli Badge Terverifikasi</h3>
-                  <p className="text-muted-foreground text-xs mb-4">Berlaku 30 hari, dapat diperpanjang</p>
-
-                  {/* Feature list */}
-                  <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
-                    <div className="grid grid-cols-2 gap-2">
-                      {["Centang biru ✓ di iklan", "Prioritas pencarian", "Label \"Terpercaya\"", "Statistik penayangan"].map((f) => (
-                        <div key={f} className="flex items-center gap-1.5">
-                          <CheckCircle2 size={11} className="text-blue-500 shrink-0" />
-                          <span className="text-[11px] text-blue-700 font-medium">{f}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Price summary */}
-                  <div className="flex justify-between items-center bg-muted/60 rounded-xl px-4 py-3 mb-5">
-                    <span className="text-foreground font-bold text-sm">Total Bayar</span>
-                    <span className="text-blue-600 font-black text-xl">Rp 5.000</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowBadgePay(false)}
-                      className="flex-1 bg-secondary border border-border text-foreground font-bold py-3.5 rounded-2xl text-sm"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      onClick={() => setBadgePaid(true)}
-                      className="flex-[2] bg-blue-500 text-white font-black py-3.5 rounded-2xl text-sm shadow-lg active:scale-95 transition-transform"
-                    >
-                      Bayar Rp 5.000
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* ── IKLAN SAYA TABS ── */}
       <div className="px-4 mb-1">

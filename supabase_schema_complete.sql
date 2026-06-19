@@ -29,6 +29,12 @@ CREATE TABLE public.profiles (
   major TEXT,
   avatar_url TEXT,
   banner_url TEXT,
+  username TEXT UNIQUE,
+  bio TEXT,
+  angkatan TEXT,
+  phone TEXT,
+  location TEXT,
+  is_verified_seller BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -79,7 +85,7 @@ CREATE TABLE public.categories (
 
 CREATE TABLE public.products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    seller_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    seller_id TEXT NOT NULL,
     category_id INT NOT NULL REFERENCES public.categories(id) ON DELETE RESTRICT,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -107,7 +113,7 @@ CREATE TABLE public.orders (
 );
 
 CREATE TABLE public.order_items (
-    order_id UUID NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+    order_id TEXT NOT NULL,
     product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE RESTRICT,
     quantity INT NOT NULL,
     price_at_purchase NUMERIC(12, 2) NOT NULL,
@@ -116,7 +122,7 @@ CREATE TABLE public.order_items (
 
 CREATE TABLE public.payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID UNIQUE NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+    order_id TEXT UNIQUE NOT NULL,
     method TEXT NOT NULL,
     status TEXT NOT NULL,
     paid_at TIMESTAMP WITH TIME ZONE
@@ -125,7 +131,7 @@ CREATE TABLE public.payments (
 CREATE TABLE public.chats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     buyer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    seller_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    seller_id TEXT NOT NULL,
     product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE
 );
 
@@ -139,7 +145,7 @@ CREATE TABLE public.messages (
 
 CREATE TABLE public.wishlists (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+    product_id TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     PRIMARY KEY (user_id, product_id)
 );
@@ -175,6 +181,28 @@ CREATE TABLE public.package_transactions (
 );
 
 
+CREATE TABLE public.shipments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id TEXT UNIQUE NOT NULL,
+    tracking_number TEXT,
+    courier TEXT,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    estimated_arrival TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE public.reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    reviewer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    seller_id TEXT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- ==========================================
 -- 4. ATURAN KEAMANAN (RLS)
 -- ==========================================
@@ -188,6 +216,8 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.package_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Kategori bisa dibaca siapa saja" ON public.categories;
 CREATE POLICY "Kategori bisa dibaca siapa saja" ON public.categories FOR SELECT USING (true);
@@ -306,3 +336,109 @@ ALTER TABLE public.suggestions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Enable insert for authenticated users only" ON public.suggestions FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Enable read access for all" ON public.suggestions FOR SELECT USING (true);
 CREATE POLICY "Enable update for all" ON public.suggestions FOR UPDATE USING (true);
+
+-- ==========================================
+-- 8. TABEL NOTIFICATIONS & TRIGGER
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  type TEXT NOT NULL, -- 'order', 'chat', 'system'
+  is_read BOOLEAN DEFAULT false,
+  related_id UUID, -- bisa id pesanan atau chat
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Pengguna dapat melihat notifikasinya sendiri" ON public.notifications;
+CREATE POLICY "Pengguna dapat melihat notifikasinya sendiri" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Pengguna dapat memperbarui notifikasinya sendiri" ON public.notifications;
+CREATE POLICY "Pengguna dapat memperbarui notifikasinya sendiri" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+
+-- Trigger untuk Pesan Baru (dari tabel messages)
+CREATE OR REPLACE FUNCTION public.handle_new_message_notification()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_receiver_id UUID;
+  v_sender_name TEXT;
+BEGIN
+  SELECT CASE 
+    WHEN buyer_id = NEW.sender_id THEN seller_id 
+    ELSE buyer_id 
+  END INTO v_receiver_id
+  FROM public.chats WHERE id = NEW.chat_id;
+
+  SELECT full_name INTO v_sender_name FROM public.profiles WHERE id = NEW.sender_id;
+
+  INSERT INTO public.notifications (user_id, title, body, type, related_id)
+  VALUES (
+    v_receiver_id,
+    'Pesan Baru dari ' || v_sender_name,
+    substring(NEW.content from 1 for 50) || CASE WHEN length(NEW.content) > 50 THEN '...' ELSE '' END,
+    'chat',
+    NEW.chat_id
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_new_message ON public.messages;
+CREATE TRIGGER on_new_message
+  AFTER INSERT ON public.messages
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_message_notification();
+
+-- Trigger untuk Pesanan Baru (dari tabel order_items)
+CREATE OR REPLACE FUNCTION public.handle_new_order_item_notification()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_buyer_name TEXT;
+  v_seller_id UUID;
+  v_product_name TEXT;
+BEGIN
+  SELECT full_name INTO v_buyer_name FROM public.profiles WHERE id = (SELECT buyer_id FROM public.orders WHERE id = NEW.order_id);
+  SELECT seller_id, name INTO v_seller_id, v_product_name FROM public.products WHERE id = NEW.product_id;
+
+  INSERT INTO public.notifications (user_id, title, body, type, related_id)
+  VALUES (
+    v_seller_id,
+    'Pesanan Baru!',
+    v_buyer_name || ' baru saja memesan ' || v_product_name,
+    'order',
+    NEW.order_id
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_new_order_item ON public.order_items;
+CREATE TRIGGER on_new_order_item
+  AFTER INSERT ON public.order_items
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_order_item_notification();
+
+-- Trigger untuk Perubahan Status Pesanan
+CREATE OR REPLACE FUNCTION public.handle_order_update_notification()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.status IS DISTINCT FROM NEW.status THEN
+    INSERT INTO public.notifications (user_id, title, body, type, related_id)
+    VALUES (
+      NEW.buyer_id,
+      'Status Pesanan Diperbarui',
+      'Pesanan kamu sekarang berstatus: ' || NEW.status,
+      'order',
+      NEW.id
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_order_update ON public.orders;
+CREATE TRIGGER on_order_update
+  AFTER UPDATE OF status ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.handle_order_update_notification();

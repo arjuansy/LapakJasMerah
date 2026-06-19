@@ -67,7 +67,11 @@ export default function CategoriesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => navigate('/search')}
+              onChange={(e) => { 
+                setSearchQuery(e.target.value); 
+                /* Note: We don't set global search here unless we want to, but navigating away is enough */
+              }}
               placeholder="Cari produk..."
               className="w-full bg-white text-foreground rounded-xl pl-9 pr-4 py-2 text-sm outline-none"
             />

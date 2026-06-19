@@ -80,13 +80,13 @@ export default function MarketplaceFeed() {
               value={globalSearch}
               placeholder="Cari buku, elektronik, kos..."
               className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
-              onFocus={() => { setSearchFocused(true); setShowSearchResults(true); }}
+              onFocus={() => { setSearchFocused(true); navigate('/search'); }}
               onBlur={() => setSearchFocused(false)}
-              onChange={(e) => { setGlobalSearch(e.target.value); setShowSearchResults(true); }}
-              onKeyDown={(e) => { if (e.key === "Enter") setShowSearchResults(true); }}
+              onChange={(e) => { setGlobalSearch(e.target.value); navigate('/search'); }}
+              onKeyDown={(e) => { if (e.key === "Enter") navigate('/search'); }}
             />
             <button
-              onClick={() => setShowSearchResults(true)}
+              onClick={() => navigate('/search')}
               className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-lg"
             >
               Cari

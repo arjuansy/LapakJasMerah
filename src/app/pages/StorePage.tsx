@@ -18,13 +18,28 @@ export default function StorePage() {
     const storeProducts = products.filter((p) => p.seller === sellerName);
     const [activeTab, setActiveTab] = useState<"produk" | "ulasan">("produk");
 
-    const storeReviews = [
-      { id: 1, user: "Dinda_Psikologi", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&auto=format", rating: 5, comment: "Penjual sangat ramah dan responsif. Barang sesuai deskripsi, cepat COD di kampus!", date: "15 Jun 2026", product: storeProducts[0]?.name ?? "Produk" },
-      { id: 2, user: "Fajar_FEB21",     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&auto=format", rating: 5, comment: "Recommended banget! Harga sesuai, kondisi barang mulus. Penjual jujur.", date: "10 Jun 2026", product: storeProducts[0]?.name ?? "Produk" },
-      { id: 3, user: "Sari_Manajemen",  avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&auto=format", rating: 4, comment: "Oke lah, barang sesuai foto. Respon cepat via chat.", date: "5 Jun 2026",  product: storeProducts[1]?.name ?? "Produk" },
-    ];
+    const [storeReviews, setStoreReviews] = useState<any[]>([]);
+    const [avgRating, setAvgRating] = useState("0.0");
+    const [filterStar, setFilterStar] = useState<number>(0);
 
-    const avgRating = (storeReviews.reduce((s, r) => s + r.rating, 0) / storeReviews.length).toFixed(1);
+    useEffect(() => {
+      import("../../services/orderService").then(({ orderService }) => {
+        orderService.getStoreReviews(sellerName).then((reviews) => {
+          if (reviews && reviews.length > 0) {
+            setStoreReviews(reviews.map((r: any) => ({
+              id: r.id,
+              user: r.reviewer?.username || r.reviewer?.full_name || "Pembeli",
+              avatar: r.reviewer?.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format",
+              rating: r.rating,
+              comment: r.comment,
+              date: new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+              product: r.product?.name || r.product_id || "Produk",
+            })));
+            setAvgRating((reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1));
+          }
+        }).catch(console.error);
+      });
+    }, [sellerName]);
 
     return (
       <div className="fixed inset-0 z-[60] bg-background overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto" }}>
@@ -169,7 +184,17 @@ export default function StorePage() {
               </div>
             </div>
 
-            {storeReviews.map((r) => (
+            {/* Filter Bintang */}
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <button onClick={() => setFilterStar(0)} className={`px-3 py-1 shrink-0 rounded-full text-xs font-bold border transition-colors ${filterStar === 0 ? 'bg-primary text-white border-primary' : 'bg-card text-foreground border-border'}`}>Semua</button>
+              {[5,4,3,2,1].map(star => (
+                <button key={star} onClick={() => setFilterStar(star)} className={`px-3 py-1 shrink-0 rounded-full flex items-center gap-1 text-xs font-bold border transition-colors ${filterStar === star ? 'bg-primary text-white border-primary' : 'bg-card text-foreground border-border'}`}>
+                  <Star size={10} className={filterStar === star ? 'fill-white text-white' : 'fill-accent text-accent'} /> {star}
+                </button>
+              ))}
+            </div>
+
+            {storeReviews.filter(r => filterStar === 0 || r.rating === filterStar).map((r) => (
               <div key={r.id} className="bg-card rounded-2xl border border-border p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <img src={r.avatar} alt={r.user} className="w-8 h-8 rounded-full object-cover" />

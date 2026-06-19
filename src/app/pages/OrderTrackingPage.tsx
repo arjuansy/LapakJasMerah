@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
-import api from "../api";
+import { orderService } from "../../services/orderService";
+import { authService } from "../../services/authService";
 
 const STEPS = [
   {
@@ -79,7 +80,7 @@ export default function OrderTrackingPage() {
   async function handleConfirmReceipt() {
     if (!trackingOrder) return;
     try {
-      await api.post(`/orders/${trackingOrder.id}/complete`);
+      await orderService.updateOrderStatus(trackingOrder.id, 'selesai');
       // Update active trackingOrder
       setTrackingOrder({
         ...trackingOrder,
@@ -182,7 +183,27 @@ export default function OrderTrackingPage() {
             </div>
 
             <button
-              onClick={() => { if (rating > 0) setReviewSubmitted(true); }}
+              onClick={async () => { 
+                if (rating > 0) {
+                  try {
+                    const profile = await authService.getProfile();
+                    if (profile) {
+                      await orderService.submitReview({
+                        order_id: trackingOrder.id,
+                        product_id: trackingOrder.product, // Using product name temporarily as product_id string for mock
+                        reviewer_id: profile.id,
+                        seller_id: trackingOrder.seller,   // Using seller name as seller_id string for mock
+                        rating,
+                        comment: reviewText
+                      });
+                    }
+                    setReviewSubmitted(true);
+                  } catch (err) {
+                    console.error("Gagal mengirim ulasan", err);
+                    toast.error("Gagal mengirim ulasan");
+                  }
+                } 
+              }}
               disabled={rating === 0}
               className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg transition-all"
               style={{ opacity: rating === 0 ? 0.5 : 1 }}

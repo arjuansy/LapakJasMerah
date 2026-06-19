@@ -96,7 +96,11 @@ export type AppContextType = {
   setEditingRequest: (r: RequestItem | null) => void;
   showPostRequestModal: boolean;
   setShowPostRequestModal: (v: boolean) => void;
-  notifData: any[];
+  notifData: any[]; // Deprecated, kept temporarily to avoid immediate errors
+  notifications: any[];
+  setNotifications: React.Dispatch<React.SetStateAction<any[]>>;
+  unreadChatCount: number;
+  setUnreadChatCount: React.Dispatch<React.SetStateAction<number>>;
   toastMessage: string | null;
   setToastMessage: (msg: string | null) => void;
   activeTab: any;

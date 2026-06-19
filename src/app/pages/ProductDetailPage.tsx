@@ -74,11 +74,7 @@ export default function ProductDetailPage() {
   const sellerAvatar = product.sellerAvatar || "";
   const desc = product.description || "";
 
-  const imgs = [
-    product.image,
-    "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=400&q=80"
-  ];
+  const imgs = product.image ? [product.image] : [];
 
   const related = products.filter((p) => p.id !== product.id).slice(0, 4);
 
@@ -285,35 +281,39 @@ export default function ProductDetailPage() {
           )}
 
           {/* Image dots */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {imgs.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveImg(i)}
-                className="rounded-full transition-all"
-                style={{
-                  width: i === activeImg ? 20 : 7,
-                  height: 7,
-                  background: i === activeImg ? "#c41230" : "rgba(255,255,255,0.6)",
-                }}
-              />
-            ))}
-          </div>
+          {imgs.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {imgs.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImg(i)}
+                  className="rounded-full transition-all"
+                  style={{
+                    width: i === activeImg ? 20 : 7,
+                    height: 7,
+                    background: i === activeImg ? "#c41230" : "rgba(255,255,255,0.6)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Thumbnail strip */}
-        <div className="flex gap-2 px-4 pt-3 pb-1">
-          {imgs.map((src, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveImg(i)}
-              className="shrink-0 rounded-xl overflow-hidden border-2 transition-all"
-              style={{ borderColor: i === activeImg ? "#c41230" : "transparent", width: 52, height: 52 }}
-            >
-              <img src={src} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
+        {imgs.length > 1 && (
+          <div className="flex gap-2 px-4 pt-3 pb-1">
+            {imgs.map((src, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveImg(i)}
+                className="shrink-0 rounded-xl overflow-hidden border-2 transition-all"
+                style={{ borderColor: i === activeImg ? "#c41230" : "transparent", width: 52, height: 52 }}
+              >
+                <img src={src} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* ── PRODUCT INFO ── */}
         <div className="px-4 pt-3 pb-2">

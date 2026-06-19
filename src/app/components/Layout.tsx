@@ -11,9 +11,9 @@ import { useApp } from "../context";
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { contacts, toastMessage } = useApp();
+  const { unreadChatCount, toastMessage } = useApp();
 
-  const totalUnread = contacts ? contacts.reduce((sum, c) => sum + (c.unread || 0), 0) : 0;
+  const totalUnread = unreadChatCount;
 
   // Determine active tab based on pathname
   let activeTab = "home";
