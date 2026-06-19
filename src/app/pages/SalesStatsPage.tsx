@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../context";
 import { Product, formatPrice } from "../data";
 import {
-  ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X
+  ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X, Banknote, ClipboardList
 } from "lucide-react";
 
 export default function SalesStatsPage() {
@@ -32,7 +32,7 @@ export default function SalesStatsPage() {
         {/* Header */}
         <div className="bg-primary sticky top-0 z-10 shadow-md">
           <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-            <button onClick={() => setShowSalesStats(false)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+            <button onClick={() => navigate(-1)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
               <ArrowLeft size={18} className="text-white" />
             </button>
             <div className="flex-1">
@@ -109,7 +109,7 @@ export default function SalesStatsPage() {
 
           {/* Lihat daftar penjualan */}
           <button
-            onClick={() => { setShowSalesStats(false); navigate("/profile"); setProfileSubPage("penjualan"); }}
+            onClick={() => { navigate("/profile"); }}
             className="w-full bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
           >
             <ClipboardList size={15} /> Lihat Daftar Penjualan Lengkap

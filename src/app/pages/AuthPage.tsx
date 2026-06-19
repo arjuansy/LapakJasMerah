@@ -68,40 +68,32 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     if (Object.keys(e).length > 0) return;
     if (!isLogin) {
       setLoading(true);
-      supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: { name: form.name, nim: form.nim }
-        }
-      }).then(({ data, error }) => {
+      setTimeout(() => {
         setLoading(false);
-        if (error) {
-          setErrors({ email: error.message });
-          return;
-        }
         setStep("otp");
         setResendCooldown(60);
-      });
+      }, 800);
     } else {
       setLoading(true);
-      supabase.auth.signInWithPassword({
+      api.post('/auth/login', {
         email: form.email,
         password: form.password
-      }).then(({ data, error }) => {
+      }).then((res) => {
         setLoading(false);
-        if (error) {
-          setErrors({ email: "Email atau password salah" });
-          return;
-        }
+        const data = res.data;
         localStorage.setItem("userInfo", JSON.stringify({
-          token: data.session?.access_token,
-          id: data.user?.id,
-          name: data.user?.user_metadata?.name,
-          email: data.user?.email,
-          role: "BUYER"
+          token: data.token,
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          avatar_url: data.avatar
         }));
         navigate("/marketplace");
+      }).catch((err) => {
+        setLoading(false);
+        const errorMsg = err.response ? (err.response.data?.message || "Email atau password salah") : "Tidak dapat terhubung ke server (Backend mati)";
+        setErrors({ email: errorMsg });
       });
     }
   }
@@ -134,34 +126,33 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   function handleVerifyOtp() {
     const entered = otp.join("");
     if (entered.length < 6) { setOtpError("Masukkan 6 digit kode OTP"); return; }
+    if (entered !== "123456") { setOtpError("Kode OTP salah. Coba 123456."); return; }
     
     setLoading(true);
-    supabase.auth.verifyOtp({
+    api.post('/auth/register', {
+      name: form.name,
       email: form.email,
-      token: entered,
-      type: 'signup'
-    }).then(({ data, error }) => {
+      password: form.password,
+      university: 'Universitas Muhammadiyah Malang'
+    }).then((res) => {
       setLoading(false);
-      if (error) {
-        setOtpError(error.message || "Kode OTP salah. Coba lagi.");
-        setOtp(["","","","","",""]); 
-        otpRefs.current[0]?.focus(); 
-        return;
-      }
-      
+      const data = res.data;
       localStorage.setItem("userInfo", JSON.stringify({
-        token: data.session?.access_token,
-        id: data.user?.id,
-        name: data.user?.user_metadata?.name,
-        email: data.user?.email,
-        role: "BUYER"
+        token: data.token,
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role
       }));
       navigate("/marketplace");
+    }).catch((err) => {
+      setLoading(false);
+      const errorMsg = err.response ? (err.response.data?.message || "Gagal mendaftar. Email mungkin sudah terdaftar.") : "Tidak dapat terhubung ke server (Backend mati)";
+      setOtpError(errorMsg);
     });
   }
 
   function handleResend() {
-    supabase.auth.resend({ type: 'signup', email: form.email });
     setOtp(["","","","","",""]);
     setOtpError("");
     setResendCooldown(60);

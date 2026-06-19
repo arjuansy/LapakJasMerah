@@ -566,8 +566,10 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
 // ── EDIT PROFIL ──
 function EditProfilePage({ onBack }: { onBack: () => void }) {
   const {  profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
+  const userInfoStr = localStorage.getItem("userInfo");
+  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
   const [profile, setProfile] = useState({
-    name: "Ahmad Rizky Pratama",
+    name: userInfo?.name || "Pengguna Tamu",
     username: "rizky.pratama",
     nim: "202210370311042",
     prodi: "Teknik Informatika",
@@ -2097,13 +2099,15 @@ export default function ProfilePage() {
       {/* ── USER INFO ── */}
       <div className="pt-16 pb-4 px-4 text-center">
         <div className="flex items-center justify-center gap-1.5 mb-1">
-          <h2 className="text-foreground font-black text-xl">Ahmad Rizky Pratama</h2>
-          <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />
+          <h2 className="text-foreground font-black text-xl">{displayName}</h2>
+          {isLoggedIn && <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />}
         </div>
-        <p className="text-muted-foreground text-sm mb-1">@rizky.pratama · Teknik Informatika '22</p>
+        <p className="text-muted-foreground text-sm mb-1">
+          {isLoggedIn ? `@${userInfo?.name?.replace(/\s+/g, '').toLowerCase() || 'user'} · Teknik Informatika '22` : '@guest · Tamu'}
+        </p>
         <div className="flex items-center justify-center gap-1 mb-4">
           <MapPin size={12} className="text-muted-foreground" />
-          <span className="text-muted-foreground text-xs">Universitas Muhammadiyah Malang</span>
+          <span className="text-muted-foreground text-xs">{isLoggedIn ? 'Universitas Muhammadiyah Malang' : 'Belum Login'}</span>
         </div>
 
         {/* Rating & stats */}
@@ -2525,10 +2529,10 @@ export default function ProfilePage() {
               <div className="flex-1 min-w-0 flex flex-col justify-between">
                 <div>
                   <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">Nama Lengkap</p>
-                  <p className="font-bold text-sm truncate leading-tight mb-2 text-white">Ahmad Rizky Pratama</p>
+                  <p className="font-bold text-sm truncate leading-tight mb-2 text-white">{displayName}</p>
                   
                   <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">NIM</p>
-                  <p className="font-mono font-bold text-sm mb-2 text-white">202210370311001</p>
+                  <p className="font-mono font-bold text-sm mb-2 text-white">{isLoggedIn ? '202210370311001' : '-'}</p>
 
                   <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">Fakultas / Prodi</p>
                   <p className="font-bold text-[10px] text-white/90 truncate leading-tight">Teknik / Informatika</p>
