@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import api from "./api";
 
 import {
-  categories, banners, recentProducts,
+  categories, banners, recentProducts, notifData,
   extraProducts, allProducts, sellerAvatars, productDescriptions, formatPrice, requestBoard
 } from "./data";
 import type { Message, Product, RequestItem } from "./data";
