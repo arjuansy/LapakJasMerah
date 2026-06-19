@@ -41,8 +41,8 @@ export default function MarketplaceFeed() {
                 <p className="text-white font-bold text-sm leading-none">{profile?.full_name || "Mahasiswa UMM"}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="relative p-1.5" onClick={() => { setShowNotif(true); setShowWishlist(false); }}>
+            <div className="flex items-center gap-3 relative z-20">
+              <button className="relative p-1.5 cursor-pointer" onClick={() => setShowNotif(true)}>
                 <Bell size={20} className="text-white" />
                 {notifData.filter((n) => !n.read && !readNotifs.includes(n.id)).length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">
@@ -52,7 +52,7 @@ export default function MarketplaceFeed() {
                   </span>
                 )}
               </button>
-              <button className="relative p-1.5" onClick={() => { setShowWishlist(true); setShowNotif(false); }}>
+              <button className="relative p-1.5" onClick={() => navigate('/wishlist')}>
                 <Heart size={20} className="text-white" />
                 {wishlist.length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">

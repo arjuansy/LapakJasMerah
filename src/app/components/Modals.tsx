@@ -77,7 +77,7 @@ export function PostRequestModal() {
 
     if (resultError) {
       console.error("Gagal menyimpan permintaan:", resultError);
-      setError("Gagal menyimpan permintaan ke server.");
+      setError(`Gagal: ${resultError.message}`);
       setLoading(false);
       return;
     }

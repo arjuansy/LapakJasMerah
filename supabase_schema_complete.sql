@@ -250,8 +250,17 @@ CREATE POLICY "Pengguna di dalam chat bisa membalas" ON public.messages FOR INSE
     AND auth.uid() = sender_id
 );
 
-CREATE POLICY "Users can manage their requests" ON public.requests
-    FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Requests can be read by anyone" ON public.requests
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own requests" ON public.requests
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own requests" ON public.requests
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own requests" ON public.requests
+    FOR DELETE USING (auth.uid() = user_id);
 
 -- Package Transactions Policies
 CREATE POLICY "Users can view own transactions" ON public.package_transactions
