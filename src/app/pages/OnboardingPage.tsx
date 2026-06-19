@@ -39,6 +39,18 @@ export default function OnboardingPage() {
     }
   }, [profile]);
 
+  // Parse OAuth error from URL (if blocked by Postgres trigger)
+  useEffect(() => {
+    const hash = window.location.hash;
+    const search = window.location.search;
+
+    if (hash.includes('error=') || search.includes('error=')) {
+      toast.error("Akses Ditolak: Pendaftaran dengan akun Google non-UMM diblokir oleh sistem.", { duration: 5000 });
+      window.history.replaceState(null, '', window.location.pathname);
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
   // If not logged in, shouldn't be here
   useEffect(() => {
     if (!authLoading && !user) {
