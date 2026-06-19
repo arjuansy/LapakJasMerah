@@ -172,6 +172,7 @@ export default function OnboardingPage() {
               <div className="pl-4 pr-2 text-muted-foreground"><BookOpen size={20} /></div>
               <input
                 type="text"
+                autoComplete="off"
                 placeholder="Program Studi (Misal: Informatika)"
                 className="w-full py-4 pr-4 bg-transparent outline-none text-foreground text-sm font-medium placeholder:font-normal"
                 value={form.major}
@@ -187,6 +188,7 @@ export default function OnboardingPage() {
               <div className="pl-4 pr-2 text-muted-foreground"><Lock size={20} /></div>
               <input
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 placeholder="Buat Kata Sandi Baru"
                 className="w-full py-4 pr-12 bg-transparent outline-none text-foreground text-sm font-medium placeholder:font-normal"
                 value={form.password}

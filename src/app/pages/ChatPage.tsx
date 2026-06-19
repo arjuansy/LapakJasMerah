@@ -147,7 +147,7 @@ export default function ChatPage() {
             <ArrowLeft size={20} className="text-white" />
           </button>
           <div className="relative">
-            <img src={opponent.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"} alt={opponent.name} className="w-9 h-9 rounded-full object-cover border-2 border-white/30" />
+            <img src={opponent.avatar_url || "/default-avatar.png"} alt={opponent.name} className="w-9 h-9 rounded-full object-cover border-2 border-white/30" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-sm leading-tight truncate">{opponent.name}</p>
@@ -249,7 +249,7 @@ export default function ChatPage() {
                   onClick={() => navigate(`/chat/${chat.id}`)}
                   className="w-full px-4 py-3.5 flex items-start gap-3 hover:bg-secondary/50 transition-colors text-left"
                 >
-                  <img src={opp.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
+                  <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
                       <p className="font-bold text-foreground text-sm truncate pr-2">{opp.name}</p>

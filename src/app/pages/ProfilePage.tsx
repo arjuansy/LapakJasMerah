@@ -624,7 +624,7 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
         {/* Banner Preview in Edit Profile */}
         <div className="relative h-32 rounded-2xl overflow-hidden bg-muted mb-4 border border-border shadow-inner">
           <img
-            src={profileBanner}
+            src={profileBanner || "/default-banner.jpg"}
             alt="Banner Preview"
             className="w-full h-full object-cover"
           />
@@ -2026,7 +2026,7 @@ export default function ProfilePage() {
         {/* Banner container with overflow-hidden */}
         <div className="absolute inset-0 overflow-hidden bg-muted">
           <img
-            src={profileBanner}
+            src={profileBanner || "/default-banner.jpg"}
             alt="Banner"
             className="w-full h-full object-cover"
           />
@@ -2067,7 +2067,7 @@ export default function ProfilePage() {
         <div className="absolute left-0 right-0 bottom-0 translate-y-1/2 flex flex-col items-center px-4 z-10">
           <div className="relative mb-2">
             <img
-              src={profileAvatar}
+              src={profileAvatar || profile?.avatar_url || "/default-avatar.png"}
               alt="Profil"
               className="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover bg-muted"
             />
@@ -2112,27 +2112,27 @@ export default function ProfilePage() {
         {/* Rating & stats */}
         <div className="flex items-center justify-center gap-6 mb-4">
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">4.9</p>
+            <p className="text-foreground font-black text-lg leading-none">0.0</p>
             <div className="flex items-center gap-0.5 justify-center mt-0.5">
               {[1,2,3,4,5].map((s) => (
-                <Star key={s} size={10} className="text-accent fill-accent" />
+                <Star key={s} size={10} className="text-muted-foreground/30 fill-transparent" />
               ))}
             </div>
             <p className="text-muted-foreground text-[10px] mt-0.5">Rating</p>
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">24</p>
+            <p className="text-foreground font-black text-lg leading-none">0</p>
             <p className="text-muted-foreground text-[10px] mt-1">Terjual</p>
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">3</p>
+            <p className="text-foreground font-black text-lg leading-none">0</p>
             <p className="text-muted-foreground text-[10px] mt-1">Iklan Aktif</p>
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">98%</p>
+            <p className="text-foreground font-black text-lg leading-none">0%</p>
             <p className="text-muted-foreground text-[10px] mt-1">Respons</p>
           </div>
         </div>
@@ -2146,7 +2146,7 @@ export default function ProfilePage() {
 
       {/* ── TOTAL PENJUALAN CARD ── */}
       {(() => {
-        const salesTotal = 4905000; // total dari transaksi selesai
+        const salesTotal = 0; // total dari transaksi selesai
         return (
           <div className="px-4 mb-5">
             <button
@@ -2159,7 +2159,7 @@ export default function ProfilePage() {
                     <TrendingUp size={11} /> Total Penjualan
                   </p>
                   <p className="text-white font-black text-2xl leading-none">{formatPrice(salesTotal)}</p>
-                  <p className="text-white/60 text-[10px] mt-1">Juni 2026 · Naik 24% dari bulan lalu</p>
+                  <p className="text-white/60 text-[10px] mt-1">Belum ada data</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="bg-white/20 rounded-xl px-2.5 py-1 flex items-center gap-1">
@@ -2168,11 +2168,11 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex gap-3 text-center mt-1">
                     <div>
-                      <p className="text-white font-black text-base leading-none">3</p>
+                      <p className="text-white font-black text-base leading-none">0</p>
                       <p className="text-white/60 text-[9px]">Terjual</p>
                     </div>
                     <div>
-                      <p className="text-white font-black text-base leading-none">2</p>
+                      <p className="text-white font-black text-base leading-none">0</p>
                       <p className="text-white/60 text-[9px]">Proses</p>
                     </div>
                   </div>

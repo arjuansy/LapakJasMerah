@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
         location: p.location,
         seller: p.seller?.name || "Penjual",
         seller_id: p.seller_id,
-        sellerAvatar: p.seller?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=seller",
+        sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
         image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
         rating: 0,
         sold: 0,

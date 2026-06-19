@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useApp } from "../context";
+import { useAuth } from "../../hooks/useAuth";
 import { categories, banners, recentProducts, extraProducts, requestBoard, formatPrice } from "../data";
 import logo from "../../assets/logo.png";
 import {
@@ -16,6 +17,8 @@ export default function MarketplaceFeed() {
     activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
     products, requests
   } = useApp();
+
+  const { profile } = useAuth();
 
   return (
     <>
@@ -34,7 +37,7 @@ export default function MarketplaceFeed() {
               </div>
               <div>
                 <p className="text-white/70 text-[10px] leading-none mb-0.5">Selamat datang 👋</p>
-                <p className="text-white font-bold text-sm leading-none">Lapak Jas Merah</p>
+                <p className="text-white font-bold text-sm leading-none">{profile?.full_name || "Mahasiswa UMM"}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
