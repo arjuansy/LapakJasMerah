@@ -75,7 +75,12 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   async function handleSubmit() {
     const e = validate();
     setErrors(e);
-    if (Object.keys(e).length > 0) return;
+    if (Object.keys(e).length > 0) {
+      if (e.email && e.email.includes("webmail.umm.ac.id")) {
+        toast.error(e.email);
+      }
+      return;
+    }
 
     setLoading(true);
     try {

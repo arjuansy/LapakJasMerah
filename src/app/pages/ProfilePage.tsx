@@ -1958,36 +1958,9 @@ export default function ProfilePage() {
   if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage onBack={() => setProfileSubPage(null)} /></div>;
 
-  const soldItems = [
-    {
-      id: 201, name: "Earphone Sony WH-1000XM4", price: 2100000,
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop&auto=format",
-      buyer: "Fajar_FEB21", soldDate: "12 Jun 2026",
-    },
-    {
-      id: 202, name: "Jas Almamater UMM (L)", price: 185000,
-      image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=200&h=200&fit=crop&auto=format",
-      buyer: "Siti_FKIP22", soldDate: "3 Jun 2026",
-    },
-  ];
+  const soldItems: any[] = [];
 
-  const likedItems = [
-    {
-      id: 301, name: "Motor Yamaha NMAX 2022", price: 24000000,
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop&auto=format",
-      seller: "Budi_Teknik",
-    },
-    {
-      id: 302, name: "iPad Air 5th Gen", price: 8900000,
-      image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=200&h=200&fit=crop&auto=format",
-      seller: "GadgetPro_Mlg",
-    },
-    {
-      id: 303, name: "Kost Premium AC WiFi", price: 900000,
-      image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=200&h=200&fit=crop&auto=format",
-      seller: "KostMewah_Dau",
-    },
-  ];
+  const likedItems: any[] = [];
 
   const menuGroups = [
     {
