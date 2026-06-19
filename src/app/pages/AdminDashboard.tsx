@@ -2833,7 +2833,7 @@ export default function AdminDashboard({
               </button>
             </div>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 if (!userForm.name.trim() || !userForm.nim.trim() || !userForm.email.trim() || !userForm.major.trim()) {
                   showToast("Semua kolom harus diisi!", "error");

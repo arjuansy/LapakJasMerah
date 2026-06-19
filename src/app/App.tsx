@@ -225,6 +225,7 @@ export default function App() {
       // Fetch Sales Data (user as seller via products)
       const { data: sales, error: saleErr } = await supabase
         .from('order_items')
+        .select(`
           order_id, quantity, price_at_purchase,
           order:orders(id, created_at, status, buyer:profiles(full_name, avatar_url)),
           product:products!inner(id, name, image_url, seller_id)
