@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   User,
@@ -11,9 +12,13 @@ import {
   X,
 } from "lucide-react";
 import { useApp } from "../context";
+import api from "../api";
+import { supabase } from "../../config/supabaseClient";
 import logo from "../../assets/logo.png";
 
 export default function AuthPage({ mode }: { mode: "login" | "register" }) {
+  const navigate = useNavigate();
+
   const { setScreen } = useApp();
 
   const isLogin = mode === "login";
@@ -36,43 +41,12 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const [otpError, setOtpError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [currentOtp, setCurrentOtp] = useState("");
-  const [showOtpNotification, setShowOtpNotification] = useState(false);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [resendCooldown]);
-
-  const otpNotificationEl = showOtpNotification && (
-    <div 
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] w-[90%] max-w-sm bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-4 shadow-2xl border border-white/10 flex items-start gap-3"
-      style={{
-        animation: "slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-      }}
-    >
-      <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shrink-0">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5h11c2.5 0 4.5 2 4.5 4.5V17z"/><path d="m22 9-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 9"/></svg>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-center mb-0.5">
-          <span className="font-extrabold text-[10px] text-red-400 uppercase tracking-wider">Webmail UMM</span>
-          <span className="text-[9px] text-white/50 font-medium">Baru saja</span>
-        </div>
-        <p className="font-bold text-xs text-white mb-0.5">Kode OTP LapakJasMerah</p>
-        <p className="text-[11px] text-white/80 leading-snug">
-          Kode verifikasi Anda adalah <span className="font-black text-red-300 tracking-wider text-xs">{currentOtp}</span>. Rahasiakan kode ini.
-        </p>
-      </div>
-      <button 
-        onClick={() => setShowOtpNotification(false)}
-        className="text-white/40 hover:text-white shrink-0 p-1 transition-colors"
-      >
-        <X size={14} />
-      </button>
-    </div>
-  );
 
   function validate() {
     const e: Record<string, string> = {};
@@ -91,21 +65,42 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     setErrors(e);
     if (Object.keys(e).length > 0) return;
     if (!isLogin) {
-      // Send OTP flow
       setLoading(true);
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setCurrentOtp(code);
-      setTimeout(() => {
+      supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { name: form.name, nim: form.nim }
+        }
+      }).then(({ data, error }) => {
         setLoading(false);
+        if (error) {
+          setErrors({ email: error.message });
+          return;
+        }
         setStep("otp");
         setResendCooldown(60);
-        setTimeout(() => {
-          setShowOtpNotification(true);
-        }, 500);
-      }, 1000);
+      });
     } else {
       setLoading(true);
-      setTimeout(() => { setLoading(false); setScreen("app"); }, 1200);
+      supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password
+      }).then(({ data, error }) => {
+        setLoading(false);
+        if (error) {
+          setErrors({ email: "Email atau password salah" });
+          return;
+        }
+        localStorage.setItem("userInfo", JSON.stringify({
+          token: data.session?.access_token,
+          id: data.user?.id,
+          name: data.user?.user_metadata?.name,
+          email: data.user?.email,
+          role: "BUYER"
+        }));
+        navigate("/marketplace");
+      });
     }
   }
 
@@ -137,21 +132,38 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   function handleVerifyOtp() {
     const entered = otp.join("");
     if (entered.length < 6) { setOtpError("Masukkan 6 digit kode OTP"); return; }
-    if (entered !== currentOtp && entered !== "123456") { setOtpError("Kode OTP salah. Coba lagi."); setOtp(["","","","","",""]); otpRefs.current[0]?.focus(); return; }
+    
     setLoading(true);
-    setTimeout(() => { setLoading(false); setScreen("app"); }, 1000);
+    supabase.auth.verifyOtp({
+      email: form.email,
+      token: entered,
+      type: 'signup'
+    }).then(({ data, error }) => {
+      setLoading(false);
+      if (error) {
+        setOtpError(error.message || "Kode OTP salah. Coba lagi.");
+        setOtp(["","","","","",""]); 
+        otpRefs.current[0]?.focus(); 
+        return;
+      }
+      
+      localStorage.setItem("userInfo", JSON.stringify({
+        token: data.session?.access_token,
+        id: data.user?.id,
+        name: data.user?.user_metadata?.name,
+        email: data.user?.email,
+        role: "BUYER"
+      }));
+      navigate("/marketplace");
+    });
   }
 
   function handleResend() {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setCurrentOtp(code);
+    supabase.auth.resend({ type: 'signup', email: form.email });
     setOtp(["","","","","",""]);
     setOtpError("");
     setResendCooldown(60);
     otpRefs.current[0]?.focus();
-    setTimeout(() => {
-      setShowOtpNotification(true);
-    }, 500);
   }
 
   // ── OTP SCREEN ──
@@ -613,7 +625,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10 bg-white" />
 
         <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
-          <button onClick={() => setScreen("landing")} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => navigate("/")} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex items-center gap-2.5">
@@ -759,7 +771,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
 
           {/* Skip */}
           <div className="flex flex-col gap-1.5 mt-2">
-            <button onClick={() => setScreen("app")} className="w-full text-center text-muted-foreground text-xs py-1.5 active:scale-95 transition-transform">
+            <button onClick={() => navigate("/marketplace")} className="w-full text-center text-muted-foreground text-xs py-1.5 active:scale-95 transition-transform">
               Lewati, jelajahi dulu →
             </button>
           </div>

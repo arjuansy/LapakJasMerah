@@ -1,0 +1,69 @@
+Created At: 2026-06-19T01:21:42Z
+Completed At: 2026-06-19T01:21:42Z
+File Path: `file:///c:/Users/IQBAL/Downloads/Website%20Jual%20Beli%20Mahasiswa/src/app/pages/ProductDetailPage.tsx`
+Total Lines: 600
+Total Bytes: 31791
+Showing lines 1 to 100
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: import React, { useState, useEffect } from "react";
+2: import { useNavigate, useLocation } from "react-router-dom";
+3: import { useNavigate, useParams } from "react-router-dom";
+4: import { useApp } from "../context";
+5: import { Product, formatPrice } from "../data";
+6: import {
+7:   ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X
+8: } from "lucide-react";
+9: import api from "../api";
+10: 
+11: export default function ProductDetailPage() {
+12:   const { id } = useParams<{ id: string }>();
+13:   const navigate = useNavigate();
+14:           <div className="bg-primary px-4 pt-10 pb-4 flex items-center gap-3 shadow-md shrink-0">
+15:             <button onClick={() => { setShowQrisCode(false); setShowOrder(true); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+16:               <ArrowLeft size={18} className="text-white" />
+17:             </button>
+18:             <div className="flex-1">
+19:               <h1 className="text-white font-black text-lg">Pembayaran QRIS</h1>
+20:               <p className="text-white/60 text-[11px]">Scan kode QR untuk membayar</p>
+21:             </div>
+22:           </div>
+23: 
+24:           {/* Content */}
+25:           <div className="flex-1 overflow-y-auto px-5 py-6 flex flex-col items-center justify-between">
+
+<truncated 2694 bytes>
+className="w-full mt-6">
+68:               <button
+69:                 onClick={() => { setShowQrisCode(false); setOrdered(true); }}
+70:                 className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+71:               >
+72:                 Saya Sudah Bayar ✓
+73:               </button>
+74:             </div>
+75:           </div>
+76:         </div>
+77:       );
+78:     }
+79: 
+80:     if (ordered) {
+81:       return (
+82:         <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center px-8" style={{ maxWidth: 430, margin: "0 auto" }}>
+83:           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
+84:             <CheckCircle2 size={48} className="text-green-500" />
+85:           </div>
+86:           <h2 className="text-foreground font-black text-2xl text-center mb-2">Pesanan Dikonfirmasi!</h2>
+87:           <p className="text-muted-foreground text-sm text-center mb-1">
+88:             <span className="font-bold text-foreground">{qty}× {product.name}</span>
+89:           </p>
+90:           <p className="text-primary font-black text-xl mb-6">{formatPrice(product.price * qty)}</p>
+91: 
+92:           <div className="w-full bg-card rounded-2xl border border-border p-4 mb-6 space-y-3 text-sm">
+93:             {[
+94:               ["Penjual", product.seller],
+95:               ["Lokasi COD", product.location],
+96:               ["Metode Bayar", paymentLabels[selectedPayment] ?? selectedPayment],
+97:               ["Status", "Dikonfirmasi ✓"],
+98:             ].map(([k, v]) => (
+99:               <div key={k} className="flex justify-between">
+100:                 <span className="text-muted-foreground">{k}</span>
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

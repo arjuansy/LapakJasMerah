@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, CheckCircle2, Clock, Package, MapPin, MessageSquare,
   Phone, ChevronRight, Copy, Share2, Star, RefreshCw,
 } from "lucide-react";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
+import api from "../api";
 
 const STEPS = [
   {
@@ -40,6 +42,8 @@ const STEPS = [
 type Status = "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
 
 export default function OrderTrackingPage() {
+  const navigate = useNavigate();
+
   const {
     trackingOrder,
     setTrackingOrder,
@@ -48,6 +52,7 @@ export default function OrderTrackingPage() {
     setPurchaseData,
     salesData,
     setSalesData,
+    startChat,
   } = useApp();
   const [showReview, setShowReview] = useState(false);
   const [rating, setRating] = useState(0);
@@ -70,25 +75,30 @@ export default function OrderTrackingPage() {
     dibatalkan: "Transaksi dibatalkan",
   };
 
-  function handleConfirmReceipt() {
+  async function handleConfirmReceipt() {
     if (!trackingOrder) return;
-    const orderIdNum = trackingOrder.id.slice(-6);
+    try {
+      await api.post(`/orders/${trackingOrder.id}/complete`);
+      // Update active trackingOrder
+      setTrackingOrder({
+        ...trackingOrder,
+        status: "selesai",
+      });
 
-    // Update active trackingOrder
-    setTrackingOrder({
-      ...trackingOrder,
-      status: "selesai",
-    });
+      // Update purchase list
+      setPurchaseData((prev) =>
+        prev.map((p) => p.id === trackingOrder.id ? { ...p, status: "selesai" } : p)
+      );
 
-    // Update purchase list
-    setPurchaseData((prev) =>
-      prev.map((p) => p.id === trackingOrder.id ? { ...p, status: "selesai" } : p)
-    );
-
-    // Update sales list
-    setSalesData((prev) =>
-      prev.map((s) => s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
-    );
+      // Update sales list
+      const orderIdNum = trackingOrder.id.slice(-6);
+      setSalesData((prev) =>
+        prev.map((s) => s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
+      );
+    } catch (err) {
+      console.error("Gagal konfirmasi pesanan", err);
+      alert("Terjadi kesalahan saat mengkonfirmasi pesanan");
+    }
   }
 
   function handleCopyId() {
@@ -114,7 +124,7 @@ export default function OrderTrackingPage() {
             <h2 className="text-foreground font-black text-xl mb-2">Ulasan Terkirim!</h2>
             <p className="text-muted-foreground text-sm mb-6">Terima kasih sudah berbagi pengalaman belanjamu.</p>
             <button
-              onClick={() => { setShowReview(false); setTrackingOrder(null); setActiveTab("home"); }}
+              onClick={() => { setShowReview(false); setTrackingOrder(null); navigate("/marketplace"); }}
               className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base"
             >
               Kembali ke Beranda
@@ -355,7 +365,7 @@ export default function OrderTrackingPage() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setActiveTab("chat")}
+                onClick={() => startChat(trackingOrder.seller, trackingOrder.product, trackingOrder.image, trackingOrder.price)}
                 className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center"
               >
                 <MessageSquare size={16} className="text-primary" />
@@ -387,7 +397,7 @@ export default function OrderTrackingPage() {
               <Star size={16} className="fill-foreground" /> Beri Ulasan Penjual
             </button>
             <button
-              onClick={() => { setTrackingOrder(null); setActiveTab("home"); }}
+              onClick={() => { setTrackingOrder(null); navigate("/marketplace"); }}
               className="w-full bg-secondary border border-border text-foreground font-bold py-3 rounded-2xl text-sm"
             >
               Kembali ke Beranda
@@ -395,7 +405,7 @@ export default function OrderTrackingPage() {
           </div>
         ) : currentStatus === "dibatalkan" ? (
           <button
-            onClick={() => { setTrackingOrder(null); setActiveTab("home"); }}
+            onClick={() => { setTrackingOrder(null); navigate("/marketplace"); }}
             className="w-full bg-secondary border border-border text-foreground font-bold py-3.5 rounded-2xl text-sm"
           >
             Kembali ke Beranda
@@ -403,7 +413,7 @@ export default function OrderTrackingPage() {
         ) : (
           <div className="flex gap-2">
             <button
-              onClick={() => setActiveTab("chat")}
+              onClick={() => startChat(trackingOrder.seller, trackingOrder.product, trackingOrder.image, trackingOrder.price)}
               className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
             >
               <MessageSquare size={15} /> Chat Penjual

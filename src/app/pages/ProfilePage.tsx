@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Star,
@@ -40,12 +41,12 @@ import {
   Clock,
 } from "lucide-react";
 import { useApp } from "../context";
-import { formatPrice, productDescriptions, allProducts } from "../data";
+import { formatPrice, productDescriptions } from "../data";
 
 // ── DAFTAR PENJUALAN ──
 function SalesPage() {
   const {
-    setProfileSubPage,
+    
     setShowReportModal,
     salesData,
     setSalesData,
@@ -54,6 +55,7 @@ function SalesPage() {
     trackingOrder,
     setTrackingOrder,
     setActiveTab,
+    startChat,
   } = useApp();
   const [salesTab, setSalesTab] = useState<"semua" | "proses" | "selesai" | "dibatalkan">("semua");
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
@@ -103,7 +105,7 @@ function SalesPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -192,7 +194,7 @@ function SalesPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { setProfileSubPage(null); setActiveTab("chat"); }}
+                      onClick={() => startChat(sale.buyer, sale.product, sale.image, sale.price)}
                       className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl"
                     >
                       Chat Pembeli
@@ -295,7 +297,7 @@ function SalesPage() {
 // ── DAFTAR PEMBELIAN ──
 function PurchasePage() {
   const {
-    setProfileSubPage,
+    
     setActiveTab: setGlobalTab,
     purchaseData,
     setPurchaseData,
@@ -303,6 +305,7 @@ function PurchasePage() {
     setSalesData,
     trackingOrder,
     setTrackingOrder,
+    startChat,
   } = useApp();
   const [purchaseTab, setPurchaseTab] = useState<"semua" | "diproses" | "selesai" | "dibatalkan">("semua");
   const [showConfirmReceive, setShowConfirmReceive] = useState<string | null>(null);
@@ -361,7 +364,7 @@ function PurchasePage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -442,7 +445,7 @@ function PurchasePage() {
               {(order.status === "dikonfirmasi" || order.status === "diproses" || order.status === "menuju_lokasi") && (
                 <div className="flex gap-2 px-4 pb-3">
                   <button
-                    onClick={() => { setProfileSubPage(null); setGlobalTab("chat"); }}
+                    onClick={() => startChat(order.seller, order.product, order.image, order.price)}
                     className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl"
                   >
                     Chat Penjual
@@ -458,7 +461,7 @@ function PurchasePage() {
               {order.status === "selesai" && (
                 <div className="flex gap-2 px-4 pb-3">
                   <button
-                    onClick={() => { setProfileSubPage(null); setGlobalTab("home"); }}
+                    onClick={() => { (null); setGlobalTab("home"); }}
                     className="flex-1 bg-secondary border border-border text-foreground text-xs font-bold py-2 rounded-xl"
                   >
                     Beli Lagi
@@ -561,7 +564,7 @@ function PurchasePage() {
 
 // ── EDIT PROFIL ──
 function EditProfilePage() {
-  const { setProfileSubPage, profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
+  const {  profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
   const [profile, setProfile] = useState({
     name: "Ahmad Rizky Pratama",
     username: "rizky.pratama",
@@ -599,7 +602,7 @@ function EditProfilePage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <h1 className="flex-1 text-white font-black text-lg">Edit Profil</h1>
@@ -814,7 +817,7 @@ function EditProfilePage() {
 
 // ── EDIT ITEM PAGE ──
 function EditItemPage() {
-  const { editingItem, setProfileSubPage } = useApp();
+  const { editingItem,  setListings, setProducts, triggerToast } = useApp();
   const item = editingItem!;
 
   const [photos, setPhotos] = useState<string[]>([item.image]);
@@ -867,8 +870,50 @@ function EditItemPage() {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
+    
+    const numericPrice = Number(form.price.replace(/\./g, ""));
+    const updatedImage = photos[0] || item.image;
+
+    // Update global listings state
+    setListings((prevListings) =>
+      prevListings.map((l) =>
+        l.id === item.id
+          ? {
+              ...l,
+              name: form.title,
+              price: numericPrice,
+              image: updatedImage,
+              status: form.status,
+            }
+          : l
+      )
+    );
+
+    // Update global products state
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.id === item.id
+          ? {
+              ...p,
+              name: form.title,
+              price: numericPrice,
+              image: updatedImage,
+              location: form.location,
+            }
+          : p
+      )
+    );
+
     setSaved(true);
-    setTimeout(() => { setSaved(false); setProfileSubPage(null); }, 1500);
+    setTimeout(() => { setSaved(false); (null); }, 1500);
+  }
+
+  function handleDelete() {
+    setListings((prevListings) => prevListings.filter((l) => l.id !== item.id));
+    setProducts((prevProducts) => prevProducts.filter((p) => p.id !== item.id));
+    triggerToast("Iklan berhasil dihapus");
+    setShowDeleteConfirm(false);
+    (null);
   }
 
   const DropdownField = ({ label, value, open, onToggle, options, onSelect, error }: {
@@ -901,7 +946,7 @@ function EditItemPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1119,7 +1164,7 @@ function EditItemPage() {
                 className="flex-1 bg-secondary border border-border text-foreground font-bold py-3 rounded-2xl text-sm">
                 Batal
               </button>
-              <button onClick={() => { setShowDeleteConfirm(false); setProfileSubPage(null); }}
+              <button onClick={handleDelete}
                 className="flex-1 bg-red-500 text-white font-black py-3 rounded-2xl text-sm">
                 Hapus Iklan
               </button>
@@ -1146,7 +1191,7 @@ function EditItemPage() {
 
 // ── KEAMANAN & PRIVASI PAGE ──
 function SecurityPrivacyPage() {
-  const { setProfileSubPage } = useApp();
+  const {  } = useApp();
   const [twoFactor, setTwoFactor] = useState(false);
   const [waVisible, setWaVisible] = useState(true);
   const [nimVisible, setNimVisible] = useState(true);
@@ -1169,7 +1214,7 @@ function SecurityPrivacyPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1279,7 +1324,7 @@ function SecurityPrivacyPage() {
 
 // ── NOTIFIKASI PAGE ──
 function NotificationSettingsPage() {
-  const { setProfileSubPage } = useApp();
+  const {  } = useApp();
   const [activeTab, setActiveTab] = useState<"daftar" | "pengaturan">("daftar");
   const [chatNotif, setChatNotif] = useState(true);
   const [offerNotif, setOfferNotif] = useState(true);
@@ -1305,7 +1350,7 @@ function NotificationSettingsPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1439,7 +1484,7 @@ function NotificationSettingsPage() {
 
 // ── PUSAT BANTUAN (HELP CENTER) PAGE ──
 function HelpCenterPage() {
-  const { setProfileSubPage } = useApp();
+  const {  } = useApp();
   const [search, setSearch] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -1476,7 +1521,7 @@ function HelpCenterPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1565,7 +1610,7 @@ function HelpCenterPage() {
 
 // ── KEBIJAKAN & SYARAT PAGE ──
 function TermsPoliciesPage() {
-  const { setProfileSubPage } = useApp();
+  const {  } = useApp();
   const [activeTab, setActiveTab] = useState<"syarat" | "kebijakan">("syarat");
 
   return (
@@ -1573,7 +1618,7 @@ function TermsPoliciesPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1650,7 +1695,7 @@ function TermsPoliciesPage() {
 
 // ── TENTANG LAPAK JAS MERAH ──
 function AboutPage() {
-  const { setProfileSubPage } = useApp();
+  const {  } = useApp();
 
   const stats = [
     { value: "12.4K+", label: "Produk Aktif" },
@@ -1688,7 +1733,7 @@ function AboutPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => setProfileSubPage(null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <h1 className="flex-1 text-white font-black text-lg">Tentang Lapak Jas Merah</h1>
@@ -1862,9 +1907,13 @@ function AboutPage() {
 
 // ── PROFILE PAGE ──
 export default function ProfilePage() {
+  const navigate = useNavigate();
+  const [profileSubPage, setProfileSubPage] = useState<any>(null);
+  const [ ] = useState<any>(null);
+
   const {
-    profileSubPage,
-    setProfileSubPage,
+    
+    
     setActiveTab,
     editingItem,
     setEditingItem,
@@ -1880,6 +1929,9 @@ export default function ProfilePage() {
     setSelectedProduct,
     toggleWishlist,
     wishlist,
+    listings,
+    setListings,
+    products,
   } = useApp();
 
   const [activeProfileTab, setActiveProfileTab] = useState<"iklan" | "terjual" | "disukai">("iklan");
@@ -1887,24 +1939,6 @@ export default function ProfilePage() {
   const [showBadgePay, setShowBadgePay] = useState(false);
   const [badgePaid, setBadgePaid] = useState(false);
   const [showKtm, setShowKtm] = useState(false);
-
-  const [listings, setListings] = useState([
-    {
-      id: 101, name: "Laptop Lenovo ThinkPad X1", price: 8500000,
-      image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop&auto=format",
-      views: 142, likes: 18, status: "aktif",
-    },
-    {
-      id: 102, name: "Buku Kalkulus Jilid 1 & 2", price: 90000,
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&auto=format",
-      views: 87, likes: 6, status: "aktif",
-    },
-    {
-      id: 103, name: "Meja Belajar Lipat", price: 250000,
-      image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=200&h=200&fit=crop&auto=format",
-      views: 55, likes: 9, status: "habis",
-    },
-  ]);
 
   if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage /></div>;
   if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage /></div>;
@@ -2343,7 +2377,7 @@ export default function ProfilePage() {
               </div>
             ))}
             <button
-              onClick={() => setActiveTab("sell")}
+              onClick={() => navigate("/sell")}
               className="w-full border-2 border-dashed border-primary/30 rounded-2xl py-4 flex items-center justify-center gap-2 text-primary font-bold text-sm"
             >
               <PlusCircle size={16} /> Pasang Iklan Baru
@@ -2373,11 +2407,11 @@ export default function ProfilePage() {
         {activeProfileTab === "disukai" && (
           <div className="grid grid-cols-2 gap-3">
             {likedItems.map((item) => {
-              const prod = allProducts.find((p) => p.id === item.id) || item;
+              const prod = products.find((p) => p.id === item.id) || item;
               return (
                 <div 
                   key={item.id} 
-                  onClick={() => setSelectedProduct(prod as Product)}
+                  onClick={() => navigate(`/product/${prod as Product.id}`)}
                   className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm cursor-pointer active:scale-95 transition-transform"
                 >
                   <div className="relative">
@@ -2443,7 +2477,7 @@ export default function ProfilePage() {
 
         {/* Logout */}
         <button
-          onClick={() => { setActiveTab("home"); setScreen("landing"); }}
+          onClick={() => { navigate("/marketplace"); navigate("/"); }}
           className="w-full bg-card rounded-2xl border border-border p-4 flex items-center justify-center gap-2 text-primary font-bold text-sm shadow-sm hover:bg-secondary/50 active:bg-secondary transition-colors"
         >
           <LogOut size={16} className="text-primary" />

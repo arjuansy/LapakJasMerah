@@ -1,10 +1,12 @@
 import { Shield, Tag, MessageSquare, MapPin, Star, Zap, ShoppingBag } from "lucide-react";
 import { useApp } from "../context";
-import { allProducts, formatPrice } from "../data";
+import { formatPrice } from "../data";
 import logo from "../../assets/logo.png";
 
 export default function LandingPage() {
-  const { setScreen } = useApp();
+  const navigate = useNavigate();
+
+  const { setScreen, products } = useApp();
 
   const features = [
     { icon: Shield, title: "100% Aman", desc: "Escrow & verifikasi NIM mahasiswa UMM", color: "#10B981" },
@@ -69,13 +71,13 @@ export default function LandingPage() {
           {/* CTA buttons */}
           <div className="flex gap-3">
             <button
-              onClick={() => setScreen("register")}
+              onClick={() => navigate("/register")}
               className="flex-1 bg-accent text-foreground font-black py-3.5 rounded-2xl text-sm shadow-lg active:scale-95 transition-transform"
             >
               Daftar Gratis
             </button>
             <button
-              onClick={() => setScreen("login")}
+              onClick={() => navigate("/login")}
               className="flex-1 bg-white/15 border border-white/30 text-white font-bold py-3.5 rounded-2xl text-sm active:scale-95 transition-transform"
             >
               Masuk
@@ -95,7 +97,7 @@ export default function LandingPage() {
 
         {/* Product preview strip */}
         <div className="flex gap-3 px-6 pb-8 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-          {allProducts.slice(0, 5).map((p) => (
+          {products.slice(0, 5).map((p) => (
             <div key={p.id} className="shrink-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden" style={{ width: 120 }}>
               <img src={p.image} alt={p.name} className="w-full h-20 object-cover" />
               <div className="p-2">
@@ -193,13 +195,13 @@ export default function LandingPage() {
           <h2 className="text-white font-black text-2xl mb-2">Siap Bergabung?</h2>
           <p className="text-white/75 text-sm mb-6">Daftar sekarang, gratis selamanya. Khusus mahasiswa UMM aktif.</p>
           <button
-            onClick={() => setScreen("register")}
+            onClick={() => navigate("/register")}
             className="w-full bg-accent text-foreground font-black py-4 rounded-2xl text-base mb-3 shadow-lg active:scale-95 transition-transform"
           >
             Daftar Sekarang — Gratis
           </button>
           <button
-            onClick={() => setScreen("login")}
+            onClick={() => navigate("/login")}
             className="w-full bg-white/15 border border-white/30 text-white font-bold py-3.5 rounded-2xl text-sm"
           >
             Sudah punya akun? Masuk

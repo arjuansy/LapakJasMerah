@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Star, Heart, MapPin, X, SlidersHorizontal, ChevronDown, Clock, Trash2, TrendingUp } from "lucide-react";
 import { useApp } from "../context";
-import { allProducts, formatPrice } from "../data";
+import { formatPrice } from "../data";
 import type { Product } from "../data";
 
 export default function SearchResultsPage() {
-  const { globalSearch, setGlobalSearch, setShowSearchResults, setSelectedProduct, wishlist, toggleWishlist } = useApp();
+  const navigate = useNavigate();
+
+  const { globalSearch, setGlobalSearch, setShowSearchResults, setSelectedProduct, wishlist, toggleWishlist, products } = useApp();
 
   const [sortBy, setSortBy] = useState("relevan");
   const [filterCondition, setFilterCondition] = useState("");
@@ -67,7 +70,7 @@ export default function SearchResultsPage() {
 
   const query = debouncedQuery.trim().toLowerCase();
 
-  const results = allProducts.filter((p) => {
+  const results = products.filter((p) => {
     const matchQuery = !query ||
       p.name.toLowerCase().includes(query) ||
       p.seller.toLowerCase().includes(query) ||
@@ -94,7 +97,7 @@ export default function SearchResultsPage() {
   const popularSearches = ["Jaket Almamater", "Buku Kalkulus", "Kost Putri", "Casio", "Sepeda"];
 
   const suggestions = globalSearch.trim()
-    ? allProducts
+    ? products
         .filter((p) => p.name.toLowerCase().includes(globalSearch.toLowerCase().trim()))
         .slice(0, 5)
     : [];
@@ -257,7 +260,7 @@ export default function SearchResultsPage() {
                         setGlobalSearch(p.name);
                         saveToHistory(p.name);
                         setIsFocused(false);
-                        setSelectedProduct(p);
+                        navigate(`/product/${p.id}`);
                         setShowSearchResults(false);
                       }}
                       className="w-full flex items-center justify-between py-2.5 border-b border-border/40 text-left hover:bg-secondary transition-colors rounded-xl px-2"
@@ -358,7 +361,7 @@ export default function SearchResultsPage() {
             {results.map((p: Product) => (
               <div
                 key={p.id}
-                onClick={() => { setShowSearchResults(false); setSelectedProduct(p); }}
+                onClick={() => { setShowSearchResults(false); navigate(`/product/${p.id}`); }}
                 className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm cursor-pointer active:scale-95 transition-transform"
               >
                 <div className="relative">

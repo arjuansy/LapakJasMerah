@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Camera,
@@ -18,9 +19,12 @@ import { useApp } from "../context";
 import { formatPrice } from "../data";
 
 export default function SellPage() {
-  const { setActiveTab } = useApp();
+  const navigate = useNavigate();
+
+  const { setActiveTab, setProducts, setListings } = useApp();
 
   const [photos, setPhotos] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [step, setStep] = useState<"form" | "success">("form");
   const [adPackage, setAdPackage] = useState<"gratis" | "standard">("gratis");
   const [form, setForm] = useState({
@@ -29,8 +33,10 @@ export default function SellPage() {
     condition: "",
     price: "",
     negotiable: true,
+    stock: "1",
     description: "",
     location: "",
+    customLocation: "",
     meetup: "",
     phone: "",
   });
@@ -50,6 +56,7 @@ export default function SellPage() {
   const locationOptions = [
     "Kampus 1 (GKB)", "Kampus 2", "Kampus 3", "Dinoyo",
     "Sengkaling", "Lowokwaru", "Dau", "Online / Kirim",
+    "Lainnya (Isi Sendiri)",
   ];
 
   function triggerFileInput() {
@@ -82,6 +89,8 @@ export default function SellPage() {
         return;
       }
 
+      setFiles((prev) => [...prev, file]);
+
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -101,6 +110,7 @@ export default function SellPage() {
 
   function removePhoto(i: number) {
     setPhotos((p) => p.filter((_, idx) => idx !== i));
+    setFiles((f) => f.filter((_, idx) => idx !== i));
   }
 
   function validate() {
@@ -111,9 +121,13 @@ export default function SellPage() {
     if (!form.condition) e.condition = "Pilih kondisi barang";
     if (!form.price.trim()) e.price = "Harga wajib diisi";
     if (form.price && isNaN(Number(form.price.replace(/\./g, "")))) e.price = "Harga harus berupa angka";
+    if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 1) e.stock = "Stok minimal 1";
     if (!form.description.trim()) e.description = "Deskripsi wajib diisi";
     if (form.description.length > 0 && form.description.length < 20) e.description = "Deskripsi minimal 20 karakter";
     if (!form.location) e.location = "Pilih lokasi";
+    if (form.location === "Lainnya (Isi Sendiri)" && (!form.customLocation || !form.customLocation.trim())) {
+      e.location = "Isi lokasi COD Anda";
+    }
     if (photos.length === 0) e.photos = "Tambahkan minimal 1 foto";
     
     const maxPhotos = adPackage === "gratis" ? 3 : 5;
@@ -123,11 +137,49 @@ export default function SellPage() {
     return e;
   }
 
-  function handleSubmit() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit() {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length === 0) {
-      setStep("success");
+      setIsSubmitting(true);
+      try {
+        let imageUrl = "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&h=300&fit=crop&auto=format";
+        
+        // 1. Upload file if exists
+        if (files.length > 0) {
+          const formData = new FormData();
+          formData.append("image", files[0]);
+          
+          const uploadRes = await api.post("/upload", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+          });
+          imageUrl = uploadRes.data.imageUrl;
+        }
+
+        const numericPrice = Number(form.price.replace(/\./g, ""));
+        const actualLocation = form.location === "Lainnya (Isi Sendiri)" ? form.customLocation : form.location;
+
+        // 2. Submit Product to Backend
+        await api.post("/products", {
+          name: form.title,
+          description: form.description,
+          price: numericPrice,
+          category: form.category,
+          condition: form.condition,
+          stock: form.stock,
+          location: actualLocation,
+          image: imageUrl
+        });
+
+        setStep("success");
+      } catch (err) {
+        console.error("Gagal mengunggah produk", err);
+        alert("Gagal memposting iklan. Pastikan Anda sudah login.");
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -177,13 +229,13 @@ export default function SellPage() {
         </div>
 
         <button
-          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,description:"",location:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); setActiveTab("home"); }}
+          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); navigate("/marketplace"); }}
           className="w-full bg-primary text-white font-bold py-3.5 rounded-2xl text-sm mb-3"
         >
           Kembali ke Beranda
         </button>
         <button
-          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,description:"",location:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
+          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
           className="w-full bg-secondary text-primary font-bold py-3.5 rounded-2xl text-sm border border-primary/20"
         >
           Pasang Iklan Lagi
@@ -198,7 +250,7 @@ export default function SellPage() {
       <div className="bg-primary text-white px-4 pt-10 pb-4 z-40 shadow-md">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setActiveTab("home")}
+            onClick={() => navigate("/marketplace")}
             className="p-1.5 rounded-full hover:bg-white/10"
           >
             <ArrowLeft size={20} className="text-white" />
@@ -373,6 +425,22 @@ export default function SellPage() {
               {errors.condition && <p className="text-primary text-[11px] flex items-center gap-1 mt-2"><AlertCircle size={11} />{errors.condition}</p>}
             </div>
 
+            {/* Stok Barang */}
+            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.stock ? "bg-red-50/20" : ""} ${errors.stock && shake ? "animate-shake" : ""}`}>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
+                Stok Barang <span className="text-primary">*</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={form.stock}
+                onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
+                placeholder="Jumlah stok barang yang tersedia"
+                className="w-full text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
+              />
+              {errors.stock && <p className="text-primary text-[11px] flex items-center gap-1 mt-1"><AlertCircle size={11} />{errors.stock}</p>}
+            </div>
+
             {/* Deskripsi */}
             <div className={`px-4 py-3.5 transition-all duration-300 ${errors.description ? "bg-red-50/20" : ""} ${errors.description && shake ? "animate-shake" : ""}`}>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
@@ -446,6 +514,24 @@ export default function SellPage() {
                 </button>
               </div>
             </div>
+
+            {/* Stok Barang */}
+            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.stock ? "bg-red-50/20" : ""} ${errors.stock && shake ? "animate-shake" : ""}`}>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
+                Stok Barang <span className="text-primary">*</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  value={form.stock}
+                  onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
+                  placeholder="1"
+                  className="w-full text-foreground font-bold text-base bg-transparent outline-none border-b border-border pb-1 focus:border-primary transition-colors"
+                />
+              </div>
+              {errors.stock && <p className="text-primary text-[11px] flex items-center gap-1 mt-1"><AlertCircle size={11} />{errors.stock}</p>}
+            </div>
           </div>
         </section>
 
@@ -474,7 +560,7 @@ export default function SellPage() {
               </button>
               {errors.location && <p className="text-primary text-[11px] flex items-center gap-1 mt-1"><AlertCircle size={11} />{errors.location}</p>}
               {locationOpen && (
-                <div className="absolute left-0 right-0 top-full z-30 bg-card border border-border rounded-xl shadow-xl mx-4 overflow-hidden">
+                <div className="absolute left-0 right-0 top-full z-30 bg-card border border-border rounded-xl shadow-xl mx-4 overflow-hidden max-h-60 overflow-y-auto">
                   {locationOptions.map((opt) => (
                     <button
                       key={opt}
@@ -488,6 +574,22 @@ export default function SellPage() {
                 </div>
               )}
             </div>
+
+            {/* Custom Location */}
+            {form.location === "Lainnya (Isi Sendiri)" && (
+              <div className="px-4 py-3.5 bg-secondary/20">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
+                  Isi Lokasi COD <span className="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.customLocation || ""}
+                  onChange={(e) => setForm((f) => ({ ...f, customLocation: e.target.value }))}
+                  placeholder="Ketik lokasi COD..."
+                  className="w-full text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground border-b border-border pb-1 focus:border-primary transition-colors"
+                />
+              </div>
+            )}
 
             {/* Tempat COD */}
             <div className="px-4 py-3.5">

@@ -1,9 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Message, Product } from "./data";
 
-export type ProfileSubPage = null | "penjualan" | "pembelian" | "editprofil" | "editbarang" | "keamanan" | "notifikasi" | "bantuan" | "kebijakan" | "tentang";
-export type Screen = "landing" | "login" | "register" | "app" | "admin";
-
 export type EditingItem = { id: number; name: string; price: number; image: string; status: string };
 export type TrackingOrder = {
   id: string; product: string; image: string; seller: string;
@@ -36,15 +33,6 @@ export type SalesOrder = {
 };
 
 export type AppContextType = {
-  // screen
-  screen: Screen;
-  setScreen: (s: Screen) => void;
-  // tab
-  activeTab: string;
-  setActiveTab: (t: string) => void;
-  // product
-  selectedProduct: Product | null;
-  setSelectedProduct: (p: Product | null) => void;
   // wishlist
   wishlist: number[];
   toggleWishlist: (id: number) => void;
@@ -58,8 +46,6 @@ export type AppContextType = {
   chatSearch: string;
   setChatSearch: (s: string) => void;
   // profile
-  profileSubPage: ProfileSubPage;
-  setProfileSubPage: (p: ProfileSubPage) => void;
   editingItem: EditingItem | null;
   setEditingItem: (item: EditingItem | null) => void;
   // modals / overlays
@@ -73,8 +59,6 @@ export type AppContextType = {
   setShowReportModal: (v: { type: "penjual" | "pembeli"; name: string } | null) => void;
   showSuggestionBox: boolean;
   setShowSuggestionBox: (v: boolean) => void;
-  viewStoreSeller: string | null;
-  setViewStoreSeller: (s: string | null) => void;
   showSalesStats: boolean;
   setShowSalesStats: (v: boolean) => void;
   // categories
@@ -89,8 +73,6 @@ export type AppContextType = {
   setGlobalSearch: (s: string) => void;
   showSearchResults: boolean;
   setShowSearchResults: (v: boolean) => void;
-  trackingOrder: TrackingOrder | null;
-  setTrackingOrder: (o: TrackingOrder | null) => void;
   purchaseData: PurchaseOrder[];
   setPurchaseData: React.Dispatch<React.SetStateAction<PurchaseOrder[]>>;
   salesData: SalesOrder[];
@@ -104,6 +86,9 @@ export type AppContextType = {
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   listings: any[];
   setListings: React.Dispatch<React.SetStateAction<any[]>>;
+  contacts: any[];
+  setContacts: React.Dispatch<React.SetStateAction<any[]>>;
+  startChat: (sellerName: string, productName?: string, productImg?: string, productPrice?: number) => void;
 };
 
 export const AppContext = createContext<AppContextType>(null!);

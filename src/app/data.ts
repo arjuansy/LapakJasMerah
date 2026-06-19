@@ -241,6 +241,22 @@ export type Message = {
   image?: string;
 };
 
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  condition: string;
+  location: string;
+  seller: string;
+  sellerAvatar: string;
+  image: string;
+  rating: number;
+  sold: number;
+  description: string;
+  stock: number;
+}
+
 export const initialMessages: Record<number, Message[]> = {
   1: [
     { id: 1, text: "Halo kak, saya tertarik dengan laptop Asus VivoBooknya", fromMe: true, time: "10:20", status: "read" },
