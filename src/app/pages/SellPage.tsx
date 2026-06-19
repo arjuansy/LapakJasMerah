@@ -120,7 +120,6 @@ export default function SellPage() {
     if (!form.condition) e.condition = "Pilih kondisi barang";
     if (!form.price.trim()) e.price = "Harga wajib diisi";
     if (form.price && isNaN(Number(form.price.replace(/\./g, "")))) e.price = "Harga harus berupa angka";
-    if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 1) e.stock = "Stok minimal 1";
     if (!form.description.trim()) e.description = "Deskripsi wajib diisi";
     if (!form.location) e.location = "Pilih lokasi";
     if (form.location === "Lainnya (Isi Sendiri)" && (!form.customLocation || !form.customLocation.trim())) {
@@ -173,7 +172,9 @@ export default function SellPage() {
           stock: parseInt(form.stock) || 1,
           location: actualLocation,
           image_url: imageUrl,
-          status: 'AVAILABLE'
+          status: 'AVAILABLE',
+          ad_package: adPackage,
+          is_premium: adPackage === 'standard'
         });
 
         if (insertError) throw insertError;
@@ -430,21 +431,6 @@ export default function SellPage() {
               {errors.condition && <p className="text-primary text-[11px] flex items-center gap-1 mt-2"><AlertCircle size={11} />{errors.condition}</p>}
             </div>
 
-            {/* Stok Barang */}
-            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.stock ? "bg-red-50/20" : ""} ${errors.stock && shake ? "animate-shake" : ""}`}>
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
-                Stok Barang <span className="text-primary">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={form.stock}
-                onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
-                placeholder="Jumlah stok barang yang tersedia"
-                className="w-full text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
-              />
-              {errors.stock && <p className="text-primary text-[11px] flex items-center gap-1 mt-1"><AlertCircle size={11} />{errors.stock}</p>}
-            </div>
 
             {/* Deskripsi */}
             <div className={`px-4 py-3.5 transition-all duration-300 ${errors.description ? "bg-red-50/20" : ""} ${errors.description && shake ? "animate-shake" : ""}`}>
@@ -520,23 +506,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Stok Barang */}
-            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.stock ? "bg-red-50/20" : ""} ${errors.stock && shake ? "animate-shake" : ""}`}>
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
-                Stok Barang <span className="text-primary">*</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  value={form.stock}
-                  onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
-                  placeholder="1"
-                  className="w-full text-foreground font-bold text-base bg-transparent outline-none border-b border-border pb-1 focus:border-primary transition-colors"
-                />
-              </div>
-              {errors.stock && <p className="text-primary text-[11px] flex items-center gap-1 mt-1"><AlertCircle size={11} />{errors.stock}</p>}
-            </div>
           </div>
         </section>
 

@@ -23,7 +23,7 @@ export default function ProductDetailPage() {
   const [showOrder, setShowOrder] = useState(false);
   const [ordered, setOrdered] = useState(false);
   const [showPaymentPicker, setShowPaymentPicker] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState("qris");
+  const [selectedPayment, setSelectedPayment] = useState("cod");
   const [showQrisCode, setShowQrisCode] = useState(false);
   const [showReportModal, setShowReportModal] = useState<any>(null);
 
@@ -622,7 +622,7 @@ export default function ProductDetailPage() {
         {/* ── ORDER CONFIRMATION SHEET ── */}
         {showOrder && (() => {
           const paymentMethods = [
-            { id: "qris",    label: "QRIS",            sub: "Scan QR semua e-wallet", icon: Zap,     color: "#8B5CF6", logo: null },
+            { id: "qris",    label: "QRIS",            sub: "Sementara Tidak Tersedia", icon: Zap,     color: "#9CA3AF", logo: null, disabled: true },
             { id: "cod",     label: "COD (Bayar di Tempat)", sub: "Bayar saat COD di lokasi", icon: MapPin, color: "#10B981", logo: null },
           ];
           const selected = paymentMethods.find((m) => m.id === selectedPayment)!;
@@ -651,8 +651,15 @@ export default function ProductDetailPage() {
                             return (
                               <button
                                 key={id}
-                                onClick={() => { setSelectedPayment(id); setShowPaymentPicker(false); }}
-                                className="w-full flex items-center gap-3 px-5 py-3.5 border-b border-border last:border-0 transition-colors hover:bg-muted/50 active:bg-muted"
+                                onClick={() => { 
+                                  if (m.disabled) {
+                                    toast.error(`Metode pembayaran ${m.label} sementara tidak tersedia.`);
+                                    return;
+                                  }
+                                  setSelectedPayment(id); 
+                                  setShowPaymentPicker(false); 
+                                }}
+                                className={`w-full flex items-center gap-3 px-5 py-3.5 border-b border-border last:border-0 transition-colors ${m.disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/50 active:bg-muted"}`}
                                 style={{ background: isActive ? m.color + "08" : "transparent" }}
                               >
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: m.color + "15" }}>

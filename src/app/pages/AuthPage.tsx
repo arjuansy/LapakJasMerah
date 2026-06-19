@@ -80,8 +80,24 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     setLoading(true);
     try {
       if (isLogin) {
-        await authService.loginWithPassword(form.email, form.password);
+        const res = await authService.loginWithPassword(form.email, form.password);
         toast.success("Berhasil masuk!");
+        try {
+          if (res?.user) {
+            const prof = await authService.getProfile(res.user.id);
+            if (prof) {
+              if (!prof.nim) navigate('/register/data-diri');
+              else if (prof.role === 'ADMIN' || prof.role === 'SUPER_ADMIN') navigate('/admin/dashboard');
+              else navigate('/marketplace');
+            } else {
+              navigate('/marketplace');
+            }
+          } else {
+            navigate('/marketplace');
+          }
+        } catch (err) {
+          navigate('/marketplace');
+        }
       } else {
         // Register (Sends confirmation email OTP)
         await authService.registerWithPassword(form.email, form.password, form.name, form.nim);

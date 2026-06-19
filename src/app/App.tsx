@@ -89,7 +89,9 @@ export default function App() {
           *,
           seller:profiles!products_seller_id_fkey(name, avatar_url),
           category:categories(name)
-        `);
+        `)
+        .order('is_premium', { ascending: false })
+        .order('created_at', { ascending: false });
         
       if (error) {
         console.error("Gagal memuat produk dari Supabase:", error);

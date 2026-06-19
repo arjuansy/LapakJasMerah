@@ -1993,7 +1993,7 @@ export default function ProfilePage() {
     {
       title: "Transaksi",
       items: [
-        { icon: ClipboardList, label: "Daftar Pembelian", badge: "2 proses", color: "#3B82F6", onPress: () => setProfileSubPage("pembelian") },
+        { icon: ClipboardList, label: "Daftar Pembelian", badge: null, color: "#3B82F6", onPress: () => setProfileSubPage("pembelian") },
         { icon: Package, label: "Daftar Penjualan", badge: null, color: "#10B981", onPress: () => setProfileSubPage("penjualan") },
       ],
     },

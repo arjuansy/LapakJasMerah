@@ -83,6 +83,9 @@ CREATE TABLE public.products (
     image_url TEXT,
     status TEXT NOT NULL DEFAULT 'AVAILABLE',
     location TEXT NOT NULL,
+    ad_package TEXT NOT NULL DEFAULT 'gratis',
+    is_premium BOOLEAN NOT NULL DEFAULT false,
+    expires_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -142,9 +145,25 @@ CREATE TABLE public.requests (
     description TEXT NOT NULL,
     budget NUMERIC(12, 2),
     status TEXT NOT NULL DEFAULT 'OPEN',
+    request_package TEXT NOT NULL DEFAULT 'standard',
+    expires_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+CREATE TABLE public.package_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('ad_package', 'request_package')),
+    product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
+    request_id UUID REFERENCES public.requests(id) ON DELETE SET NULL,
+    package_name TEXT NOT NULL,
+    amount NUMERIC(12, 2) NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 
 -- ==========================================
 -- 4. ATURAN KEAMANAN (RLS)
@@ -158,6 +177,7 @@ ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.package_transactions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Kategori bisa dibaca siapa saja" ON public.categories;
 CREATE POLICY "Kategori bisa dibaca siapa saja" ON public.categories FOR SELECT USING (true);
@@ -219,6 +239,16 @@ CREATE POLICY "Pengguna di dalam chat bisa membalas" ON public.messages FOR INSE
     EXISTS (SELECT 1 FROM public.chats WHERE chats.id = messages.chat_id AND (chats.buyer_id = auth.uid() OR chats.seller_id = auth.uid()))
     AND auth.uid() = sender_id
 );
+
+CREATE POLICY "Users can manage their requests" ON public.requests
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Package Transactions Policies
+CREATE POLICY "Users can view own transactions" ON public.package_transactions
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own transactions" ON public.package_transactions
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- ==========================================
 -- 5. STORAGE & KATEGORI DUMMY
