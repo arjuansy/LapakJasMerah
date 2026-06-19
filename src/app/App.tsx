@@ -34,6 +34,7 @@ const CategoriesPage = React.lazy(() => import("./pages/CategoriesPage"));
 const WishlistPage = React.lazy(() => import("./pages/WishlistPage"));
 const SalesStatsPage = React.lazy(() => import("./pages/SalesStatsPage"));
 const NotifPanel = React.lazy(() => import("./pages/NotifPanel"));
+const OnboardingPage = React.lazy(() => import("./pages/OnboardingPage"));
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -188,6 +189,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           
           {/* Admin routes protected by AdminRoute */}
           <Route path="/admin/*" element={

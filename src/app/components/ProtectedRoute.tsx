@@ -24,6 +24,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/register" replace />;
   }
 
+  // Auto redirect to onboarding if profile is incomplete
+  if (profile && !profile.nim) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   // Auto redirect Admin to dashboard if they try to access normal protected routes?
   // Actually, admins can use the marketplace too, but if we strictly want them in admin:
   if (profile && (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN')) {

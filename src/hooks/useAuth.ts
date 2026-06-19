@@ -65,5 +65,20 @@ export function useAuth() {
     };
   }, []);
 
-  return authState;
+  const refreshSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      if (session && session.user) {
+        const profile = await authService.getProfile(session.user.id);
+        setAuthState({ user: session.user, profile, session, loading: false });
+      } else {
+        setAuthState({ user: null, profile: null, session: null, loading: false });
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+    }
+  };
+
+  return { ...authState, refreshSession };
 }

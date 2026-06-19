@@ -165,5 +165,20 @@ export const authService = {
       throw error;
     }
     return data;
+  },
+
+  /**
+   * Update the profile data for a given user ID from the public.profiles table.
+   */
+  async updateProfile(userId: string, updates: any) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
