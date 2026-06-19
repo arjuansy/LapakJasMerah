@@ -40,6 +40,7 @@ import {
   ShoppingBag,
   Search,
   Clock,
+  CheckCheck,
 } from "lucide-react";
 import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
@@ -570,18 +571,35 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
   const { profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
   const { user, profile: authProfile, refreshSession } = useAuth();
   
-  const defaultUsername = user?.email ? user.email.split('@')[0] : "";
+  const userEmailBase = user?.email?.split("@")[0] || "";
+  const baseName = authProfile?.full_name || user?.user_metadata?.full_name || userEmailBase || "Pengguna Tamu";
 
   const [profile, setProfile] = useState({
-    name: authProfile?.full_name || user?.user_metadata?.full_name || "Pengguna Tamu",
-    username: authProfile?.username || defaultUsername,
-    nim: authProfile?.nim || user?.user_metadata?.nim || "",
-    prodi: authProfile?.major || "",
-    angkatan: authProfile?.angkatan || "",
-    bio: authProfile?.bio || "",
-    phone: authProfile?.phone || "",
-    location: authProfile?.location || "",
+    name: "",
+    username: "",
+    nim: "",
+    prodi: "",
+    angkatan: "",
+    bio: "",
+    phone: "",
+    location: "",
   });
+
+  useEffect(() => {
+    if (user || authProfile) {
+      setProfile({
+        name: authProfile?.full_name || user?.user_metadata?.full_name || userEmailBase || "Pengguna Tamu",
+        username: authProfile?.username || userEmailBase || "tamu",
+        nim: authProfile?.nim || user?.user_metadata?.nim || "",
+        prodi: authProfile?.major || "",
+        angkatan: authProfile?.angkatan || "",
+        bio: authProfile?.bio || "",
+        phone: authProfile?.phone || "",
+        location: authProfile?.location || "",
+      });
+    }
+  }, [user, authProfile, userEmailBase]);
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});

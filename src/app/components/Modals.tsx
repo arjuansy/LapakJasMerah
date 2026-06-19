@@ -51,6 +51,8 @@ export function PostRequestModal() {
       budget_max: budgetMaxNum,
       location: location.trim() || "UMM",
       urgency: urgency,
+      request_package: requestDuration === "1" ? "gratis" : "standard",
+      expires_at: new Date(Date.now() + parseInt(requestDuration) * 24 * 60 * 60 * 1000).toISOString()
     };
 
     let resultError = null;

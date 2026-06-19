@@ -34,6 +34,7 @@ CREATE TABLE public.profiles (
   angkatan TEXT,
   phone TEXT,
   location TEXT,
+  status TEXT DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUSPENDED')),
   is_verified_seller BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -322,6 +323,27 @@ ON CONFLICT (slug) DO NOTHING;
 -- ==========================================
 -- 6. KOTAK SARAN
 -- ==========================================
+CREATE TABLE IF NOT EXISTS public.reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reporter_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    reported_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    target_type TEXT NOT NULL CHECK (target_type IN ('user', 'listing')),
+    reason TEXT NOT NULL,
+    evidence TEXT,
+    status TEXT NOT NULL DEFAULT 'Terbuka' CHECK (status IN ('Terbuka', 'Selesai', 'Ditolak')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Reports are viewable by admins" ON public.reports FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('ADMIN', 'SUPER_ADMIN'))
+);
+CREATE POLICY "Users can insert reports" ON public.reports FOR INSERT WITH CHECK ( auth.uid() = reporter_id );
+CREATE POLICY "Admins can update reports" ON public.reports FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('ADMIN', 'SUPER_ADMIN'))
+);
+
 CREATE TABLE IF NOT EXISTS public.suggestions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,

@@ -383,7 +383,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
             <button
-              onClick={() => navigate('/store/' + encodeURIComponent(product.seller))}
+              onClick={() => navigate('/store/' + product.seller_id)}
               className="bg-secondary text-primary text-xs font-bold px-3 py-2 rounded-xl border border-primary/20"
             >
               Lihat Toko

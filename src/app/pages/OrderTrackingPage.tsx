@@ -190,9 +190,9 @@ export default function OrderTrackingPage() {
                     if (profile) {
                       await orderService.submitReview({
                         order_id: trackingOrder.id,
-                        product_id: trackingOrder.product, // Using product name temporarily as product_id string for mock
+                        product_id: trackingOrder.productId || trackingOrder.product,
                         reviewer_id: profile.id,
-                        seller_id: trackingOrder.seller,   // Using seller name as seller_id string for mock
+                        seller_id: trackingOrder.sellerId || trackingOrder.seller,
                         rating,
                         comment: reviewText
                       });

@@ -6,40 +6,50 @@ import {
   ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X, BadgeCheck
 } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { supabase } from "../../config/supabaseClient";
 
 export default function StorePage() {
-  const { sellerName } = useParams<{ sellerName: string }>();
+  const { sellerId } = useParams<{ sellerId: string }>();
   const navigate = useNavigate();
   const { products, triggerToast, setShowReportModal } = useApp();
   
-  if (!sellerName) return null;
+  if (!sellerId) return null;
 
-    const avatar = sellerAvatars[sellerName] ?? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&auto=format";
-    const storeProducts = products.filter((p) => p.seller === sellerName);
-    const [activeTab, setActiveTab] = useState<"produk" | "ulasan">("produk");
+  const [storeProfile, setStoreProfile] = useState<any>(null);
+  const storeProducts = products.filter((p) => p.seller_id === sellerId);
+  const [activeTab, setActiveTab] = useState<"produk" | "ulasan">("produk");
 
-    const [storeReviews, setStoreReviews] = useState<any[]>([]);
-    const [avgRating, setAvgRating] = useState("0.0");
-    const [filterStar, setFilterStar] = useState<number>(0);
+  const [storeReviews, setStoreReviews] = useState<any[]>([]);
+  const [avgRating, setAvgRating] = useState("0.0");
+  const [filterStar, setFilterStar] = useState<number>(0);
 
-    useEffect(() => {
-      import("../../services/orderService").then(({ orderService }) => {
-        orderService.getStoreReviews(sellerName).then((reviews) => {
-          if (reviews && reviews.length > 0) {
-            setStoreReviews(reviews.map((r: any) => ({
-              id: r.id,
-              user: r.reviewer?.username || r.reviewer?.full_name || "Pembeli",
-              avatar: r.reviewer?.avatar_url || "/default-avatar.png",
-              rating: r.rating,
-              comment: r.comment,
-              date: new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-              product: r.product?.name || r.product_id || "Produk",
-            })));
-            setAvgRating((reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1));
-          }
-        }).catch(console.error);
-      });
-    }, [sellerName]);
+  useEffect(() => {
+    // Fetch profile
+    supabase.from('profiles').select('*').eq('id', sellerId).single().then(({ data }) => {
+      if (data) setStoreProfile(data);
+    });
+
+    import("../../services/orderService").then(({ orderService }) => {
+      orderService.getStoreReviews(sellerId).then((reviews) => {
+        if (reviews && reviews.length > 0) {
+          setStoreReviews(reviews.map((r: any) => ({
+            id: r.id,
+            user: r.reviewer?.username || r.reviewer?.full_name || "Pembeli",
+            avatar: r.reviewer?.avatar_url || "/default-avatar.png",
+            rating: r.rating,
+            comment: r.comment,
+            date: new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+            product: r.product?.name || r.product_id || "Produk",
+          })));
+          setAvgRating((reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1));
+        }
+      }).catch(console.error);
+    });
+  }, [sellerId]);
+
+  const sellerName = storeProfile?.full_name || "Penjual";
+  const avatar = storeProfile?.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(storeProfile?.full_name || "M") + "&background=c41230&color=fff";
+  const isVerified = storeProfile?.is_verified_seller || false;
 
     return (
       <div className="fixed inset-0 z-[60] bg-background overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto" }}>
@@ -47,7 +57,7 @@ export default function StorePage() {
         <div className="relative" style={{ background: "linear-gradient(160deg,#c41230 0%,#8b0d22 100%)", paddingBottom: 60 }}>
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-10 bg-amber-400" />
           <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-            <button onClick={() => navigate(`/store/${null}`)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+            <button onClick={() => navigate(-1)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
               <ArrowLeft size={18} className="text-white" />
             </button>
             <h1 className="flex-1 text-white font-black text-lg">Toko Penjual</h1>
@@ -87,7 +97,7 @@ export default function StorePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <p className="text-foreground font-black text-base">{sellerName}</p>
-                  <BadgeCheck size={15} className="text-blue-500 fill-blue-100" />
+                  {isVerified && <BadgeCheck size={15} className="text-blue-500 fill-blue-100" />}
                 </div>
                 <p className="text-muted-foreground text-xs mb-2">Online sekarang · Bergabung Mar 2024</p>
                 <div className="flex gap-3 text-center">
@@ -103,7 +113,7 @@ export default function StorePage() {
             </div>
             <div className="flex gap-2 mt-3">
               <button
-                onClick={() => { navigate(`/store/${null}`); navigate("/chat"); }}
+                onClick={() => { navigate("/chat"); }}
                 className="flex-1 bg-primary text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
               >
                 <MessageSquare size={14} /> Chat Penjual
@@ -137,7 +147,7 @@ export default function StorePage() {
                 <p className="text-foreground font-bold">Belum ada produk</p>
               </div>
             ) : storeProducts.map((p) => (
-              <div key={p.id} onClick={() => { navigate(`/store/${null}`); navigate(`/product/${p.id}`); }}
+              <div key={p.id} onClick={() => { navigate(`/product/${p.id}`); }}
                 className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm cursor-pointer active:scale-95 transition-transform">
                 <div className="relative">
                   <img src={p.image} alt={p.name} className="w-full h-32 object-cover bg-muted" />

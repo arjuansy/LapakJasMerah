@@ -107,6 +107,7 @@ export default function App() {
           seller:profiles!products_seller_id_fkey(full_name, avatar_url),
           category:categories(name)
         `)
+        .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
         .order('is_premium', { ascending: false })
         .order('created_at', { ascending: false });
         
@@ -143,6 +144,7 @@ export default function App() {
           *,
           user:profiles!requests_user_id_fkey(full_name, avatar_url)
         `)
+        .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
         .order('created_at', { ascending: false });
         
       if (error) {
@@ -197,7 +199,7 @@ export default function App() {
         .from('orders')
         .select(`
           id, total_amount, status, created_at, location,
-          order_items(quantity, price_at_purchase, product:products(name, image, seller:profiles(full_name, avatar_url)))
+          order_items(quantity, price_at_purchase, product:products(id, name, image_url, seller:profiles(id, full_name, avatar_url)))
         `)
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
@@ -209,9 +211,11 @@ export default function App() {
             product: item.product?.name || "Unknown Product",
             price: item.price_at_purchase,
             seller: item.product?.seller?.full_name || "Unknown Seller",
+            sellerId: item.product?.seller?.id || "",
+            productId: item.product?.id || "",
             date: new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
             status: (o.status === "PENDING" ? "diproses" : o.status === "PAID" ? "menuju_lokasi" : o.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
-            image: item.product?.image || "",
+            image: item.product?.image_url || "",
             qty: item.quantity
           }));
         });
@@ -221,10 +225,9 @@ export default function App() {
       // Fetch Sales Data (user as seller via products)
       const { data: sales, error: saleErr } = await supabase
         .from('order_items')
-        .select(`
           order_id, quantity, price_at_purchase,
           order:orders(id, created_at, status, buyer:profiles(full_name, avatar_url)),
-          product:products!inner(name, image, seller_id)
+          product:products!inner(id, name, image_url, seller_id)
         `)
         .eq('product.seller_id', user.id);
 
@@ -239,7 +242,7 @@ export default function App() {
             buyerAvatar: o?.buyer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
             date: o?.created_at ? new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "",
             status: (o?.status === "PENDING" ? "diproses" : o?.status === "PAID" ? "menuju_lokasi" : o?.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
-            image: item.product?.image || "",
+            image: item.product?.image_url || "",
             qty: item.quantity
           };
         });
@@ -403,7 +406,7 @@ export default function App() {
             <Route path="/marketplace" element={<MarketplaceFeed />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/store/:sellerName" element={<StorePage />} />
+            <Route path="/store/:sellerId" element={<StorePage />} />
             <Route path="/search" element={<SearchResultsPage />} />
           </Route>
 

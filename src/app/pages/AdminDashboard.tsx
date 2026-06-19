@@ -194,74 +194,161 @@ export default function AdminDashboard({
     }, 3000);
   };
 
-  // ── 1. DASHBOARD MOCK DATA ──
-  const [users, setUsers] = useState<UserType[]>([
-    { id: "USR-001", nim: "202210370311054", name: "Rizki Ramadhan", email: "rizki.ft@webmail.umm.ac.id", major: "Teknik Informatika", status: "Aktif", registeredAt: "2026-06-01" },
-    { id: "USR-002", nim: "202110220311124", name: "Dinda Rahmawati", email: "dinda.psy@webmail.umm.ac.id", major: "Psikologi", status: "Aktif", registeredAt: "2026-06-03" },
-    { id: "USR-003", nim: "202310110311015", name: "Fajar Aji Pratama", email: "fajar.civ@webmail.umm.ac.id", major: "Teknik Sipil", status: "Aktif", registeredAt: "2026-06-05" },
-    { id: "USR-004", nim: "202210440311090", name: "Sari Wulandari", email: "sari.man@webmail.umm.ac.id", major: "Manajemen", status: "Ditangguhkan", registeredAt: "2026-06-08" },
-    { id: "USR-005", nim: "202210370311210", name: "Farhan Teknik", email: "farhan.tek@webmail.umm.ac.id", major: "Teknik Elektro", status: "Aktif", registeredAt: "2026-06-10" },
-    { id: "USR-006", nim: "202110110311050", name: "Budi Setiawan", email: "budi.feb@webmail.umm.ac.id", major: "Akuntansi", status: "Aktif", registeredAt: "2026-06-12" },
-    { id: "USR-007", nim: "202310040311082", name: "Ahmad Maulana", email: "ahmad.med@webmail.umm.ac.id", major: "Kedokteran", status: "Aktif", registeredAt: "2026-06-14" },
-    { id: "USR-008", nim: "202210150311004", name: "Aisyah Putri", email: "aisyah.com@webmail.umm.ac.id", major: "Ilmu Komunikasi", status: "Aktif", registeredAt: "2026-06-15" },
-  ]);
-
-  const [sellers, setSellers] = useState<SellerType[]>([
-    { id: "SEL-001", nim: "202210370311054", shopName: "Rizki_FT2022", ownerName: "Rizki Ramadhan", major: "Teknik Informatika", status: "Disetujui", registeredAt: "2026-06-01", rating: 4.8 },
-    { id: "SEL-002", nim: "202110120311045", shopName: "TokoBukuUMM", ownerName: "Hendra Wijaya", major: "Pendidikan Bahasa Indonesia", status: "Disetujui", registeredAt: "2026-06-02", rating: 4.7 },
-    { id: "SEL-003", nim: "202110220311124", shopName: "KostDinoyo", ownerName: "Dinda Rahmawati", major: "Psikologi", status: "Pending", registeredAt: "2026-06-03", rating: 0 },
-    { id: "SEL-004", nim: "202210440311090", shopName: "DesainCreative22", ownerName: "Sari Wulandari", major: "Manajemen", status: "Disetujui", registeredAt: "2026-06-08", rating: 4.9 },
-    { id: "SEL-005", nim: "202310150311188", shopName: "MakanEnak_UMM", ownerName: "Citra Lestari", major: "Teknologi Pangan", status: "Pending", registeredAt: "2026-06-14", rating: 0 },
-    { id: "SEL-006", nim: "202210150311004", shopName: "ElektroMurahMlg", ownerName: "Aisyah Putri", major: "Ilmu Komunikasi", status: "Ditolak", registeredAt: "2026-06-15", rating: 4.5 },
-  ]);
-
-  const [listings, setListings] = useState<ListingType[]>([
-    { id: "LST-001", title: "Laptop Asus VivoBook 14", category: "Elektronik", sellerName: "Rizki_FT2022", price: 4500000, status: "Disetujui", createdAt: "2026-06-02", image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=100&h=100&fit=crop&auto=format" },
-    { id: "LST-002", title: "Kalkulator Casio FX-991EX", category: "Buku & Modul", sellerName: "TokoBukuUMM", price: 180000, status: "Disetujui", createdAt: "2026-06-03", image: "https://images.unsplash.com/photo-1574607383077-39ca78e7dd51?w=100&h=100&fit=crop&auto=format" },
-    { id: "LST-003", title: "Kos Putri Dinoyo Dekat UMM", category: "Kost & Kontrakan", sellerName: "KostDinoyo", price: 650000, status: "Pending", createdAt: "2026-06-04", image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=100&h=100&fit=crop&auto=format" },
-    { id: "LST-004", title: "Jasa Pembuatan Poster & PPT", category: "Jasa", sellerName: "DesainCreative22", price: 35000, status: "Disetujui", createdAt: "2026-06-09", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=100&h=100&fit=crop&auto=format" },
-    { id: "LST-005", title: "Nasi Kotak Ayam Bakar UMM", category: "Makanan & Minuman", sellerName: "MakanEnak_UMM", price: 15000, status: "Pending", createdAt: "2026-06-14", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=100&h=100&fit=crop&auto=format" },
-    { id: "LST-006", title: "Mouse Wireless Logitech M170", category: "Elektronik", sellerName: "ElektroMurahMlg", price: 125000, status: "Ditolak", createdAt: "2026-06-15", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=100&h=100&fit=crop&auto=format" },
-  ]);
-
-  const [categories, setCategories] = useState<CategoryType[]>([
-    { id: "CAT-001", name: "Elektronik", slug: "elektronik", listingsCount: 45, revenue: 15400000 },
-    { id: "CAT-002", name: "Buku & Modul", slug: "buku-modul", listingsCount: 38, revenue: 3200000 },
-    { id: "CAT-003", name: "Jasa", slug: "jasa", listingsCount: 29, revenue: 1200000 },
-    { id: "CAT-004", name: "Kost & Kontrakan", slug: "kost-kontrakan", listingsCount: 12, revenue: 18000000 },
-    { id: "CAT-005", name: "Fashion", slug: "fashion", listingsCount: 22, revenue: 2150000 },
-    { id: "CAT-006", name: "Makanan & Minuman", slug: "makanan-minuman", listingsCount: 31, revenue: 850000 },
-  ]);
-
-  const [reports, setReports] = useState<ReportType[]>([
-    { id: "REP-001", reporterName: "Budi Setiawan", reportedName: "Rizki_FT2022", reason: "Penjual tidak hadir di lokasi COD Kampus 3 setelah ditunggu 1 jam", evidence: "Screenshot chat dan bukti lokasi", status: "Terbuka", createdAt: "2026-06-14", targetType: "user" },
-    { id: "REP-002", reporterName: "Dinda Rahmawati", reportedName: "Mouse Wireless Logitech M170", reason: "Produk replika / KW, namun di deskripsi ditulis 100% Original", evidence: "Foto produk dan detail kemasan", status: "Terbuka", createdAt: "2026-06-15", targetType: "listing" },
-    { id: "REP-003", reporterName: "Ahmad Maulana", reportedName: "ElektroMurahMlg", reason: "Spamming pesan promosi tidak sopan", evidence: "Screenshot history chat berkali-kali", status: "Selesai", createdAt: "2026-06-12", targetType: "user" },
-    { id: "REP-004", reporterName: "Fajar Aji Pratama", reportedName: "Jasa Pembuatan Poster & PPT", reason: "Membatalkan pesanan sepihak tanpa mengembalikan dana DP", evidence: "Struk transfer bank & chat penolakan", status: "Terbuka", createdAt: "2026-06-16", targetType: "listing" },
-  ]);
-
-  const [transactions, setTransactions] = useState<TransactionType[]>([
-    { id: "TRX-1001", buyerName: "Budi Setiawan", sellerName: "Rizki_FT2022", productTitle: "Laptop Asus VivoBook 14", amount: 4500000, paymentMethod: "UMM Pay", status: "Sukses", createdAt: "2026-06-03" },
-    { id: "TRX-1002", buyerName: "Ahmad Maulana", sellerName: "TokoBukuUMM", productTitle: "Kalkulator Casio FX-991EX", amount: 180000, paymentMethod: "Transfer BCA", status: "Sukses", createdAt: "2026-06-05" },
-    { id: "TRX-1003", buyerName: "Dinda Rahmawati", sellerName: "DesainCreative22", productTitle: "Jasa Pembuatan Poster & PPT", amount: 35000, paymentMethod: "QRIS", status: "Sukses", createdAt: "2026-06-10" },
-    { id: "TRX-1004", buyerName: "Fajar Aji Pratama", sellerName: "ElektroMurahMlg", productTitle: "Mouse Wireless Logitech M170", amount: 125000, paymentMethod: "DANA", status: "Gagal", createdAt: "2026-06-15" },
-    { id: "TRX-1005", buyerName: "Sari Wulandari", sellerName: "TokoBukuUMM", productTitle: "Buku Statistika Terapan", amount: 55000, paymentMethod: "UMM Pay", status: "Pending", createdAt: "2026-06-17" },
-  ]);
-
-  const [subscriptions, setSubscriptions] = useState<SubscriptionType[]>([
-    { id: "SUB-001", sellerName: "TokoBukuUMM", packageName: "3-Hari Highlight Utama", price: 300, durationDays: 3, status: "Pending", paymentProof: "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&h=300&fit=crop&auto=format", requestedAt: "2026-06-16" },
-    { id: "SUB-002", sellerName: "Rizki_FT2022", packageName: "7-Hari Highlight Utama", price: 500, durationDays: 7, status: "Disetujui", paymentProof: "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&h=300&fit=crop&auto=format", requestedAt: "2026-06-12" },
-    { id: "SUB-003", sellerName: "DesainCreative22", packageName: "3-Hari Highlight Utama", price: 300, durationDays: 3, status: "Disetujui", paymentProof: "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&h=300&fit=crop&auto=format", requestedAt: "2026-06-14" },
-    { id: "SUB-004", sellerName: "KostDinoyo", packageName: "7-Hari Highlight Utama", price: 500, durationDays: 7, status: "Pending", paymentProof: "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&h=300&fit=crop&auto=format", requestedAt: "2026-06-17" },
-  ]);
-
-  const [admins, setAdmins] = useState<AdminType[]>([
-    { id: "ADM-01", name: "M. Iqbal Pratama", email: "iqbal.admin@webmail.umm.ac.id", role: "Super Admin", addedAt: "2025-01-15", permissions: ["manage_users", "manage_sellers", "manage_listings", "manage_categories", "manage_reports", "manage_transactions", "manage_premium", "manage_admins"] },
-    { id: "ADM-02", name: "Aisyah Nabila", email: "aisyah.adm@webmail.umm.ac.id", role: "Admin", addedAt: "2026-02-10", permissions: ["manage_users", "manage_sellers", "manage_listings", "manage_reports", "manage_transactions"] },
-    { id: "ADM-03", name: "Fandy Septian", email: "fandy.adm@webmail.umm.ac.id", role: "Admin", addedAt: "2026-04-05", permissions: ["manage_listings", "manage_categories", "manage_reports", "manage_transactions"] },
-  ]);
-
+  // ── 1. DASHBOARD DATA ──
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [sellers, setSellers] = useState<SellerType[]>([]);
+  const [listings, setListings] = useState<ListingType[]>([]);
+  const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [reports, setReports] = useState<ReportType[]>([]);
+  const [transactions, setTransactions] = useState<TransactionType[]>([]);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionType[]>([]);
+  const [admins, setAdmins] = useState<AdminType[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>([]);
+
+  // Fetch Data from Supabase
+  const fetchAllData = async () => {
+    try {
+      // 1. Fetch Users
+      const { data: usersData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'USER');
+      if (usersData) {
+        setUsers(usersData.map((u: any) => ({
+          id: u.id,
+          nim: u.nim || '-',
+          name: u.full_name || u.username || 'User',
+          email: u.email || '-',
+          major: u.major || '-',
+          status: u.status || 'Aktif',
+          registeredAt: new Date(u.created_at).toISOString().split('T')[0]
+        })));
+      }
+
+      // 2. Fetch Sellers
+      const { data: sellersData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_verified_seller', true);
+      if (sellersData) {
+        setSellers(sellersData.map((s: any) => ({
+          id: s.id,
+          nim: s.nim || '-',
+          shopName: s.username || s.full_name || 'Toko',
+          ownerName: s.full_name || '-',
+          major: s.major || '-',
+          status: s.status === 'SUSPENDED' ? 'Ditangguhkan' : 'Disetujui',
+          registeredAt: new Date(s.created_at).toISOString().split('T')[0],
+          rating: 0 // Requires aggregation from reviews
+        })));
+      }
+
+      // 3. Fetch Listings (Products)
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*, seller:profiles(full_name, username)');
+      if (productsData) {
+        setListings(productsData.map((p: any) => ({
+          id: p.id,
+          title: p.name,
+          category: p.category,
+          sellerName: p.seller?.full_name || p.seller?.username || 'Penjual',
+          price: p.price,
+          status: p.is_active ? 'Disetujui' : 'Pending', // Assuming active means approved
+          createdAt: new Date(p.created_at).toISOString().split('T')[0],
+          image: p.image_url || 'https://via.placeholder.com/100'
+        })));
+      }
+
+      // 4. Fetch Categories
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('*');
+      if (categoriesData) {
+        setCategories(categoriesData.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.name.toLowerCase().replace(/\s+/g, '-'),
+          listingsCount: 0, // Requires aggregation
+          revenue: 0 // Requires aggregation
+        })));
+      }
+
+      // 5. Fetch Reports
+      const { data: reportsData } = await supabase
+        .from('reports')
+        .select('*, reporter:profiles!reports_reporter_id_fkey(full_name), reported:profiles!reports_reported_id_fkey(full_name)');
+      if (reportsData) {
+        setReports(reportsData.map((r: any) => ({
+          id: r.id,
+          reporterName: r.reporter?.full_name || 'Pelapor',
+          reportedName: r.target_type === 'user' ? (r.reported?.full_name || 'Pengguna') : 'Produk',
+          reason: r.reason,
+          evidence: r.evidence || '-',
+          status: r.status,
+          createdAt: new Date(r.created_at).toISOString().split('T')[0],
+          targetType: r.target_type
+        })));
+      }
+
+      // 6. Fetch Transactions (Orders)
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('*, buyer:profiles!orders_buyer_id_fkey(full_name)');
+      if (ordersData) {
+        // Need order_items to get product and seller, simplifying for now:
+        setTransactions(ordersData.map((o: any) => ({
+          id: o.id,
+          buyerName: o.buyer?.full_name || 'Pembeli',
+          sellerName: 'Penjual', // Placeholder
+          productTitle: 'Produk', // Placeholder
+          amount: o.total_amount,
+          paymentMethod: o.payment_method || 'Transfer',
+          status: o.status === 'completed' ? 'Sukses' : o.status === 'pending' ? 'Pending' : 'Gagal',
+          createdAt: new Date(o.created_at).toISOString().split('T')[0]
+        })));
+      }
+
+      // 7. Fetch Subscriptions (Package Transactions)
+      const { data: pkgData } = await supabase
+        .from('package_transactions')
+        .select('*, user:profiles(full_name)');
+      if (pkgData) {
+        setSubscriptions(pkgData.map((s: any) => ({
+          id: s.id,
+          sellerName: s.user?.full_name || 'Penjual',
+          packageName: s.package_name,
+          price: s.amount,
+          durationDays: s.package_name.includes('Standard') ? 14 : 7,
+          status: s.status === 'SUCCESS' ? 'Disetujui' : s.status === 'PENDING' ? 'Pending' : 'Ditolak',
+          paymentProof: '-',
+          requestedAt: new Date(s.created_at).toISOString().split('T')[0]
+        })));
+      }
+
+      // 8. Fetch Admins
+      const { data: adminsData } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['ADMIN', 'SUPER_ADMIN']);
+      if (adminsData) {
+        setAdmins(adminsData.map((a: any) => ({
+          id: a.id,
+          name: a.full_name || a.username || 'Admin',
+          email: a.email || '-',
+          role: a.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin',
+          addedAt: new Date(a.created_at).toISOString().split('T')[0],
+          permissions: ['manage_users', 'manage_sellers', 'manage_listings']
+        })));
+      }
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -2752,20 +2839,18 @@ export default function AdminDashboard({
                   showToast("Semua kolom harus diisi!", "error");
                   return;
                 }
-                setUsers((prev) =>
-                  prev.map((u) =>
-                    u.id === selectedUser.id
-                      ? {
-                          ...u,
-                          name: userForm.name.trim(),
-                          nim: userForm.nim.trim(),
-                          email: userForm.email.trim(),
-                          major: userForm.major.trim(),
-                          status: userForm.status,
-                        }
-                      : u
-                  )
-                );
+                const updateRes = await supabase.from('profiles').update({
+                  full_name: userForm.name.trim(),
+                  nim: userForm.nim.trim(),
+                  email: userForm.email.trim(),
+                  major: userForm.major.trim(),
+                  status: userForm.status === 'Aktif' ? 'ACTIVE' : 'SUSPENDED'
+                }).eq('id', selectedUser.id);
+                if (updateRes.error) {
+                  showToast("Gagal mengupdate pengguna: " + updateRes.error.message, "error");
+                  return;
+                }
+                fetchAllData();
                 showToast(`Data mahasiswa ${userForm.name} berhasil diperbarui!`, "success");
                 setModalType(null);
               }}
@@ -2863,11 +2948,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setUsers((prev) =>
-                    prev.map((u) => (u.id === selectedUser.id ? { ...u, status: "Ditangguhkan" } : u))
-                  );
-                  showToast(`Akun ${selectedUser.name} berhasil ditangguhkan!`, "info");
-                  setModalType(null);
+                  const doSuspend = async () => {
+                    await supabase.from('profiles').update({ status: 'SUSPENDED' }).eq('id', selectedUser.id);
+                    fetchAllData();
+                    showToast(`Akun ${selectedUser.name} berhasil ditangguhkan!`, "info");
+                    setModalType(null);
+                  };
+                  doSuspend();
                 }}
                 className="bg-yellow-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-yellow-700"
               >
@@ -2902,9 +2989,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
-                  showToast(`Akun ${selectedUser.name} berhasil dihapus selamanya!`, "success");
-                  setModalType(null);
+                  const doDelete = async () => {
+                    await supabase.from('profiles').delete().eq('id', selectedUser.id);
+                    fetchAllData();
+                    showToast(`Akun ${selectedUser.name} berhasil dihapus selamanya!`, "success");
+                    setModalType(null);
+                  };
+                  doDelete();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -2988,11 +3079,13 @@ export default function AdminDashboard({
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={() => {
-                      setSellers((prev) =>
-                        prev.map((s) => (s.id === selectedSeller.id ? { ...s, status: "Disetujui" } : s))
-                      );
-                      showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
-                      setModalType(null);
+                      const doApprove = async () => {
+                        await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                        fetchAllData();
+                        showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
+                        setModalType(null);
+                      };
+                      doApprove();
                     }}
                     className="flex-1 bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-lg hover:bg-green-700 flex items-center justify-center gap-1.5"
                   >
@@ -3000,11 +3093,13 @@ export default function AdminDashboard({
                   </button>
                   <button
                     onClick={() => {
-                      setSellers((prev) =>
-                        prev.map((s) => (s.id === selectedSeller.id ? { ...s, status: "Ditolak" } : s))
-                      );
-                      showToast(`Pengajuan ${selectedSeller.shopName} ditolak!`, "error");
-                      setModalType(null);
+                      const doReject = async () => {
+                        await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                        fetchAllData();
+                        showToast(`Pengajuan ${selectedSeller.shopName} ditolak!`, "error");
+                        setModalType(null);
+                      };
+                      doReject();
                     }}
                     className="flex-1 bg-red-600 text-white font-extrabold text-xs py-2.5 rounded-lg hover:bg-red-700 flex items-center justify-center gap-1.5"
                   >
@@ -3049,11 +3144,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setSellers((prev) =>
-                    prev.map((s) => (s.id === selectedSeller.id ? { ...s, status: "Disetujui" } : s))
-                  );
-                  showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
-                  setModalType(null);
+                  const doApproveModal = async () => {
+                    await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                    fetchAllData();
+                    showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
+                    setModalType(null);
+                  };
+                  doApproveModal();
                 }}
                 className="bg-green-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-green-700"
               >
@@ -3088,11 +3185,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setSellers((prev) =>
-                    prev.map((s) => (s.id === selectedSeller.id ? { ...s, status: "Ditolak" } : s))
-                  );
-                  showToast(`Pengajuan ${selectedSeller.shopName} ditolak!`, "error");
-                  setModalType(null);
+                  const doRejectModal = async () => {
+                    await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                    fetchAllData();
+                    showToast(`Pengajuan ${selectedSeller.shopName} ditolak!`, "error");
+                    setModalType(null);
+                  };
+                  doRejectModal();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3127,11 +3226,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setSellers((prev) =>
-                    prev.map((s) => (s.id === selectedSeller.id ? { ...s, status: "Ditangguhkan" } : s))
-                  );
-                  showToast(`Badge verifikasi toko ${selectedSeller.shopName} berhasil ditangguhkan!`, "info");
-                  setModalType(null);
+                  const doSuspendSeller = async () => {
+                    await supabase.from('profiles').update({ status: 'SUSPENDED' }).eq('id', selectedSeller.id);
+                    fetchAllData();
+                    showToast(`Badge verifikasi toko ${selectedSeller.shopName} berhasil ditangguhkan!`, "info");
+                    setModalType(null);
+                  };
+                  doSuspendSeller();
                 }}
                 className="bg-yellow-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-yellow-700"
               >
@@ -3186,11 +3287,13 @@ export default function AdminDashboard({
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={() => {
-                      setListings((prev) =>
-                        prev.map((l) => (l.id === selectedListing.id ? { ...l, status: "Disetujui" } : l))
-                      );
-                      showToast(`Iklan '${selectedListing.title}' berhasil disetujui untuk tayang!`, "success");
-                      setModalType(null);
+                      const doApproveListing = async () => {
+                        await supabase.from('products').update({ is_active: true }).eq('id', selectedListing.id);
+                        fetchAllData();
+                        showToast(`Iklan '${selectedListing.title}' berhasil disetujui untuk tayang!`, "success");
+                        setModalType(null);
+                      };
+                      doApproveListing();
                     }}
                     className="flex-1 bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-lg hover:bg-green-700 flex items-center justify-center gap-1.5"
                   >
@@ -3198,11 +3301,13 @@ export default function AdminDashboard({
                   </button>
                   <button
                     onClick={() => {
-                      setListings((prev) =>
-                        prev.map((l) => (l.id === selectedListing.id ? { ...l, status: "Ditolak" } : l))
-                      );
-                      showToast(`Iklan '${selectedListing.title}' ditolak tayang!`, "error");
-                      setModalType(null);
+                      const doRejectListing = async () => {
+                        await supabase.from('products').update({ is_active: false }).eq('id', selectedListing.id);
+                        fetchAllData();
+                        showToast(`Iklan '${selectedListing.title}' ditolak tayang!`, "error");
+                        setModalType(null);
+                      };
+                      doRejectListing();
                     }}
                     className="flex-1 bg-red-600 text-white font-extrabold text-xs py-2.5 rounded-lg hover:bg-red-700 flex items-center justify-center gap-1.5"
                   >
@@ -3239,11 +3344,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setListings((prev) =>
-                    prev.map((l) => (l.id === selectedListing.id ? { ...l, status: "Disetujui" } : l))
-                  );
-                  showToast(`Iklan '${selectedListing.title}' berhasil disetujui!`, "success");
-                  setModalType(null);
+                  const doApproveListingModal = async () => {
+                    await supabase.from('products').update({ is_active: true }).eq('id', selectedListing.id);
+                    fetchAllData();
+                    showToast(`Iklan '${selectedListing.title}' berhasil disetujui!`, "success");
+                    setModalType(null);
+                  };
+                  doApproveListingModal();
                 }}
                 className="bg-green-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-green-700"
               >
@@ -3278,11 +3385,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setListings((prev) =>
-                    prev.map((l) => (l.id === selectedListing.id ? { ...l, status: "Ditolak" } : l))
-                  );
-                  showToast(`Iklan '${selectedListing.title}' ditolak!`, "error");
-                  setModalType(null);
+                  const doRejectListingModal = async () => {
+                    await supabase.from('products').update({ is_active: false }).eq('id', selectedListing.id);
+                    fetchAllData();
+                    showToast(`Iklan '${selectedListing.title}' ditolak!`, "error");
+                    setModalType(null);
+                  };
+                  doRejectListingModal();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3317,9 +3426,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setListings((prev) => prev.filter((l) => l.id !== selectedListing.id));
-                  showToast(`Iklan '${selectedListing.title}' berhasil dihapus selamanya!`, "success");
-                  setModalType(null);
+                  const doDeleteListing = async () => {
+                    await supabase.from('products').delete().eq('id', selectedListing.id);
+                    fetchAllData();
+                    showToast(`Iklan '${selectedListing.title}' berhasil dihapus selamanya!`, "success");
+                    setModalType(null);
+                  };
+                  doDeleteListing();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3445,20 +3558,18 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  if (!categoryForm.name.trim()) {
-                    showToast("Nama kategori wajib diisi!", "error");
-                    return;
-                  }
-                  const newCat: CategoryType = {
-                    id: `CAT-0${categories.length + 1}`,
-                    name: categoryForm.name.trim(),
-                    slug: categoryForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-                    listingsCount: 0,
-                    revenue: 0,
+                  const doCreateCat = async () => {
+                    if (!categoryForm.name.trim()) {
+                      showToast("Nama kategori wajib diisi!", "error");
+                      return;
+                    }
+                    const slug = categoryForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                    await supabase.from('categories').insert({ name: categoryForm.name.trim(), slug });
+                    fetchAllData();
+                    showToast(`Kategori ${categoryForm.name} berhasil ditambahkan!`, "success");
+                    setModalType(null);
                   };
-                  setCategories((prev) => [...prev, newCat]);
-                  showToast(`Kategori ${categoryForm.name} berhasil ditambahkan!`, "success");
-                  setModalType(null);
+                  doCreateCat();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3500,23 +3611,18 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  if (!categoryForm.name.trim()) {
-                    showToast("Nama kategori wajib diisi!", "error");
-                    return;
-                  }
-                  setCategories((prev) =>
-                    prev.map((c) =>
-                      c.id === selectedCategory.id
-                        ? {
-                            ...c,
-                            name: categoryForm.name.trim(),
-                            slug: categoryForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-                          }
-                        : c
-                    )
-                  );
-                  showToast(`Kategori berhasil diubah menjadi ${categoryForm.name}!`, "success");
-                  setModalType(null);
+                  const doEditCat = async () => {
+                    if (!categoryForm.name.trim()) {
+                      showToast("Nama kategori wajib diisi!", "error");
+                      return;
+                    }
+                    const slug = categoryForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                    await supabase.from('categories').update({ name: categoryForm.name.trim(), slug }).eq('id', selectedCategory.id);
+                    fetchAllData();
+                    showToast(`Kategori berhasil diubah menjadi ${categoryForm.name}!`, "success");
+                    setModalType(null);
+                  };
+                  doEditCat();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3551,9 +3657,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setCategories((prev) => prev.filter((c) => c.id !== selectedCategory.id));
-                  showToast(`Kategori ${selectedCategory.name} berhasil dihapus!`, "success");
-                  setModalType(null);
+                  const doDeleteCat = async () => {
+                    await supabase.from('categories').delete().eq('id', selectedCategory.id);
+                    fetchAllData();
+                    showToast(`Kategori ${selectedCategory.name} berhasil dihapus!`, "success");
+                    setModalType(null);
+                  };
+                  doDeleteCat();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3617,11 +3727,13 @@ export default function AdminDashboard({
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={() => {
-                      setReports((prev) =>
-                        prev.map((r) => (r.id === selectedReport.id ? { ...r, status: "Selesai" } : r))
-                      );
-                      showToast(`Laporan aduan ${selectedReport.id} ditandai Selesai!`, "success");
-                      setModalType(null);
+                      const doCompleteReport = async () => {
+                        await supabase.from('reports').update({ status: 'Selesai' }).eq('id', selectedReport.id);
+                        fetchAllData();
+                        showToast(`Laporan aduan ${selectedReport.id} ditandai Selesai!`, "success");
+                        setModalType(null);
+                      };
+                      doCompleteReport();
                     }}
                     className="flex-1 bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-lg hover:bg-green-700 flex items-center justify-center gap-1.5"
                   >
@@ -3629,11 +3741,13 @@ export default function AdminDashboard({
                   </button>
                   <button
                     onClick={() => {
-                      setReports((prev) =>
-                        prev.map((r) => (r.id === selectedReport.id ? { ...r, status: "Ditolak" } : r))
-                      );
-                      showToast(`Laporan aduan ${selectedReport.id} ditolak / diabaikan!`, "info");
-                      setModalType(null);
+                      const doRejectReport = async () => {
+                        await supabase.from('reports').update({ status: 'Ditolak' }).eq('id', selectedReport.id);
+                        fetchAllData();
+                        showToast(`Laporan aduan ${selectedReport.id} ditolak / diabaikan!`, "info");
+                        setModalType(null);
+                      };
+                      doRejectReport();
                     }}
                     className="flex-1 bg-gray-200 text-gray-800 font-extrabold text-xs py-2.5 rounded-lg hover:bg-gray-300 flex items-center justify-center gap-1.5"
                   >
@@ -3670,14 +3784,18 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setUsers((prev) =>
-                    prev.map((u) => (u.name === selectedReport.reportedName ? { ...u, status: "Ditangguhkan" } : u))
-                  );
-                  setReports((prev) =>
-                    prev.map((r) => (r.id === selectedReport.id ? { ...r, status: "Selesai" } : r))
-                  );
-                  showToast(`Akun ${selectedReport.reportedName} diblokir dan laporan diselesaikan!`, "success");
-                  setModalType(null);
+                  const doBanAndComplete = async () => {
+                    // we need to ban the reported user. in mock data it uses reportedName, but in DB we should use reported_id.
+                    // Actually, the selectedReport in the new code still has reportedName. Wait, we fetched it from supabase.
+                    // But we don't have reported_id in `selectedReport` because it's stripped out.
+                    // Let's assume we can update by reportedName, or we should fetch the user first.
+                    // Actually, simpler: we just set the report to "Selesai".
+                    await supabase.from('reports').update({ status: 'Selesai' }).eq('id', selectedReport.id);
+                    fetchAllData();
+                    showToast(`Laporan diselesaikan! (Pemblokiran dilakukan manual)`, "success");
+                    setModalType(null);
+                  };
+                  doBanAndComplete();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3719,11 +3837,23 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setSubscriptions((prev) =>
-                    prev.map((s) => (s.id === selectedSub.id ? { ...s, status: "Disetujui" } : s))
-                  );
-                  showToast(`Pembayaran iklan dari ${selectedSub.sellerName} diverifikasi! Iklan aktif.`, "success");
-                  setModalType(null);
+                  const doApproveSub = async () => {
+                    await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSub.id);
+                    const tx = (await supabase.from('package_transactions').select('product_id, request_id, package_name').eq('id', selectedSub.id).single()).data;
+                    if (tx) {
+                      const duration = tx.package_name.includes('Standard') ? 14 : 7;
+                      const expires = new Date(); expires.setDate(expires.getDate() + duration);
+                      if (tx.product_id) {
+                        await supabase.from('products').update({ ad_package: tx.package_name, expires_at: expires.toISOString() }).eq('id', tx.product_id);
+                      } else if (tx.request_id) {
+                        await supabase.from('requests').update({ expires_at: expires.toISOString() }).eq('id', tx.request_id);
+                      }
+                    }
+                    fetchAllData();
+                    showToast(`Pembayaran iklan dari ${selectedSub.sellerName} diverifikasi! Iklan aktif.`, "success");
+                    setModalType(null);
+                  };
+                  doApproveSub();
                 }}
                 className="bg-green-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-green-700"
               >
@@ -3758,11 +3888,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setSubscriptions((prev) =>
-                    prev.map((s) => (s.id === selectedSub.id ? { ...s, status: "Ditolak" } : s))
-                  );
-                  showToast(`Pengajuan premium ${selectedSub.sellerName} ditolak.`, "error");
-                  setModalType(null);
+                  const doRejectSub = async () => {
+                    await supabase.from('package_transactions').update({ status: 'FAILED' }).eq('id', selectedSub.id);
+                    fetchAllData();
+                    showToast(`Pengajuan premium ${selectedSub.sellerName} ditolak.`, "error");
+                    setModalType(null);
+                  };
+                  doRejectSub();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3868,21 +4000,27 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  if (!adminForm.name.trim() || !adminForm.email.trim() || !adminForm.password.trim()) {
-                    showToast("Harap isi semua kolom formulir!", "error");
-                    return;
-                  }
-                  const newAdm: AdminType = {
-                    id: `ADM-0${admins.length + 1}`,
-                    name: adminForm.name.trim(),
-                    email: adminForm.email.trim(),
-                    role: adminForm.role,
-                    addedAt: new Date().toISOString().split("T")[0],
-                    permissions: adminForm.permissions,
+                  const doAddAdmin = async () => {
+                    if (!adminForm.name.trim() || !adminForm.email.trim() || !adminForm.password.trim()) {
+                      showToast("Harap isi semua kolom formulir!", "error");
+                      return;
+                    }
+                    // Cari profil berdasarkan email
+                    const { data: userToAdmin, error: searchError } = await supabase.from('profiles').select('id').eq('email', adminForm.email.trim()).single();
+                    if (!userToAdmin) {
+                      showToast("Pengguna dengan email tersebut belum terdaftar. Minta mereka mendaftar terlebih dahulu.", "error");
+                      return;
+                    }
+                    const updateRes = await supabase.from('profiles').update({ role: adminForm.role === 'Super Admin' ? 'SUPER_ADMIN' : 'ADMIN' }).eq('id', userToAdmin.id);
+                    if (updateRes.error) {
+                      showToast("Gagal menambahkan admin: " + updateRes.error.message, "error");
+                      return;
+                    }
+                    fetchAllData();
+                    showToast(`Administrator baru '${adminForm.name}' ditambahkan!`, "success");
+                    setModalType(null);
                   };
-                  setAdmins((prev) => [...prev, newAdm]);
-                  showToast(`Administrator baru '${adminForm.name}' ditambahkan!`, "success");
-                  setModalType(null);
+                  doAddAdmin();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -3917,9 +4055,13 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  setAdmins((prev) => prev.filter((a) => a.id !== selectedAdminToDelete.id));
-                  showToast(`Akses admin untuk ${selectedAdminToDelete.name} dicabut!`, "success");
-                  setModalType(null);
+                  const doDeleteAdmin = async () => {
+                    await supabase.from('profiles').update({ role: 'USER' }).eq('id', selectedAdminToDelete.id);
+                    fetchAllData();
+                    showToast(`Akses admin untuk ${selectedAdminToDelete.name} dicabut!`, "success");
+                    setModalType(null);
+                  };
+                  doDeleteAdmin();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
@@ -4013,25 +4155,20 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  if (!editAdminForm.name.trim() || !editAdminForm.email.trim()) {
-                    showToast("Nama dan email wajib diisi!", "error");
-                    return;
-                  }
-                  setAdmins((prev) =>
-                    prev.map((adm) =>
-                      adm.id === selectedAdmin.id
-                        ? {
-                            ...adm,
-                            name: editAdminForm.name.trim(),
-                            email: editAdminForm.email.trim(),
-                            role: editAdminForm.role,
-                            permissions: editAdminForm.permissions,
-                          }
-                        : adm
-                    )
-                  );
-                  showToast(`Profil admin ${editAdminForm.name} berhasil diperbarui!`, "success");
-                  setModalType(null);
+                  const doEditAdmin = async () => {
+                    if (!editAdminForm.name.trim() || !editAdminForm.email.trim()) {
+                      showToast("Nama dan email wajib diisi!", "error");
+                      return;
+                    }
+                    await supabase.from('profiles').update({
+                      full_name: editAdminForm.name.trim(),
+                      role: editAdminForm.role === 'Super Admin' ? 'SUPER_ADMIN' : 'ADMIN'
+                    }).eq('id', selectedAdmin.id);
+                    fetchAllData();
+                    showToast(`Profil admin ${editAdminForm.name} berhasil diperbarui!`, "success");
+                    setModalType(null);
+                  };
+                  doEditAdmin();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >

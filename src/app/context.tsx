@@ -3,7 +3,7 @@ import type { Message, Product, RequestItem } from "./data";
 
 export type EditingItem = { id: number; name: string; price: number; image: string; status: string };
 export type TrackingOrder = {
-  id: string; product: string; image: string; seller: string;
+  id: string; product: string; productId?: string; image: string; seller: string; sellerId?: string;
   price: number; qty: number; payment: string; location: string;
   status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
 };
@@ -11,8 +11,10 @@ export type TrackingOrder = {
 export type PurchaseOrder = {
   id: string;
   product: string;
+  productId?: string;
   price: number;
   seller: string;
+  sellerId?: string;
   sellerAvatar: string;
   date: string;
   status: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan";
@@ -23,6 +25,7 @@ export type PurchaseOrder = {
 export type SalesOrder = {
   id: string;
   product: string;
+  productId?: string;
   price: number;
   buyer: string;
   buyerAvatar: string;

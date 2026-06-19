@@ -162,6 +162,9 @@ export default function SellPage() {
         if (catData) categoryId = catData.id;
 
         // 2. Submit Product to Supabase
+        const expireDays = adPackage === 'standard' ? 14 : 7;
+        const expiresAt = new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString();
+        
         const { error: insertError } = await supabase.from('products').insert({
           seller_id: user.id,
           category_id: categoryId,
@@ -174,7 +177,8 @@ export default function SellPage() {
           image_url: imageUrl,
           status: 'AVAILABLE',
           ad_package: adPackage,
-          is_premium: adPackage === 'standard'
+          is_premium: adPackage === 'standard',
+          expires_at: expiresAt
         });
 
         if (insertError) throw insertError;
