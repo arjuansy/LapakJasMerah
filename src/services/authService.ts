@@ -34,6 +34,21 @@ export const authService = {
   },
 
   /**
+   * Login with Google OAuth
+   */
+  async loginWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/marketplace'
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Send an OTP to the user's email.
    * Supabase handles the rate limiting automatically (e.g., 3 emails per hour on free tier).
    */

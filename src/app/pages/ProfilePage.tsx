@@ -42,6 +42,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useApp } from "../context";
+import { useAuth } from "../../hooks/useAuth";
 import { formatPrice, productDescriptions } from "../data";
 
 // ── DAFTAR PENJUALAN ──
@@ -1913,13 +1914,11 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [profileSubPage, setProfileSubPage] = useState<any>(null);
 
-  const userInfoStr = localStorage.getItem("userInfo");
-  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
-  const isLoggedIn = !!userInfo;
-  const displayName = userInfo?.name || "Pengguna Tamu";
-  const displayRole = isLoggedIn ? "Mahasiswa UMM" : "Tamu";
-  const displayAvatar = userInfo?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=guest";
-  const [ ] = useState<any>(null);
+  const { user, profile } = useAuth();
+  const isLoggedIn = !!user;
+  const displayName = profile?.full_name || "Pengguna Tamu";
+  const displayRole = profile?.role === 'ADMIN' ? 'Admin' : (isLoggedIn ? "Mahasiswa UMM" : "Tamu");
+  const displayNim = profile?.nim || "-";
 
   const {
     
@@ -2103,7 +2102,7 @@ export default function ProfilePage() {
           {isLoggedIn && <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />}
         </div>
         <p className="text-muted-foreground text-sm mb-1">
-          {isLoggedIn ? `@${userInfo?.name?.replace(/\s+/g, '').toLowerCase() || 'user'} · Teknik Informatika '22` : '@guest · Tamu'}
+          {isLoggedIn ? `@${(profile?.full_name || 'user').replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
         </p>
         <div className="flex items-center justify-center gap-1 mb-4">
           <MapPin size={12} className="text-muted-foreground" />
@@ -2532,10 +2531,10 @@ export default function ProfilePage() {
                   <p className="font-bold text-sm truncate leading-tight mb-2 text-white">{displayName}</p>
                   
                   <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">NIM</p>
-                  <p className="font-mono font-bold text-sm mb-2 text-white">{isLoggedIn ? '202210370311001' : '-'}</p>
+                  <p className="font-mono font-bold text-sm mb-2 text-white">{displayNim}</p>
 
-                  <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">Fakultas / Prodi</p>
-                  <p className="font-bold text-[10px] text-white/90 truncate leading-tight">Teknik / Informatika</p>
+                  <p className="text-[9px] text-white/50 uppercase font-black tracking-wider leading-none mb-0.5">Peran / Status</p>
+                  <p className="font-bold text-[10px] text-white/90 truncate leading-tight">{displayRole}</p>
                 </div>
 
                 <div className="inline-flex items-center gap-1 bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 self-start mt-2">
