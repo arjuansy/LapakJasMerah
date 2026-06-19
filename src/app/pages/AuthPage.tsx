@@ -35,6 +35,8 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const [showNewConfirm, setShowNewConfirm] = useState(false);
   const [forgotError, setForgotError] = useState("");
   const [resetError, setResetError] = useState("");
+  const [currentOtp, setCurrentOtp] = useState("123456");
+  const [showOtpNotification, setShowOtpNotification] = useState(false);
 
   // OTP state
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -165,6 +167,21 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     setResendCooldown(60);
     otpRefs.current[0]?.focus();
   }
+
+  const otpNotificationEl = showOtpNotification && (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[400px] bg-white border border-border shadow-xl rounded-2xl p-4 flex items-start gap-3 animate-slide-down">
+      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c41230" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-foreground font-bold text-sm">Kode OTP Kamu</p>
+        <p className="text-muted-foreground text-xs line-clamp-1">Kode OTP untuk verifikasi adalah <span className="font-black text-foreground">{currentOtp}</span></p>
+      </div>
+      <button onClick={() => setShowOtpNotification(false)} className="shrink-0 p-1 bg-muted rounded-full">
+        <X size={14} className="text-muted-foreground" />
+      </button>
+    </div>
+  );
 
   // ── OTP SCREEN ──
   if (step === "otp") {
@@ -764,7 +781,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           {/* Switch mode */}
           <p className="text-center text-sm text-muted-foreground pt-1">
             {isLogin ? "Belum punya akun? " : "Sudah punya akun? "}
-            <button onClick={() => setScreen(isLogin ? "register" : "login")} className="text-primary font-black">
+            <button onClick={() => navigate(isLogin ? "/register" : "/login")} className="text-primary font-black">
               {isLogin ? "Daftar Gratis" : "Masuk"}
             </button>
           </p>
