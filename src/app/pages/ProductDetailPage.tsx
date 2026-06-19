@@ -375,10 +375,7 @@ export default function ProductDetailPage() {
             <div className="flex-1">
               <p className="font-bold text-foreground text-sm">{product.seller}</p>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-0.5">
-                  {[1,2,3,4,5].map((s) => <Star key={s} size={9} className="text-accent fill-accent" />)}
-                </div>
-                <span className="text-[10px] text-muted-foreground">4.9 · 48 ulasan</span>
+                <span className="text-[10px] text-muted-foreground">Belum ada ulasan</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <BadgeCheck size={11} className="text-blue-500" />
@@ -393,20 +390,7 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {/* Response stats */}
-          <div className="flex gap-3 mt-3">
-            {[
-              { icon: Clock, label: "Respon", value: "< 1 jam" },
-              { icon: CheckCheck, label: "Akurasi", value: "98%" },
-              { icon: Package, label: "Dikirim", value: "24 item" },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex-1 bg-muted rounded-xl p-2.5 text-center">
-                <Icon size={14} className="text-muted-foreground mx-auto mb-1" />
-                <p className="text-foreground font-bold text-xs">{value}</p>
-                <p className="text-muted-foreground text-[10px]">{label}</p>
-              </div>
-            ))}
-          </div>
+
         </div>
 
         <div className="h-2 bg-muted" />
@@ -441,79 +425,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        <div className="h-2 bg-muted" />
 
-        {/* ── ULASAN PEMBELI ── */}
-        {(() => {
-          const productReviews = [
-            { id: 1, user: "Dinda_Psikologi", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&auto=format", rating: 5, comment: "Barang sesuai deskripsi, kondisi mulus! Penjual sangat responsif dan ramah. COD di kampus 1, lancar.", date: "15 Jun 2026" },
-            { id: 2, user: "Fajar_FEB21",     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&auto=format", rating: 5, comment: "Recommended! Harga nego-able, barang oke. Penjual jujur dan amanah.", date: "10 Jun 2026" },
-            { id: 3, user: "Sari_Manajemen",  avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&auto=format", rating: 4, comment: "Barang sesuai foto. Respon cepat. Lumayan untuk harga segini.", date: "3 Jun 2026" },
-          ];
-          const avg = (productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1);
-          return (
-            <div className="px-4 py-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-foreground font-bold text-sm">Ulasan Pembeli</h3>
-                <button
-                  onClick={() => navigate('/store/' + encodeURIComponent(product.seller))}
-                  className="text-primary text-xs font-semibold flex items-center gap-0.5"
-                >
-                  Semua <ChevronRight size={12} />
-                </button>
-              </div>
-
-              {/* Rating summary */}
-              <div className="bg-secondary rounded-2xl p-4 flex items-center gap-4 mb-4">
-                <div className="text-center shrink-0">
-                  <p className="text-foreground font-black text-4xl leading-none">{avg}</p>
-                  <div className="flex justify-center gap-0.5 mt-1 mb-1">
-                    {[1,2,3,4,5].map((s) => <Star key={s} size={10} className="text-accent fill-accent" />)}
-                  </div>
-                  <p className="text-muted-foreground text-[10px]">{productReviews.length} ulasan</p>
-                </div>
-                <div className="flex-1 space-y-1.5">
-                  {[5,4,3].map((star) => {
-                    const count = productReviews.filter((r) => r.rating === star).length;
-                    return (
-                      <div key={star} className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground w-3">{star}</span>
-                        <Star size={9} className="text-accent fill-accent shrink-0" />
-                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${(count / productReviews.length) * 100}%` }} />
-                        </div>
-                        <span className="text-[10px] text-muted-foreground w-3">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Review cards */}
-              <div className="space-y-3">
-                {productReviews.map((r) => (
-                  <div key={r.id} className="bg-card rounded-2xl border border-border p-4">
-                    <div className="flex items-center gap-3 mb-2.5">
-                      <img src={r.avatar} alt={r.user} className="w-8 h-8 rounded-full object-cover shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-foreground font-bold text-xs">{r.user}</p>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          {[1,2,3,4,5].map((s) => (
-                            <Star key={s} size={9} className={s <= r.rating ? "text-accent fill-accent" : "text-muted/40"} />
-                          ))}
-                          <span className="text-muted-foreground text-[10px] ml-1">{r.date}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">"{r.comment}"</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        <div className="h-2 bg-muted" />
 
         {/* ── PRODUK LAINNYA ── */}
         <div className="px-4 py-4 pb-36">

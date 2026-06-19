@@ -358,7 +358,9 @@ export default function App() {
       {/* Modals */}
       {showNotif && (
         <div className="fixed inset-0 z-[70] bg-transparent overflow-hidden animate-page" style={{ maxWidth: 430, margin: "0 auto" }}>
-          <NotifPanel />
+          <React.Suspense fallback={null}>
+            <NotifPanel />
+          </React.Suspense>
         </div>
       )}
       {showPostRequestModal && <PostRequestModal />}
