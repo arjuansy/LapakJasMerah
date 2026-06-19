@@ -35,7 +35,7 @@ export default function Layout() {
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border shadow-2xl z-50" style={{ maxWidth: 430 }}>
         <div className="flex items-center justify-around px-2 py-2">
           {[
-            { id: "home", path: "/", icon: Home, label: "Beranda" },
+            { id: "home", path: "/marketplace", icon: Home, label: "Beranda" },
             { id: "categories", path: "/categories", icon: Grid3X3, label: "Kategori" },
             { id: "sell", path: "/sell", icon: PlusCircle, label: "Jual", special: true },
             { id: "chat", path: "/chat", icon: MessageCircle, label: "Chat" },

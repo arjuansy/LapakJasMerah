@@ -21,6 +21,12 @@ enum ProductStatus {
   HIDDEN
 }
 
+enum RequestStatus {
+  OPEN
+  FULFILLED
+  CLOSED
+}
+
 enum OrderStatus {
   PENDING
   PAID
@@ -48,6 +54,7 @@ model User {
   chatsAsBuyer Chat[] @relation("BuyerChats")
   chatsAsSeller Chat[] @relation("SellerChats")
   messages  Message[]
+  requests  Request[]
 
   @@map("users")
 }
@@ -164,4 +171,19 @@ model Message {
   sender User @relation(fields: [sender_id], references: [id], onDelete: Cascade)
 
   @@map("messages")
+}
+
+model Request {
+  id          String        @id @default(uuid())
+  user_id     String
+  title       String
+  description String        @db.Text
+  budget      Decimal?      @db.Decimal(12, 2)
+  status      RequestStatus @default(OPEN)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("requests")
 }

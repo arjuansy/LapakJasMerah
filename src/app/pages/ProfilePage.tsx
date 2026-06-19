@@ -45,7 +45,7 @@ import { useApp } from "../context";
 import { formatPrice, productDescriptions } from "../data";
 
 // ── DAFTAR PENJUALAN ──
-function SalesPage() {
+function SalesPage({ onBack }: { onBack: () => void }) {
   const {
     
     setShowReportModal,
@@ -106,7 +106,7 @@ function SalesPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -296,7 +296,7 @@ function SalesPage() {
 }
 
 // ── DAFTAR PEMBELIAN ──
-function PurchasePage() {
+function PurchasePage({ onBack }: { onBack: () => void }) {
   const {
     
     setActiveTab: setGlobalTab,
@@ -365,7 +365,7 @@ function PurchasePage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -462,7 +462,7 @@ function PurchasePage() {
               {order.status === "selesai" && (
                 <div className="flex gap-2 px-4 pb-3">
                   <button
-                    onClick={() => { (null); setGlobalTab("home"); }}
+                    onClick={() => { onBack(); setGlobalTab("home"); }}
                     className="flex-1 bg-secondary border border-border text-foreground text-xs font-bold py-2 rounded-xl"
                   >
                     Beli Lagi
@@ -564,7 +564,7 @@ function PurchasePage() {
 }
 
 // ── EDIT PROFIL ──
-function EditProfilePage() {
+function EditProfilePage({ onBack }: { onBack: () => void }) {
   const {  profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
   const [profile, setProfile] = useState({
     name: "Ahmad Rizky Pratama",
@@ -603,7 +603,7 @@ function EditProfilePage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <h1 className="flex-1 text-white font-black text-lg">Edit Profil</h1>
@@ -817,7 +817,7 @@ function EditProfilePage() {
 }
 
 // ── EDIT ITEM PAGE ──
-function EditItemPage() {
+function EditItemPage({ onBack }: { onBack: () => void }) {
   const { editingItem,  setListings, setProducts, triggerToast } = useApp();
   const item = editingItem!;
 
@@ -906,7 +906,7 @@ function EditItemPage() {
     );
 
     setSaved(true);
-    setTimeout(() => { setSaved(false); (null); }, 1500);
+    setTimeout(() => { setSaved(false); onBack(); }, 1500);
   }
 
   function handleDelete() {
@@ -914,7 +914,7 @@ function EditItemPage() {
     setProducts((prevProducts) => prevProducts.filter((p) => p.id !== item.id));
     triggerToast("Iklan berhasil dihapus");
     setShowDeleteConfirm(false);
-    (null);
+    onBack();
   }
 
   const DropdownField = ({ label, value, open, onToggle, options, onSelect, error }: {
@@ -947,7 +947,7 @@ function EditItemPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1191,7 +1191,7 @@ function EditItemPage() {
 }
 
 // ── KEAMANAN & PRIVASI PAGE ──
-function SecurityPrivacyPage() {
+function SecurityPrivacyPage({ onBack }: { onBack: () => void }) {
   const {  } = useApp();
   const [twoFactor, setTwoFactor] = useState(false);
   const [waVisible, setWaVisible] = useState(true);
@@ -1215,7 +1215,7 @@ function SecurityPrivacyPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1324,7 +1324,7 @@ function SecurityPrivacyPage() {
 }
 
 // ── NOTIFIKASI PAGE ──
-function NotificationSettingsPage() {
+function NotificationSettingsPage({ onBack }: { onBack: () => void }) {
   const {  } = useApp();
   const [activeTab, setActiveTab] = useState<"daftar" | "pengaturan">("daftar");
   const [chatNotif, setChatNotif] = useState(true);
@@ -1351,7 +1351,7 @@ function NotificationSettingsPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1484,7 +1484,7 @@ function NotificationSettingsPage() {
 }
 
 // ── PUSAT BANTUAN (HELP CENTER) PAGE ──
-function HelpCenterPage() {
+function HelpCenterPage({ onBack }: { onBack: () => void }) {
   const {  } = useApp();
   const [search, setSearch] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -1522,7 +1522,7 @@ function HelpCenterPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1610,7 +1610,7 @@ function HelpCenterPage() {
 }
 
 // ── KEBIJAKAN & SYARAT PAGE ──
-function TermsPoliciesPage() {
+function TermsPoliciesPage({ onBack }: { onBack: () => void }) {
   const {  } = useApp();
   const [activeTab, setActiveTab] = useState<"syarat" | "kebijakan">("syarat");
 
@@ -1619,7 +1619,7 @@ function TermsPoliciesPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <div className="flex-1">
@@ -1695,7 +1695,7 @@ function TermsPoliciesPage() {
 }
 
 // ── TENTANG LAPAK JAS MERAH ──
-function AboutPage() {
+function AboutPage({ onBack }: { onBack: () => void }) {
   const {  } = useApp();
 
   const stats = [
@@ -1734,7 +1734,7 @@ function AboutPage() {
       {/* Header */}
       <div className="bg-primary sticky top-0 z-40 shadow-md">
         <div className="px-4 pt-10 pb-4 flex items-center gap-3">
-          <button onClick={() => (null)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
           </button>
           <h1 className="flex-1 text-white font-black text-lg">Tentang Lapak Jas Merah</h1>
@@ -1910,6 +1910,13 @@ function AboutPage() {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [profileSubPage, setProfileSubPage] = useState<any>(null);
+
+  const userInfoStr = localStorage.getItem("userInfo");
+  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
+  const isLoggedIn = !!userInfo;
+  const displayName = userInfo?.name || "Pengguna Tamu";
+  const displayRole = isLoggedIn ? "Mahasiswa UMM" : "Tamu";
+  const displayAvatar = userInfo?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=guest";
   const [ ] = useState<any>(null);
 
   const {
@@ -1941,15 +1948,15 @@ export default function ProfilePage() {
   const [badgePaid, setBadgePaid] = useState(false);
   const [showKtm, setShowKtm] = useState(false);
 
-  if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage /></div>;
-  if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage /></div>;
-  if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage /></div>;
-  if (profileSubPage === "editbarang") return <div className="animate-page"><EditItemPage /></div>;
-  if (profileSubPage === "keamanan") return <div className="animate-page"><SecurityPrivacyPage /></div>;
-  if (profileSubPage === "notifikasi") return <div className="animate-page"><NotificationSettingsPage /></div>;
-  if (profileSubPage === "bantuan") return <div className="animate-page"><HelpCenterPage /></div>;
-  if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage /></div>;
-  if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage /></div>;
+  if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "editbarang") return <div className="animate-page"><EditItemPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "keamanan") return <div className="animate-page"><SecurityPrivacyPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "notifikasi") return <div className="animate-page"><NotificationSettingsPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "bantuan") return <div className="animate-page"><HelpCenterPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage onBack={() => setProfileSubPage(null)} /></div>;
 
   const soldItems = [
     {
@@ -2140,7 +2147,7 @@ export default function ProfilePage() {
         return (
           <div className="px-4 mb-5">
             <button
-              onClick={() => setShowSalesStats(true)}
+              onClick={() => navigate("/sales-stats")}
               className="w-full bg-gradient-to-r from-[#c41230] to-[#8b0d22] rounded-2xl p-4 shadow-md text-left active:scale-[0.98] transition-transform"
             >
               <div className="flex items-start justify-between">
