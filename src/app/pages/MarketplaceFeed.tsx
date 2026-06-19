@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useApp } from "../context";
 import { categories, banners, recentProducts, extraProducts, requestBoard, formatPrice } from "../data";
 import logo from "../../assets/logo.png";
 import {
-  Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag
+  Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag, Package, Shield, TrendingUp, ChevronLeft
 } from "lucide-react";
 
 export default function MarketplaceFeed() {
   const navigate = useNavigate();
   const { 
     searchFocused, setSearchFocused, globalSearch, setGlobalSearch, setShowSearchResults,
-    activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist
+    activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal
   } = useApp();
 
   return (
     <>
+      <Helmet>
+        <title>Beranda | Website Jual Beli Mahasiswa</title>
+        <meta name="description" content="Temukan barang bekas, buku, kos, dan jasa dengan harga mahasiswa di Universitas Muhammadiyah Malang." />
+      </Helmet>
       {/* ── HEADER ── */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
         <div className="px-4 pt-4 pb-3">

@@ -1,9 +1,13 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
 
+import { snap } from '../config/midtrans';
+
 export const createOrder = async (req: any, res: Response): Promise<void> => {
   const { productId, sellerId, qty, total, payment, location } = req.body;
   const buyerId = req.user.id;
+  const buyerEmail = req.user.email;
+  const buyerName = req.user.name;
 
   try {
     const order = await prisma.order.create({
@@ -48,7 +52,26 @@ export const createOrder = async (req: any, res: Response): Promise<void> => {
       }
     });
 
-    res.status(201).json(order);
+    // If payment is not COD, generate Midtrans token
+    let midtransToken = null;
+    if (payment !== 'cod') {
+      try {
+        midtransToken = await snap.createTransactionToken({
+          transaction_details: {
+            order_id: order.id,
+            gross_amount: total
+          },
+          customer_details: {
+            first_name: buyerName,
+            email: buyerEmail
+          }
+        });
+      } catch (err) {
+        console.error('Midtrans Snap Error:', err);
+      }
+    }
+
+    res.status(201).json({ ...order, midtransToken });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error', error });
@@ -72,6 +95,38 @@ export const payOrder = async (req: any, res: Response): Promise<void> => {
     res.json({ message: 'Pembayaran berhasil disimulasikan', order });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const midtransWebhook = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const notification = req.body;
+    
+    // In production, you should verify the signature using crypto and ServerKey
+    
+    const orderId = notification.order_id;
+    const transactionStatus = notification.transaction_status;
+    const fraudStatus = notification.fraud_status;
+
+    if (transactionStatus === 'capture' || transactionStatus === 'settlement') {
+      if (fraudStatus !== 'challenge') {
+        // Success
+        await prisma.order.update({ where: { id: orderId }, data: { status: 'PAID' } });
+        await prisma.payment.update({ where: { order_id: orderId }, data: { status: 'PAID', paid_at: new Date() } });
+      }
+    } else if (transactionStatus === 'cancel' || transactionStatus === 'deny' || transactionStatus === 'expire') {
+      // Failed
+      await prisma.order.update({ where: { id: orderId }, data: { status: 'CANCELLED' } });
+      await prisma.payment.update({ where: { order_id: orderId }, data: { status: 'FAILED' } });
+    } else if (transactionStatus === 'pending') {
+      // Pending
+      await prisma.payment.update({ where: { order_id: orderId }, data: { status: 'PENDING' } });
+    }
+
+    res.status(200).json({ status: 'ok' });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).json({ message: 'Webhook error' });
   }
 };
 

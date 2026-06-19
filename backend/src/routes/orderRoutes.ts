@@ -1,8 +1,10 @@
 import express from 'express';
-import { createOrder, getMyOrders, payOrder, completeOrder } from '../controllers/orderController';
+import { createOrder, getMyOrders, payOrder, completeOrder, midtransWebhook } from '../controllers/orderController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
+
+router.post('/webhook/midtrans', midtransWebhook);
 
 router.route('/')
   .post(protect, createOrder)

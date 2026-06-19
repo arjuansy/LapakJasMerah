@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useApp } from "../context";
 import { Product, formatPrice } from "../data";
 import {
@@ -41,7 +42,8 @@ export default function ProductDetailPage() {
           image: p.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
           rating: 0,
           sold: 0,
-          description: p.description || ""
+          description: p.description || "",
+          stock: p.stock || 1
         });
         setLoading(false);
       })
@@ -59,8 +61,8 @@ export default function ProductDetailPage() {
 
   const imgs = [
     product.image,
-    product.image.replace("w=300&h=300", "w=300&h=300").replace("auto=format", "auto=format&sat=-20"),
-    product.image.replace("w=300&h=300", "w=300&h=300").replace("auto=format", "auto=format&bri=10"),
+    "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=400&q=80"
   ];
 
   const related = products.filter((p) => p.id !== product.id).slice(0, 4);
@@ -708,9 +710,27 @@ export default function ProductDetailPage() {
                         const createdOrderId = res.data.id;
                         (window as any).currentOrderId = createdOrderId;
                         
-                        if (selectedPayment === "qris") {
+                        if (res.data.midtransToken) {
                           setShowOrder(false);
-                          setShowQrisCode(true);
+                          (window as any).snap.pay(res.data.midtransToken, {
+                            onSuccess: function(result: any) {
+                              setOrdered(true);
+                            },
+                            onPending: function(result: any) {
+                              setOrdered(true);
+                            },
+                            onError: function(result: any) {
+                              alert("Pembayaran gagal!");
+                            },
+                            onClose: function() {
+                              // User closed the popup without finishing payment
+                              alert("Anda belum menyelesaikan pembayaran.");
+                              setOrdered(true); // Still show order success but pending status
+                            }
+                          });
+                        } else if (selectedPayment === "qris") {
+                          setShowOrder(false);
+                          setShowQrisCode(true); // Fallback if no token generated
                         } else {
                           setShowOrder(false);
                           setOrdered(true);

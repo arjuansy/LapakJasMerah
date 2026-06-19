@@ -11,21 +11,21 @@ import { AppContext } from "./context";
 import type { PurchaseOrder, SalesOrder, EditingItem, TrackingOrder } from "./context";
 
 import Layout from "./components/Layout";
-import LandingPage from "./pages/LandingPage";
-import AuthPage from "./pages/AuthPage";
-import MarketplaceFeed from "./pages/MarketplaceFeed";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import StorePage from "./pages/StorePage";
-import ChatPage from "./pages/ChatPage";
-import ProfilePage from "./pages/ProfilePage";
-import SellPage from "./pages/SellPage";
-import OrderTrackingPage from "./pages/OrderTrackingPage";
-import SearchResultsPage from "./pages/SearchResultsPage";
-import AdminDashboard from "./pages/AdminDashboard";
-import CategoriesPage from "./pages/CategoriesPage";
-import WishlistPage from "./pages/WishlistPage";
-import SalesStatsPage from "./pages/SalesStatsPage";
-import NotifPanel from "./pages/NotifPanel";
+const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+const AuthPage = React.lazy(() => import("./pages/AuthPage"));
+const MarketplaceFeed = React.lazy(() => import("./pages/MarketplaceFeed"));
+const ProductDetailPage = React.lazy(() => import("./pages/ProductDetailPage"));
+const StorePage = React.lazy(() => import("./pages/StorePage"));
+const ChatPage = React.lazy(() => import("./pages/ChatPage"));
+const ProfilePage = React.lazy(() => import("./pages/ProfilePage"));
+const SellPage = React.lazy(() => import("./pages/SellPage"));
+const OrderTrackingPage = React.lazy(() => import("./pages/OrderTrackingPage"));
+const SearchResultsPage = React.lazy(() => import("./pages/SearchResultsPage"));
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const CategoriesPage = React.lazy(() => import("./pages/CategoriesPage"));
+const WishlistPage = React.lazy(() => import("./pages/WishlistPage"));
+const SalesStatsPage = React.lazy(() => import("./pages/SalesStatsPage"));
+const NotifPanel = React.lazy(() => import("./pages/NotifPanel"));
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -123,31 +123,33 @@ export default function App() {
 
   return (
     <AppContext.Provider value={contextValue as any}>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<AuthPage mode="login" />} />
-        <Route path="/register" element={<AuthPage mode="register" />} />
-        <Route path="/admin" element={<AdminDashboard onLogout={() => {}} />} />
-        
-        {/* App layout with bottom navigation */}
-        <Route element={<Layout />}>
-          <Route path="/marketplace" element={<MarketplaceFeed />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/sell" element={<SellPage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/chat/:chatId" element={<ChatPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+      <React.Suspense fallback={<div className="flex h-full min-h-screen items-center justify-center bg-background text-primary font-bold text-xl animate-pulse">Memuat...</div>}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<AuthPage mode="login" />} />
+          <Route path="/register" element={<AuthPage mode="register" />} />
+          <Route path="/admin" element={<AdminDashboard onLogout={() => {}} />} />
           
-          <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/store/:sellerName" element={<StorePage />} />
-          <Route path="/order/:id" element={<OrderTrackingPage />} />
-          <Route path="/search" element={<SearchResultsPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/sales-stats" element={<SalesStatsPage />} />
-        </Route>
-        
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* App layout with bottom navigation */}
+          <Route element={<Layout />}>
+            <Route path="/marketplace" element={<MarketplaceFeed />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/sell" element={<SellPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chat/:chatId" element={<ChatPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/store/:sellerName" element={<StorePage />} />
+            <Route path="/order/:id" element={<OrderTrackingPage />} />
+            <Route path="/search" element={<SearchResultsPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/sales-stats" element={<SalesStatsPage />} />
+          </Route>
+          
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </React.Suspense>
 
       {/* Modals */}
       {showNotif && (

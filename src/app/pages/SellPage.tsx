@@ -63,17 +63,15 @@ export default function SellPage() {
     fileInputRef.current?.click();
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files) return;
 
     const maxPhotos = adPackage === "gratis" ? 3 : 5;
     const remaining = maxPhotos - photos.length;
+    
     if (remaining <= 0) {
-      setErrors((prev) => ({
-        ...prev,
-        photos: `Paket iklan ini maksimal ${maxPhotos} foto.`
-      }));
+      alert(`Paket ${adPackage} maksimal ${maxPhotos} foto`);
       return;
     }
 
@@ -90,19 +88,16 @@ export default function SellPage() {
       }
 
       setFiles((prev) => [...prev, file]);
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setPhotos((prev) => [...prev, event.target!.result as string]);
-          setErrors((prev) => {
-            const next = { ...prev };
-            delete next.photos;
-            return next;
-          });
-        }
-      };
-      reader.readAsDataURL(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPhotos((prev) => {
+        const next = [...prev, objectUrl];
+        return next;
+      });
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.photos;
+        return next;
+      });
     });
 
     e.target.value = "";
