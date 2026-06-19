@@ -1,3 +1,4 @@
+import { toast } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -97,7 +98,7 @@ export default function OrderTrackingPage() {
       );
     } catch (err) {
       console.error("Gagal konfirmasi pesanan", err);
-      alert("Terjadi kesalahan saat mengkonfirmasi pesanan");
+      toast.error("Terjadi kesalahan saat mengkonfirmasi pesanan");
     }
   }
 

@@ -1,3 +1,4 @@
+import { toast } from "react-hot-toast";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -76,10 +77,10 @@ export default function ProductDetailPage() {
   function handleShareProduct(p: any) {
     const url = window.location.origin + `/product/${p.id}`;
     navigator.clipboard.writeText(url).then(() => {
-      alert("Tautan produk berhasil disalin ke clipboard!\n" + url);
+      toast.success("Tautan produk berhasil disalin ke clipboard!\n" + url);
     }).catch(err => {
       console.error("Gagal menyalin tautan", err);
-      alert("Gagal menyalin tautan.");
+      toast.error("Gagal menyalin tautan.");
     });
   }
 
@@ -89,7 +90,7 @@ export default function ProductDetailPage() {
       setOrdered(false);
       navigate(`/order/${orderId}`);
     } else {
-      alert("Order ID tidak ditemukan");
+      toast.error("Order ID tidak ditemukan");
     }
   }
 
@@ -162,7 +163,7 @@ export default function ProductDetailPage() {
                     setOrdered(true);
                   } catch (err) {
                     console.error("Gagal bayar", err);
-                    alert("Simulasi pembayaran gagal.");
+                    toast.error("Simulasi pembayaran gagal.");
                   }
                 }}
                 className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -546,7 +547,7 @@ export default function ProductDetailPage() {
               onClick={() => { 
                 const userInfo = localStorage.getItem("userInfo");
                 if (!userInfo) {
-                  alert("Anda harus login terlebih dahulu untuk chat.");
+                  toast.error("Anda harus login terlebih dahulu untuk chat.");
                   navigate("/auth");
                   return;
                 }
@@ -557,7 +558,7 @@ export default function ProductDetailPage() {
                   navigate(`/chat/${res.data.id}`);
                 }).catch(err => {
                   console.error(err);
-                  alert("Gagal membuka chat");
+                  toast.error("Gagal membuka chat");
                 });
               }}
               className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
@@ -569,7 +570,7 @@ export default function ProductDetailPage() {
               onClick={() => {
                 const userInfo = localStorage.getItem("userInfo");
                 if (!userInfo) {
-                  alert("Anda harus login terlebih dahulu untuk membeli barang.");
+                  toast.error("Anda harus login terlebih dahulu untuk membeli barang.");
                   navigate("/auth");
                   return;
                 }
@@ -720,11 +721,11 @@ export default function ProductDetailPage() {
                               setOrdered(true);
                             },
                             onError: function(result: any) {
-                              alert("Pembayaran gagal!");
+                              toast.error("Pembayaran gagal!");
                             },
                             onClose: function() {
                               // User closed the popup without finishing payment
-                              alert("Anda belum menyelesaikan pembayaran.");
+                              toast.error("Anda belum menyelesaikan pembayaran.");
                               setOrdered(true); // Still show order success but pending status
                             }
                           });
@@ -737,7 +738,7 @@ export default function ProductDetailPage() {
                         }
                       } catch (err) {
                         console.error("Gagal membuat pesanan", err);
-                        alert("Terjadi kesalahan saat memproses pesanan.");
+                        toast.error("Terjadi kesalahan saat memproses pesanan.");
                       }
                     }}
                     className="w-full text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform"

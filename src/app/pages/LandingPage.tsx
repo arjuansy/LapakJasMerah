@@ -1,4 +1,5 @@
 import { Shield, Tag, MessageSquare, MapPin, Star, Zap, ShoppingBag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
 import logo from "../../assets/logo.png";

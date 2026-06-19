@@ -1,3 +1,4 @@
+import { toast } from "react-hot-toast";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -71,7 +72,7 @@ export default function SellPage() {
     const remaining = maxPhotos - photos.length;
     
     if (remaining <= 0) {
-      alert(`Paket ${adPackage} maksimal ${maxPhotos} foto`);
+      toast.error(`Paket ${adPackage} maksimal ${maxPhotos} foto`);
       return;
     }
 
@@ -171,7 +172,7 @@ export default function SellPage() {
         setStep("success");
       } catch (err) {
         console.error("Gagal mengunggah produk", err);
-        alert("Gagal memposting iklan. Pastikan Anda sudah login.");
+        toast.error("Gagal memposting iklan. Pastikan Anda sudah login.");
       } finally {
         setIsSubmitting(false);
       }

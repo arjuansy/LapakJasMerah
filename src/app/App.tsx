@@ -1,3 +1,4 @@
+import { Skeleton } from "./components/Skeleton";
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import api from "./api";
@@ -11,6 +12,8 @@ import { AppContext } from "./context";
 import type { PurchaseOrder, SalesOrder, EditingItem, TrackingOrder } from "./context";
 
 import Layout from "./components/Layout";
+import { Toaster, toast } from "react-hot-toast";
+
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
 const MarketplaceFeed = React.lazy(() => import("./pages/MarketplaceFeed"));
@@ -58,7 +61,7 @@ export default function App() {
   };
 
   const triggerToast = (msg: string) => {
-    alert(msg);
+    toast.success(msg);
   };
 
   const startChat = (sellerName: string) => {
@@ -121,9 +124,37 @@ export default function App() {
     startChat
   };
 
+
   return (
     <AppContext.Provider value={contextValue as any}>
-      <React.Suspense fallback={<div className="flex h-full min-h-screen items-center justify-center bg-background text-primary font-bold text-xl animate-pulse">Memuat...</div>}>
+      <React.Suspense fallback={
+        <div className="bg-background min-h-screen text-foreground pb-24" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <header className="bg-primary px-4 py-3 sticky top-0 z-50 flex items-center justify-between shadow-md">
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-8 h-8 rounded-full bg-white/20" />
+              <Skeleton className="w-24 h-5 bg-white/20" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-6 h-6 rounded-full bg-white/20" />
+              <Skeleton className="w-6 h-6 rounded-full bg-white/20" />
+            </div>
+          </header>
+          <div className="px-4 py-6">
+            <Skeleton className="w-full h-32 mb-6" />
+            <div className="grid grid-cols-4 gap-3 mb-8">
+              <Skeleton className="w-full aspect-square rounded-2xl" />
+              <Skeleton className="w-full aspect-square rounded-2xl" />
+              <Skeleton className="w-full aspect-square rounded-2xl" />
+              <Skeleton className="w-full aspect-square rounded-2xl" />
+            </div>
+            <Skeleton className="w-32 h-5 mb-4" />
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="w-full h-48 rounded-2xl" />
+              <Skeleton className="w-full h-48 rounded-2xl" />
+            </div>
+          </div>
+        </div>
+      }>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
@@ -157,7 +188,7 @@ export default function App() {
           <NotifPanel />
         </div>
       )}
-      
+      <Toaster position="top-center" />
     </AppContext.Provider>
   );
 }

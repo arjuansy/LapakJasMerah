@@ -1,3 +1,4 @@
+import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -1592,7 +1593,7 @@ function HelpCenterPage() {
             </a>
 
             <div
-              onClick={() => alert("support@umm.ac.id berhasil disalin!")}
+              onClick={() => toast.success("support@umm.ac.id berhasil disalin!")}
               className="bg-card border border-border rounded-2xl p-4 text-center shadow-sm hover:border-primary transition-colors cursor-pointer flex flex-col items-center gap-1.5"
             >
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
