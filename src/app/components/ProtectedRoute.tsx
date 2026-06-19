@@ -26,7 +26,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // Auto redirect to onboarding if profile is incomplete
   if (profile && !profile.nim) {
-    return <Navigate to="/onboarding" replace />;
+    return <Navigate to="/register/data-diri" replace />;
   }
 
   // Auto redirect Admin to dashboard if they try to access normal protected routes?

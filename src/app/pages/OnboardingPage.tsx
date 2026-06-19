@@ -16,7 +16,7 @@ import { toast } from "react-hot-toast";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
-  const { user, profile, refreshSession } = useAuth();
+  const { user, profile, refreshSession, loading: authLoading } = useAuth();
 
   const [form, setForm] = useState({ 
     name: "", 
@@ -41,10 +41,10 @@ export default function OnboardingPage() {
 
   // If not logged in, shouldn't be here
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]);
 
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
@@ -93,7 +93,13 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col sm:justify-center items-center p-4">
-      <div className="w-full max-w-md">
+      {authLoading ? (
+        <div className="flex flex-col items-center justify-center">
+          <svg className="animate-spin w-8 h-8 text-primary mb-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+          <p className="text-muted-foreground font-medium text-sm">Memuat sesi Anda...</p>
+        </div>
+      ) : (
+        <div className="w-full max-w-md">
         
         {/* Header */}
         <div className="text-center mb-8 mt-12 sm:mt-0">
@@ -208,6 +214,7 @@ export default function OnboardingPage() {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

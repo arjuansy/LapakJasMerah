@@ -23,6 +23,10 @@ export function useAuth() {
           const profile = await authService.getProfile(session.user.id);
           if (mounted) {
             setAuthState({ user: session.user, profile, session, loading: false });
+            // Clean URL hash after successful login from OAuth
+            if (window.location.hash.includes('access_token')) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
           }
         } else {
           if (mounted) {
@@ -45,6 +49,10 @@ export function useAuth() {
           const profile = await authService.getProfile(session.user.id);
           if (mounted) {
             setAuthState({ user: session.user, profile, session, loading: false });
+            // Clean URL hash after successful login from OAuth
+            if (window.location.hash.includes('access_token')) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
           }
         } catch (err) {
           console.error("Failed to load profile on auth state change", err);
