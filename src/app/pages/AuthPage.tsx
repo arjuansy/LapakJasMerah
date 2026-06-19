@@ -43,6 +43,12 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   // Automatically redirect if already logged in (only if not doing reset flow)
   useEffect(() => {
     if (user && profile && step !== "reset_password") {
+      if (user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
+        authService.logout().then(() => {
+          toast.error("Akses ditolak: Hanya email @webmail.umm.ac.id yang diizinkan.", { duration: 5000 });
+        });
+        return;
+      }
       if (!profile.nim) {
         navigate('/register/data-diri');
       } else if (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN') {
