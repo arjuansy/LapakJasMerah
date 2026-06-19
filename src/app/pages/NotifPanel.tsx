@@ -8,8 +8,9 @@ import {
 
 export default function NotifPanel() {
   const navigate = useNavigate();
+  const { notifData, readNotifs, setReadNotifs, setShowNotif } = useApp();
 
-    const unreadCount = notifData.filter((n) => !n.read && !readNotifs.includes(n.id)).length;
+  const unreadCount = notifData.filter((n) => !n.read && !readNotifs.includes(n.id)).length;
 
     return (
       <>

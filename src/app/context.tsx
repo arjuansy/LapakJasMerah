@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Message, Product } from "./data";
+import type { Message, Product, RequestItem } from "./data";
 
 export type EditingItem = { id: number; name: string; price: number; image: string; status: string };
 export type TrackingOrder = {
@@ -89,6 +89,12 @@ export type AppContextType = {
   contacts: any[];
   setContacts: React.Dispatch<React.SetStateAction<any[]>>;
   startChat: (sellerName: string, productName?: string, productImg?: string, productPrice?: number) => void;
+  // new additions
+  requests: RequestItem[];
+  setRequests: React.Dispatch<React.SetStateAction<RequestItem[]>>;
+  showPostRequestModal: boolean;
+  setShowPostRequestModal: (v: boolean) => void;
+  notifData: any[];
 };
 
 export const AppContext = createContext<AppContextType>(null!);

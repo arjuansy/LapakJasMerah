@@ -5,14 +5,16 @@ import { useApp } from "../context";
 import { categories, banners, recentProducts, extraProducts, requestBoard, formatPrice } from "../data";
 import logo from "../../assets/logo.png";
 import {
-  Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag, Package, Shield, TrendingUp, ChevronLeft
+  Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag, Package, Shield, TrendingUp, ChevronLeft,
+  PlusCircle, MessageCircle, User, Tag
 } from "lucide-react";
 
 export default function MarketplaceFeed() {
   const navigate = useNavigate();
   const { 
     searchFocused, setSearchFocused, globalSearch, setGlobalSearch, setShowSearchResults,
-    activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal
+    activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
+    products, requests
   } = useApp();
 
   return (

@@ -5,7 +5,7 @@ import api from "./api";
 
 import {
   categories, banners, recentProducts, chatContacts, initialMessages,
-  extraProducts, allProducts, sellerAvatars, productDescriptions, formatPrice, requestBoard
+  extraProducts, allProducts, sellerAvatars, productDescriptions, formatPrice, requestBoard, notifData
 } from "./data";
 import type { Message, Product, RequestItem } from "./data";
 import { AppContext } from "./context";
@@ -13,6 +13,7 @@ import type { PurchaseOrder, SalesOrder, EditingItem, TrackingOrder } from "./co
 
 import Layout from "./components/Layout";
 import { Toaster, toast } from "react-hot-toast";
+import { PostRequestModal, SuggestionBoxModal } from "./components/Modals";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
@@ -44,6 +45,8 @@ export default function App() {
   const [showReportModal, setShowReportModal] = useState<{ type: "penjual" | "pembeli"; name: string } | null>(null);
   const [showSuggestionBox, setShowSuggestionBox] = useState(false);
   const [showSalesStats, setShowSalesStats] = useState(false);
+  const [requests, setRequests] = useState<RequestItem[]>(requestBoard);
+  const [showPostRequestModal, setShowPostRequestModal] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("Semua");
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -121,7 +124,10 @@ export default function App() {
     products, setProducts,
     listings, setListings,
     contacts, setContacts,
-    startChat
+    startChat,
+    requests, setRequests,
+    showPostRequestModal, setShowPostRequestModal,
+    notifData
   };
 
 
@@ -188,6 +194,8 @@ export default function App() {
           <NotifPanel />
         </div>
       )}
+      {showPostRequestModal && <PostRequestModal />}
+      {showSuggestionBox && <SuggestionBoxModal />}
       <Toaster position="top-center" />
     </AppContext.Provider>
   );

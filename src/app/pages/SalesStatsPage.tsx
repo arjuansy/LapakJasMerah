@@ -119,13 +119,3 @@ export default function SalesStatsPage() {
     );
   }
 
-  // ── NOTIFICATION PANEL ──
-  const notifData = [
-    { id: 1, type: "chat",     icon: MessageCircle, color: "#3B82F6", title: "Pesan baru dari Rizki_FT2022", body: "\"Mas, apakah barangnya masih ada?\"", time: "10 mnt lalu",  read: false },
-    { id: 2, type: "order",    icon: ShoppingBag,   color: "#10B981", title: "Pesanan kamu sedang diproses", body: "Powerbank 20000mAh sedang disiapkan penjual", time: "1 jam lalu",  read: false },
-    { id: 3, type: "promo",    icon: Tag,           color: "#F59E0B", title: "Flash Sale dimulai! ⚡", body: "Diskon hingga 50% untuk produk elektronik pilihan", time: "2 jam lalu",  read: false },
-    { id: 4, type: "like",     icon: Heart,         color: "#EC4899", title: "5 orang menyukai iklanmu", body: "Laptop Lenovo ThinkPad X1 diminati banyak pembeli", time: "3 jam lalu",  read: true },
-    { id: 5, type: "order",    icon: Package,       color: "#10B981", title: "Pesanan selesai 🎉", body: "Kalkulator Casio FX-991 telah dikonfirmasi diterima", time: "Kemarin",      read: true },
-    { id: 6, type: "system",   icon: Shield,        color: "#8B5CF6", title: "Akun kamu terverifikasi!", body: "NIM mahasiswa UMM kamu berhasil diverifikasi", time: "2 hari lalu",  read: true },
-    { id: 7, type: "promo",    icon: Zap,           color: "#F59E0B", title: "Iklan kamu hampir habis masa tayang", body: "Meja Belajar Lipat akan habis dalam 2 hari lagi", time: "3 hari lalu",  read: true },
-  ];
