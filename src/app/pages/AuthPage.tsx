@@ -88,7 +88,9 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         setResendCooldown(60);
       }
     } catch (err: any) {
-      setErrors({ form: err.message || "Terjadi kesalahan. Coba lagi." });
+      let msg = err.message;
+      if (msg === "{}" || !msg) msg = "Kesalahan internal pada server Supabase (Periksa skrip SQL & Trigger).";
+      setErrors({ form: msg });
     } finally {
       setLoading(false);
     }
@@ -398,7 +400,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             </div>
             <span className="text-white font-black text-base tracking-wide">Lapak Jas Merah</span>
           </div>
-          <button onClick={() => setScreen("splash")} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+          <button onClick={() => navigate("/")} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <X size={18} className="text-white" />
           </button>
         </div>
