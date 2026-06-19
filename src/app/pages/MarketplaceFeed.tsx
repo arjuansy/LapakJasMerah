@@ -20,7 +20,7 @@ export default function MarketplaceFeed() {
   return (
     <>
       <Helmet>
-        <title>Beranda | Website Jual Beli Mahasiswa</title>
+        <title>Beranda | Lapak Jas Merah</title>
         <meta name="description" content="Temukan barang bekas, buku, kos, dan jasa dengan harga mahasiswa di Universitas Muhammadiyah Malang." />
       </Helmet>
       {/* ── HEADER ── */}
