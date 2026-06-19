@@ -38,6 +38,14 @@
       "destination": "/login.html"
     },
     {
+      "source": "/register/akun-google",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/register/data-diri",
+      "destination": "/login.html"
+    },
+    {
       "source": "/profile",
       "destination": "/profile.html"
     },
