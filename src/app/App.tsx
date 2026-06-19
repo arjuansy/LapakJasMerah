@@ -196,19 +196,22 @@ export default function App() {
             </AdminRoute>
           } />
           
-          {/* App layout with bottom navigation protected by ProtectedRoute */}
-          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          {/* Public App layout routes (can be accessed without login) */}
+          <Route element={<Layout />}>
             <Route path="/marketplace" element={<MarketplaceFeed />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/store/:sellerName" element={<StorePage />} />
+            <Route path="/search" element={<SearchResultsPage />} />
+          </Route>
+
+          {/* App layout with bottom navigation protected by ProtectedRoute */}
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/sell" element={<SellPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/:chatId" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/store/:sellerName" element={<StorePage />} />
             <Route path="/order/:id" element={<OrderTrackingPage />} />
-            <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/sales-stats" element={<SalesStatsPage />} />
           </Route>
