@@ -381,83 +381,7 @@ export type RequestItem = {
   categoryColor: string;
 };
 
-export const requestBoard: RequestItem[] = [
-  {
-    id: 1,
-    title: "Dicari: Laptop untuk Skripsi",
-    description: "Butuh laptop second kondisi bagus, RAM min 8GB, bisa buat coding & desain. Anggaran maks 5 juta.",
-    category: "Elektronik",
-    budget: 3500000,
-    budgetMax: 5000000,
-    poster: "Dinda_Psikologi",
-    posterAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&auto=format",
-    location: "Kampus 3",
-    postedAt: "2 jam lalu",
-    urgency: "segera",
-    offers: 3,
-    categoryColor: "#8B5CF6",
-  },
-  {
-    id: 2,
-    title: "Cari Buku Statistika Bisnis",
-    description: "Perlu buku Statistika Bisnis edisi 4 atau 5, boleh bekas asalkan lengkap dan tidak rusak parah.",
-    category: "Buku & Modul",
-    budget: 50000,
-    budgetMax: 80000,
-    poster: "Fajar_FEB21",
-    posterAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&auto=format",
-    location: "Sengkaling",
-    postedAt: "5 jam lalu",
-    urgency: "normal",
-    offers: 5,
-    categoryColor: "#3B82F6",
-  },
-  {
-    id: 3,
-    title: "Butuh Jasa Edit Video Wisuda",
-    description: "Mau edit video dokumentasi wisuda jadi film pendek 5–10 menit, ada musik, efek cinematic. Ada referensi.",
-    category: "Jasa",
-    budget: 150000,
-    budgetMax: 250000,
-    poster: "Sari_Manajemen",
-    posterAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&auto=format",
-    location: "Online",
-    postedAt: "1 hari lalu",
-    urgency: "mendesak",
-    offers: 7,
-    categoryColor: "#10B981",
-  },
-  {
-    id: 4,
-    title: "Cari Kost Dekat Kampus 2 Putra",
-    description: "Mahasiswa baru cari kost putra maks 700rb/bulan, dekat kampus 2, ada WiFi dan kamar mandi dalam.",
-    category: "Kost & Kontrakan",
-    budget: 600000,
-    budgetMax: 700000,
-    poster: "Budi_FEB21",
-    posterAvatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=80&h=80&fit=crop&auto=format",
-    location: "Sengkaling",
-    postedAt: "1 hari lalu",
-    urgency: "segera",
-    offers: 4,
-    categoryColor: "#F59E0B",
-  },
-  {
-    id: 5,
-    title: "Dicari Sepeda untuk Mobilitas Kampus",
-    description: "Butuh sepeda bekas kondisi layak jalan untuk keliling kampus, tidak perlu mewah. Anggaran di bawah 500rb.",
-    category: "Kendaraan",
-    budget: 300000,
-    budgetMax: 500000,
-    poster: "Ahmad_Teknik",
-    posterAvatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
-    location: "Kampus 1",
-    postedAt: "2 hari lalu",
-    urgency: "normal",
-    offers: 2,
-    categoryColor: "#06B6D4",
-  },
-];
+export const requestBoard: RequestItem[] = [];
 
 export function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -468,12 +392,4 @@ export function formatPrice(price: number) {
   }).format(price);
 }
 
-export const notifData = [
-  { id: 1, type: "chat",     icon: MessageCircle, color: "#3B82F6", title: "Pesan baru dari Rizki_FT2022", body: "\"Mas, apakah barangnya masih ada?\"", time: "10 mnt lalu",  read: false },
-  { id: 2, type: "order",    icon: ShoppingBag,   color: "#10B981", title: "Pesanan kamu sedang diproses", body: "Powerbank 20000mAh sedang disiapkan penjual", time: "1 jam lalu",  read: false },
-  { id: 3, type: "promo",    icon: Tag,           color: "#F59E0B", title: "Flash Sale dimulai! ⚡", body: "Diskon hingga 50% untuk produk elektronik pilihan", time: "2 jam lalu",  read: false },
-  { id: 4, type: "like",     icon: Heart,         color: "#EC4899", title: "5 orang menyukai iklanmu", body: "Laptop Lenovo ThinkPad X1 diminati banyak pembeli", time: "3 jam lalu",  read: true },
-  { id: 5, type: "order",    icon: Package,       color: "#10B981", title: "Pesanan selesai 🎉", body: "Kalkulator Casio FX-991 telah dikonfirmasi diterima", time: "Kemarin",      read: true },
-  { id: 6, type: "system",   icon: Shield,        color: "#8B5CF6", title: "Akun kamu terverifikasi!", body: "NIM mahasiswa UMM kamu berhasil diverifikasi", time: "2 hari lalu",  read: true },
-  { id: 7, type: "promo",    icon: Zap,           color: "#F59E0B", title: "Iklan kamu hampir habis masa tayang", body: "Meja Belajar Lipat akan habis dalam 2 hari lagi", time: "3 hari lalu",  read: true },
-];
+export const notifData: any[] = [];

@@ -861,11 +861,10 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
   function validate() {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e.title = "Judul wajib diisi";
-    if (form.title.length > 0 && form.title.length < 10) e.title = "Judul minimal 10 karakter";
     if (!form.category) e.category = "Pilih kategori";
     if (!form.condition) e.condition = "Pilih kondisi";
     if (!form.price.trim()) e.price = "Harga wajib diisi";
-    if (!form.description.trim() || form.description.length < 20) e.description = "Deskripsi minimal 20 karakter";
+    if (!form.description.trim()) e.description = "Deskripsi wajib diisi";
     if (!form.location) e.location = "Pilih lokasi";
     return e;
   }
@@ -1918,7 +1917,7 @@ export default function ProfilePage() {
   const isLoggedIn = !!user;
   const displayName = profile?.full_name || "Pengguna Tamu";
   const displayRole = profile?.role === 'ADMIN' ? 'Admin' : (isLoggedIn ? "Mahasiswa UMM" : "Tamu");
-  const displayNim = profile?.nim || "-";
+  const displayNim = profile?.nim || "";
 
   const {
     
@@ -2102,7 +2101,7 @@ export default function ProfilePage() {
           {isLoggedIn && <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />}
         </div>
         <p className="text-muted-foreground text-sm mb-1">
-          {isLoggedIn ? `@${(profile?.full_name || 'user').replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
+          {isLoggedIn ? `@${(profile?.full_name || 'guest').replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
         </p>
         <div className="flex items-center justify-center gap-1 mb-4">
           <MapPin size={12} className="text-muted-foreground" />
@@ -2294,9 +2293,9 @@ export default function ProfilePage() {
         <h3 className="text-foreground font-bold text-sm mb-3">Iklan Saya</h3>
         <div className="flex bg-muted rounded-xl p-1 gap-1">
           {([
-            { id: "iklan", label: "Aktif", count: 3 },
-            { id: "terjual", label: "Terjual", count: 2 },
-            { id: "disukai", label: "Disukai", count: 3 },
+            { id: "iklan", label: "Aktif", count: 0 },
+            { id: "terjual", label: "Terjual", count: 0 },
+            { id: "disukai", label: "Disukai", count: 0 },
           ] as const).map((t) => (
             <button
               key={t.id}

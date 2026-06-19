@@ -116,14 +116,12 @@ export default function SellPage() {
   function validate() {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e.title = "Judul wajib diisi";
-    if (form.title.length > 0 && form.title.length < 10) e.title = "Judul minimal 10 karakter";
     if (!form.category) e.category = "Pilih kategori";
     if (!form.condition) e.condition = "Pilih kondisi barang";
     if (!form.price.trim()) e.price = "Harga wajib diisi";
     if (form.price && isNaN(Number(form.price.replace(/\./g, "")))) e.price = "Harga harus berupa angka";
     if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 1) e.stock = "Stok minimal 1";
     if (!form.description.trim()) e.description = "Deskripsi wajib diisi";
-    if (form.description.length > 0 && form.description.length < 20) e.description = "Deskripsi minimal 20 karakter";
     if (!form.location) e.location = "Pilih lokasi";
     if (form.location === "Lainnya (Isi Sendiri)" && (!form.customLocation || !form.customLocation.trim())) {
       e.location = "Isi lokasi COD Anda";
