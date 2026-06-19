@@ -21,6 +21,19 @@ export default function MarketplaceFeed() {
 
   const { profile, user } = useAuth();
 
+  const premiumProducts = products.filter((p) => p.is_premium);
+  const premiumBanners = premiumProducts.map((p) => ({
+    id: `premium-${p.id}`,
+    title: p.name,
+    sub: `${p.seller} • ${formatPrice(p.price)}`,
+    badge: "Iklan Premium",
+    bg: "from-[#3B82F6]/90 to-[#1D4ED8]/90",
+    img: p.image,
+    productUrl: `/product/${p.id}`,
+  }));
+
+  const displayBanners = [...banners, ...premiumBanners];
+
   return (
     <>
       <Helmet>
@@ -101,10 +114,11 @@ export default function MarketplaceFeed() {
         {/* ── BANNER CAROUSEL ── */}
         <div className="px-4 pt-4">
           <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ height: 160 }}>
-            {banners.map((b, i) => (
+            {displayBanners.map((b, i) => (
               <div
                 key={b.id}
-                className={`absolute inset-0 transition-opacity duration-500 ${i === activeBanner ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                className={`absolute inset-0 transition-opacity duration-500 ${i === activeBanner ? "opacity-100 cursor-pointer" : "opacity-0 pointer-events-none"}`}
+                onClick={() => { if ((b as any).productUrl) navigate((b as any).productUrl); }}
               >
                 <img
                   src={b.img}
@@ -128,13 +142,13 @@ export default function MarketplaceFeed() {
 
             {/* Nav buttons */}
             <button
-              onClick={() => setActiveBanner((p) => (p - 1 + banners.length) % banners.length)}
+              onClick={() => setActiveBanner((p) => (p - 1 + displayBanners.length) % displayBanners.length)}
               className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-6 h-6 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center"
             >
               <ChevronLeft size={14} className="text-white" />
             </button>
             <button
-              onClick={() => setActiveBanner((p) => (p + 1) % banners.length)}
+              onClick={() => setActiveBanner((p) => (p + 1) % displayBanners.length)}
               className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-6 h-6 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center"
             >
               <ChevronRight size={14} className="text-white" />
@@ -142,7 +156,7 @@ export default function MarketplaceFeed() {
 
             {/* Dots */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-              {banners.map((_, i) => (
+              {displayBanners.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveBanner(i)}

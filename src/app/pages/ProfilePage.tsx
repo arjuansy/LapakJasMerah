@@ -570,9 +570,11 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
   const { profileAvatar, setProfileAvatar, profileBanner, setProfileBanner } = useApp();
   const { user, profile: authProfile, refreshSession } = useAuth();
   
+  const defaultUsername = user?.email ? user.email.split('@')[0] : "";
+
   const [profile, setProfile] = useState({
     name: authProfile?.full_name || user?.user_metadata?.full_name || "Pengguna Tamu",
-    username: authProfile?.username || "",
+    username: authProfile?.username || defaultUsername,
     nim: authProfile?.nim || user?.user_metadata?.nim || "",
     prodi: authProfile?.major || "",
     angkatan: authProfile?.angkatan || "",

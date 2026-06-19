@@ -130,7 +130,8 @@ export default function App() {
           rating: 0,
           sold: 0,
           description: p.description || "",
-          stock: p.stock || 1
+          stock: p.stock || 1,
+          is_premium: p.is_premium
         }));
         setProducts(fetchedProducts);
       }

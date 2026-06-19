@@ -205,6 +205,7 @@ export interface Product {
   originalPrice?: number;
   discount?: number;
   isNew?: boolean;
+  is_premium?: boolean;
 }
 
 export const extraProducts: Product[] = [
