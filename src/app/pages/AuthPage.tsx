@@ -63,10 +63,10 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     if (!isLogin && (!form.nim.trim() || form.nim.length < 8)) e.nim = "NIM minimal 8 digit";
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email tidak valid";
     if (!form.password.trim() || form.password.length < 6) e.password = "Kata sandi minimal 6 karakter";
-    // Check webmail requirement
-    if (!form.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
-      e.email = "Harus menggunakan email @webmail.umm.ac.id";
-    }
+    // Check webmail requirement (TEMPORARILY DISABLED FOR TESTING)
+    // if (!form.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
+    //   e.email = "Harus menggunakan email @webmail.umm.ac.id";
+    // }
     return e;
   }
 
