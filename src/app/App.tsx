@@ -15,6 +15,9 @@ import Layout from "./components/Layout";
 import { Toaster, toast } from "react-hot-toast";
 import { PostRequestModal, SuggestionBoxModal } from "./components/Modals";
 
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminRoute } from "./components/AdminRoute";
+
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
 const MarketplaceFeed = React.lazy(() => import("./pages/MarketplaceFeed"));
@@ -173,10 +176,16 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
-          <Route path="/admin" element={<AdminDashboard onLogout={() => {}} />} />
           
-          {/* App layout with bottom navigation */}
-          <Route element={<Layout />}>
+          {/* Admin routes protected by AdminRoute */}
+          <Route path="/admin/*" element={
+            <AdminRoute>
+              <AdminDashboard onLogout={() => {}} />
+            </AdminRoute>
+          } />
+          
+          {/* App layout with bottom navigation protected by ProtectedRoute */}
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/marketplace" element={<MarketplaceFeed />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/sell" element={<SellPage />} />
