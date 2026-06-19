@@ -17,6 +17,7 @@ import { PostRequestModal, SuggestionBoxModal } from "./components/Modals";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import { supabase } from "../config/supabaseClient";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
@@ -80,13 +81,25 @@ export default function App() {
 
   useEffect(() => {
     // Fetch products from our actual Node.js Backend API!
-    api.get("/products")
-      .then((res) => {
-        // Mapping Supabase response to match our Frontend Product Interface
-        const fetchedProducts: Product[] = res.data.products.map((p: any) => ({
+    const fetchProducts = async () => {
+      const { data: productsData, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          seller:profiles!products_seller_id_fkey(name, avatar_url),
+          category:categories(name)
+        `);
+        
+      if (error) {
+        console.error("Gagal memuat produk dari Supabase:", error);
+        return;
+      }
+
+      if (productsData) {
+        const fetchedProducts: Product[] = productsData.map((p: any) => ({
           id: p.id,
           name: p.name,
-          price: p.price,
+          price: Number(p.price),
           category: p.category?.name || "Lainnya",
           condition: p.condition || "Baru",
           location: p.location,
@@ -99,10 +112,9 @@ export default function App() {
           stock: p.stock || 1
         }));
         setProducts(fetchedProducts);
-      })
-      .catch((err) => {
-        console.error("Gagal memuat produk dari server:", err);
-      });
+      }
+    };
+    fetchProducts();
   }, []);
 
   const contextValue = {

@@ -18,10 +18,13 @@ import {
 } from "lucide-react";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
-import api from "../api";
+import { supabase } from "../../config/supabaseClient";
+import { storageService } from "../../services/storageService";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function SellPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { setActiveTab, setProducts, setListings } = useApp();
 
@@ -144,31 +147,38 @@ export default function SellPage() {
       try {
         let imageUrl = "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&h=300&fit=crop&auto=format";
         
-        // 1. Upload file if exists
         if (files.length > 0) {
-          const formData = new FormData();
-          formData.append("image", files[0]);
-          
-          const uploadRes = await api.post("/upload", formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-          });
-          imageUrl = uploadRes.data.imageUrl;
+          imageUrl = await storageService.uploadProductImage(files[0]);
         }
 
         const numericPrice = Number(form.price.replace(/\./g, ""));
         const actualLocation = form.location === "Lainnya (Isi Sendiri)" ? form.customLocation : form.location;
 
-        // 2. Submit Product to Backend
-        await api.post("/products", {
+        if (!user) {
+          toast.error("Sesi telah habis. Silakan login kembali.");
+          return;
+        }
+
+        // Resolusi Kategori
+        let categoryId = 6; // Default 'Lainnya'
+        const { data: catData } = await supabase.from('categories').select('id').ilike('name', form.category).single();
+        if (catData) categoryId = catData.id;
+
+        // 2. Submit Product to Supabase
+        const { error: insertError } = await supabase.from('products').insert({
+          seller_id: user.id,
+          category_id: categoryId,
           name: form.title,
           description: form.description,
           price: numericPrice,
-          category: form.category,
           condition: form.condition,
-          stock: form.stock,
+          stock: parseInt(form.stock) || 1,
           location: actualLocation,
-          image: imageUrl
+          image_url: imageUrl,
+          status: 'AVAILABLE'
         });
+
+        if (insertError) throw insertError;
 
         setStep("success");
       } catch (err) {

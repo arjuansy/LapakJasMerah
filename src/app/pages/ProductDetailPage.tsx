@@ -7,11 +7,13 @@ import { Product, formatPrice } from "../data";
 import {
   ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X
 } from "lucide-react";
-import api from "../api";
+import { supabase } from "../../config/supabaseClient";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { purchaseData, setPurchaseData, salesData, setSalesData, profileAvatar, products, wishlist, toggleWishlist, setRequests, setShowPostRequestModal, setShowSuggestionBox } = useApp();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -27,31 +29,43 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/products/${id}`)
-      .then(res => {
-        const p = res.data;
-        setProduct({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          category: p.category,
-          condition: p.condition || "Baru",
-          location: p.location,
-          seller: p.seller?.name || "Penjual",
-          seller_id: p.seller_id,
-          sellerAvatar: p.seller?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=seller",
-          image: p.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
-          rating: 0,
-          sold: 0,
-          description: p.description || "",
-          stock: p.stock || 1
-        });
+    const fetchProduct = async () => {
+      const { data: p, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          seller:profiles!products_seller_id_fkey(name, avatar_url),
+          category:categories(name)
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error || !p) {
+        console.error(error);
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
+        return;
+      }
+
+      setProduct({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price),
+        category: p.category?.name || "Lainnya",
+        condition: p.condition || "Baru",
+        location: p.location,
+        seller: p.seller?.name || "Penjual",
+        seller_id: p.seller_id,
+        sellerAvatar: p.seller?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=seller",
+        image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+        rating: 0,
+        sold: 0,
+        description: p.description || "",
+        stock: p.stock || 1
       });
+      setLoading(false);
+    };
+    
+    fetchProduct();
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Memuat produk...</div>;
@@ -157,7 +171,13 @@ export default function ProductDetailPage() {
                   try {
                     const orderId = (window as any).currentOrderId;
                     if (orderId) {
-                      await api.post(`/orders/${orderId}/pay`);
+                      await supabase.from('payments').insert({
+                        order_id: orderId,
+                        method: selectedPayment,
+                        status: 'PAID',
+                        paid_at: new Date().toISOString()
+                      });
+                      await supabase.from('orders').update({ status: 'PAID' }).eq('id', orderId);
                     }
                     setShowQrisCode(false);
                     setOrdered(true);
@@ -544,22 +564,37 @@ export default function ProductDetailPage() {
 
           <div className="flex gap-2">
             <button
-              onClick={() => { 
-                const userInfo = localStorage.getItem("userInfo");
-                if (!userInfo) {
+              onClick={async () => { 
+                if (!user) {
                   toast.error("Anda harus login terlebih dahulu untuk chat.");
                   navigate("/auth");
                   return;
                 }
-                api.post("/chats", {
-                  seller_id: product.seller_id,
-                  product_id: product.id
-                }).then(res => {
-                  navigate(`/chat/${res.data.id}`);
-                }).catch(err => {
+                
+                try {
+                  const { data: existingChat } = await supabase.from('chats')
+                    .select('id')
+                    .eq('buyer_id', user.id)
+                    .eq('seller_id', product.seller_id)
+                    .eq('product_id', product.id)
+                    .single();
+
+                  if (existingChat) {
+                    navigate(`/chat/${existingChat.id}`);
+                  } else {
+                    const { data: newChat, error } = await supabase.from('chats').insert({
+                      buyer_id: user.id,
+                      seller_id: product.seller_id,
+                      product_id: product.id
+                    }).select().single();
+                    
+                    if (error) throw error;
+                    if (newChat) navigate(`/chat/${newChat.id}`);
+                  }
+                } catch (err) {
                   console.error(err);
                   toast.error("Gagal membuka chat");
-                });
+                }
               }}
               className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
             >
@@ -698,47 +733,78 @@ export default function ProductDetailPage() {
 
                   <button
                     onClick={async () => {
+                      if (!user) {
+                        toast.error("Anda harus login untuk membeli produk.");
+                        navigate("/auth");
+                        return;
+                      }
+                      
                       try {
-                        const res = await api.post("/orders", {
-                          productId: product.id,
-                          sellerId: product.seller_id || product.seller,
-                          qty,
-                          total: product.price * qty,
-                          payment: selectedPayment,
+                        const { data: orderData, error: orderError } = await supabase.from('orders').insert({
+                          buyer_id: user.id,
+                          total_amount: product.price * qty,
+                          status: 'PENDING',
                           location: product.location
+                        }).select().single();
+
+                        if (orderError) throw orderError;
+                        const createdOrderId = orderData.id;
+
+                        await supabase.from('order_items').insert({
+                          order_id: createdOrderId,
+                          product_id: product.id,
+                          quantity: qty,
+                          price_at_purchase: product.price
                         });
                         
-                        const createdOrderId = res.data.id;
                         (window as any).currentOrderId = createdOrderId;
                         
-                        if (res.data.midtransToken) {
-                          setShowOrder(false);
-                          (window as any).snap.pay(res.data.midtransToken, {
-                            onSuccess: function(result: any) {
-                              setOrdered(true);
-                            },
-                            onPending: function(result: any) {
-                              setOrdered(true);
-                            },
-                            onError: function(result: any) {
-                              toast.error("Pembayaran gagal!");
-                            },
-                            onClose: function() {
-                              // User closed the popup without finishing payment
-                              toast.error("Anda belum menyelesaikan pembayaran.");
-                              setOrdered(true); // Still show order success but pending status
-                            }
+                        try {
+                          const paymentRes = await fetch('/api/pay', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              orderId: createdOrderId,
+                              amount: product.price * qty,
+                              productName: product.name,
+                              customerName: user.email
+                            })
                           });
-                        } else if (selectedPayment === "qris") {
+                          const paymentData = await paymentRes.json();
+                          if (paymentData.token) {
+                            setShowOrder(false);
+                            (window as any).snap.pay(paymentData.token, {
+                              onSuccess: async function(result: any) {
+                                await supabase.from('payments').insert({
+                                  order_id: createdOrderId,
+                                  method: selectedPayment,
+                                  status: 'PAID',
+                                  paid_at: new Date().toISOString()
+                                });
+                                await supabase.from('orders').update({ status: 'PAID' }).eq('id', createdOrderId);
+                                setOrdered(true);
+                              },
+                              onPending: function(result: any) {
+                                setShowQrisCode(true);
+                              },
+                              onError: function(result: any) {
+                                toast.error("Pembayaran gagal.");
+                              },
+                              onClose: function() {
+                                toast.error("Anda menutup popup pembayaran.");
+                              }
+                            });
+                          } else {
+                            setShowOrder(false);
+                            setShowQrisCode(true);
+                          }
+                        } catch (e) {
                           setShowOrder(false);
-                          setShowQrisCode(true); // Fallback if no token generated
-                        } else {
-                          setShowOrder(false);
-                          setOrdered(true);
+                          setShowQrisCode(true);
                         }
                       } catch (err) {
-                        console.error("Gagal membuat pesanan", err);
-                        toast.error("Terjadi kesalahan saat memproses pesanan.");
+                        console.error("Order error:", err);
+                        toast.error("Gagal memproses pesanan.");
                       }
                     }}
                     className="w-full text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform"

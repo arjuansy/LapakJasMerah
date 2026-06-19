@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Phone, MoreVertical, Send } from "lucide-react";
 import { useApp } from "../context";
-import api from "../api";
+import { supabase } from "../../config/supabaseClient";
+import { useAuth } from "../../hooks/useAuth";
 
 interface Message {
   id: string;
@@ -22,6 +23,7 @@ interface Chat {
 export default function ChatPage() {
   const navigate = useNavigate();
   const { chatId } = useParams<{ chatId: string }>();
+  const { user } = useAuth();
   
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
@@ -30,44 +32,76 @@ export default function ChatPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Ambil userInfo dari local storage untuk mendapatkan myId
-  const userInfoStr = localStorage.getItem("userInfo");
-  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
-  const myId = userInfo?.user?.id;
+  const myId = user?.id;
 
   // Fetch list of chats if no chatId, or fetch specific chat messages
   useEffect(() => {
-    if (chatId) {
-      // Fetch messages for specific chat
-      api.get(`/chats/${chatId}/messages`)
-        .then(res => {
-          setActiveChat(res.data.chat);
-          setMessages(res.data.messages);
-        })
-        .catch(err => console.error("Failed to load chat", err));
-    } else {
-      // Fetch all chats
-      api.get("/chats")
-        .then(res => {
-          setChats(res.data);
-        })
-        .catch(err => console.error("Failed to load chats", err));
-    }
-  }, [chatId]);
+    if (!myId) return;
 
-  // Polling messages every 3 seconds instead of WebSockets
+    if (chatId) {
+      const fetchChat = async () => {
+        const { data: chatData } = await supabase
+          .from('chats')
+          .select(`
+            id,
+            product:products(id, name, price, image_url),
+            seller:profiles!chats_seller_id_fkey(id, name, avatar_url),
+            buyer:profiles!chats_buyer_id_fkey(id, name, avatar_url)
+          `)
+          .eq('id', chatId)
+          .single();
+          
+        if (chatData) setActiveChat(chatData as any);
+        
+        const { data: msgs } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('chat_id', chatId)
+          .order('sent_at', { ascending: true });
+          
+        if (msgs) setMessages(msgs);
+      };
+      fetchChat();
+    } else {
+      const fetchAllChats = async () => {
+        const { data } = await supabase
+          .from('chats')
+          .select(`
+            id,
+            product:products(id, name, price, image_url),
+            seller:profiles!chats_seller_id_fkey(id, name, avatar_url),
+            buyer:profiles!chats_buyer_id_fkey(id, name, avatar_url),
+            messages(id, content, sent_at, sender_id)
+          `)
+          .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`);
+          
+        if (data) setChats(data as any);
+      };
+      fetchAllChats();
+    }
+  }, [chatId, myId]);
+
   useEffect(() => {
     if (!chatId) return;
 
-    const interval = setInterval(() => {
-      api.get(`/chats/${chatId}/messages`)
-        .then(res => {
-          setMessages(res.data.messages);
-        })
-        .catch(err => console.error("Failed to poll messages", err));
-    }, 3000);
+    const channel = supabase
+      .channel('realtime:messages')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `chat_id=eq.${chatId}`
+      }, (payload) => {
+        setMessages(prev => {
+          if (prev.find(m => m.id === payload.new.id)) return prev;
+          return [...prev, payload.new as Message];
+        });
+      })
+      .subscribe();
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [chatId]);
 
   useEffect(() => {
@@ -75,23 +109,19 @@ export default function ChatPage() {
   }, [messages]);
 
   async function handleSendMessage() {
-    if (!inputText.trim() || !chatId) return;
+    if (!inputText.trim() || !chatId || !myId) return;
     
-    // Optimistic UI update
-    const optimisticMsg: Message = {
-      id: Date.now().toString(),
-      sender_id: myId,
-      content: inputText.trim(),
-      sent_at: new Date().toISOString()
-    };
-    setMessages(prev => [...prev, optimisticMsg]);
+    const content = inputText.trim();
     setInputText("");
 
     try {
-      await api.post(`/chats/${chatId}/messages`, { content: optimisticMsg.content });
+      await supabase.from('messages').insert({
+        chat_id: chatId,
+        sender_id: myId,
+        content: content
+      });
     } catch (e) {
       console.error("Gagal mengirim pesan", e);
-      // Anda dapat menambahkan logika retry atau hapus pesan optimistik di sini
     }
   }
 
