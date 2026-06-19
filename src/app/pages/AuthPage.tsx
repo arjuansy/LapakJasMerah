@@ -6,12 +6,18 @@ import {
   BadgeCheck,
   AlertCircle,
   CheckCircle2,
-  Info,
   X,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail
 } from "lucide-react";
 import { useApp } from "../context";
 import { authService } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
+import { toast } from "react-hot-toast";
+
+type AuthStep = "form" | "otp" | "forgot" | "forgot_otp" | "reset_password";
 
 export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const navigate = useNavigate();
@@ -19,10 +25,12 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const { user, profile } = useAuth();
 
   const isLogin = mode === "login";
-  const [step, setStep] = useState<"form" | "otp">("form");
-  const [form, setForm] = useState({ nim: "", email: "", name: "" });
+  const [step, setStep] = useState<AuthStep>("form");
+  const [form, setForm] = useState({ nim: "", email: "", name: "", password: "", newPassword: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   // Rate Limiting States
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -32,16 +40,16 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const [otpError, setOtpError] = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Automatically redirect if already logged in
+  // Automatically redirect if already logged in (only if not doing reset flow)
   useEffect(() => {
-    if (user && profile) {
+    if (user && profile && step !== "reset_password") {
       if (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN') {
         navigate('/admin/dashboard');
       } else {
         navigate('/marketplace');
       }
     }
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, step]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -54,6 +62,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     if (!isLogin && !form.name.trim()) e.name = "Nama wajib diisi";
     if (!isLogin && (!form.nim.trim() || form.nim.length < 8)) e.nim = "NIM minimal 8 digit";
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email tidak valid";
+    if (!form.password.trim() || form.password.length < 6) e.password = "Kata sandi minimal 6 karakter";
     // Check webmail requirement
     if (!form.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
       e.email = "Harus menggunakan email @webmail.umm.ac.id";
@@ -66,31 +75,26 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
-    // Throttle checks
-    const lastRequest = localStorage.getItem('last_otp_request');
-    if (lastRequest && Date.now() - parseInt(lastRequest) < 60000) {
-      setErrors({ email: "Tunggu 60 detik sebelum meminta OTP lagi." });
-      return;
-    }
-
     setLoading(true);
     try {
-      await authService.sendOTP(form.email, form.name, form.nim);
-      localStorage.setItem('last_otp_request', Date.now().toString());
-      setStep("otp");
-      setResendCooldown(60);
-      setErrors({});
-    } catch (err: any) {
-      if (err.message?.includes('rate limit')) {
-         setErrors({ email: "Terlalu banyak percobaan. Coba lagi dalam 5 menit." });
+      if (isLogin) {
+        await authService.loginWithPassword(form.email, form.password);
+        toast.success("Berhasil masuk!");
       } else {
-         setErrors({ email: err.message || "Gagal mengirim OTP. Pastikan email benar." });
+        // Register (Sends confirmation email OTP)
+        await authService.registerWithPassword(form.email, form.password, form.name, form.nim);
+        toast.success("Pendaftaran berhasil! Silakan periksa email Anda.");
+        setStep("otp");
+        setResendCooldown(60);
       }
+    } catch (err: any) {
+      setErrors({ form: err.message || "Terjadi kesalahan. Coba lagi." });
     } finally {
       setLoading(false);
     }
   }
 
+  // OTP Handlers
   function handleOtpChange(val: string, idx: number) {
     const digit = val.replace(/\D/g, "").slice(-1);
     const next = [...otp];
@@ -122,8 +126,15 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     
     setLoading(true);
     try {
-      await authService.verifyOTP(form.email, entered);
-      // Success! useAuth will catch the session and redirect automatically.
+      if (step === "forgot_otp") {
+        await authService.verifyPasswordResetOTP(form.email, entered);
+        toast.success("Verifikasi berhasil! Silakan buat sandi baru.");
+        setStep("reset_password");
+        setOtp(["","","","","",""]);
+      } else {
+        await authService.verifySignupOTP(form.email, entered);
+        toast.success("Verifikasi berhasil! Anda sekarang masuk.");
+      }
     } catch (err: any) {
       setOtpError(err.message || "Kode OTP salah atau kadaluarsa.");
       setOtp(["","","","","",""]);
@@ -133,31 +144,53 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     }
   }
 
-  async function handleResend() {
+  // Forgot Password Handlers
+  async function handleForgotRequest() {
+    if (!form.email.trim() || !form.email.includes("@")) {
+      setErrors({ email: "Masukkan email Webmail UMM yang valid" });
+      return;
+    }
     setLoading(true);
     try {
-      await authService.sendOTP(form.email);
-      setOtp(["","","","","",""]);
-      setOtpError("");
+      await authService.sendPasswordResetOTP(form.email);
+      toast.success("Kode pemulihan telah dikirim ke email Anda!");
+      setStep("forgot_otp");
       setResendCooldown(60);
-      otpRefs.current[0]?.focus();
-      localStorage.setItem('last_otp_request', Date.now().toString());
     } catch (err: any) {
-      setOtpError(err.message || "Gagal mengirim ulang OTP.");
+      setErrors({ form: err.message || "Gagal mengirim kode pemulihan." });
     } finally {
       setLoading(false);
     }
   }
 
-  // ── OTP SCREEN ──
-  if (step === "otp") {
+  async function handleUpdatePassword() {
+    if (!form.newPassword || form.newPassword.length < 6) {
+      setErrors({ newPassword: "Sandi baru minimal 6 karakter" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await authService.updatePassword(form.newPassword);
+      toast.success("Sandi berhasil diperbarui!");
+      setStep("form");
+      setForm({ ...form, password: "", newPassword: "" });
+      navigate('/login');
+    } catch (err: any) {
+      setErrors({ form: err.message || "Gagal memperbarui sandi." });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── OTP SCREEN (Registrasi & Forgot Password) ──
+  if (step === "otp" || step === "forgot_otp") {
     const maskedEmail = form.email.replace(/(.{2}).+(@.+)/, "$1****$2");
     return (
       <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
-            <button onClick={() => { setStep("form"); setOtp(["","","","","",""]); setOtpError(""); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+            <button onClick={() => { setStep(step === "forgot_otp" ? "forgot" : "form"); setOtp(["","","","","",""]); setOtpError(""); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
               <ArrowLeft size={18} className="text-white" />
             </button>
             <div className="flex items-center gap-2.5">
@@ -168,7 +201,9 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             </div>
           </div>
           <div className="relative z-10 px-6 pt-5">
-            <h1 className="text-white font-black text-2xl leading-tight">Verifikasi Email 📧</h1>
+            <h1 className="text-white font-black text-2xl leading-tight">
+              {step === "forgot_otp" ? "Kode Pemulihan 🔑" : "Verifikasi Email 📧"}
+            </h1>
             <p className="text-white/70 text-sm mt-1">Kode OTP telah dikirim ke webmail UMM-mu</p>
           </div>
         </div>
@@ -177,14 +212,14 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c41230" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <Mail size={16} className="text-primary" />
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Kode dikirim ke</p>
                 <p className="text-sm font-black text-foreground">{maskedEmail}</p>
               </div>
             </div>
-            <button onClick={() => setStep("form")} className="text-xs font-bold text-primary">Ubah</button>
+            <button onClick={() => setStep(step === "forgot_otp" ? "forgot" : "form")} className="text-xs font-bold text-primary">Ubah</button>
           </div>
 
           <div className="mb-8">
@@ -208,13 +243,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             {otpError && <p className="text-primary text-[11px] mt-3 text-center flex items-center justify-center gap-1"><AlertCircle size={11} />{otpError}</p>}
             
             <div className="text-center mt-4">
-              {resendCooldown > 0 ? (
-                <p className="text-muted-foreground text-xs">Tidak menerima kode? Kirim ulang ({resendCooldown}s)</p>
-              ) : (
-                <button onClick={handleResend} className="text-primary font-bold text-xs" disabled={loading}>
-                  Kirim ulang kode
-                </button>
-              )}
+              <p className="text-muted-foreground text-xs">Pastikan cek folder Spam atau Junk</p>
             </div>
           </div>
 
@@ -226,14 +255,138 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           >
             {loading ? (
               <><svg className="animate-spin w-5 h-5 text-white" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Memverifikasi...</>
-            ) : <><CheckCircle2 size={18} /> Verifikasi & Masuk</>}
+            ) : <><CheckCircle2 size={18} /> Verifikasi Kode</>}
           </button>
         </div>
       </div>
     );
   }
 
-  // ── FORM SCREEN ──
+  // ── RESET PASSWORD SCREEN ──
+  if (step === "reset_password") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
+          <div className="relative z-10 px-6 pt-12 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <span className="text-primary font-black text-[11px]">LJM</span>
+              </div>
+              <span className="text-white font-black text-base tracking-wide">Lapak Jas Merah</span>
+            </div>
+          </div>
+          <div className="relative z-10 px-6 pt-6">
+            <h1 className="text-white font-black text-2xl leading-tight">Buat Sandi Baru 🔐</h1>
+            <p className="text-white/80 text-sm mt-1.5 font-medium">Masukkan sandi baru untuk akun Anda</p>
+          </div>
+        </div>
+
+        <div className="flex-1 px-6 pt-8 pb-10">
+          <div className="space-y-4">
+            {errors.form && (
+              <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle size={16} />
+                {errors.form}
+              </div>
+            )}
+            <div>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Sandi Baru</label>
+              <div className={`flex items-center gap-2.5 bg-card rounded-2xl px-4 py-3.5 border-2 transition-colors ${errors.newPassword ? "border-primary" : "border-border focus-within:border-primary/50"}`}>
+                <Lock size={18} className="text-muted-foreground" />
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={form.newPassword}
+                  onChange={(e) => { setForm({ ...form, newPassword: e.target.value }); setErrors({ ...errors, newPassword: "" }); }}
+                  placeholder="Minimal 6 karakter"
+                  className="flex-1 text-sm font-semibold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/50 placeholder:font-medium"
+                />
+                <button 
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  type="button"
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.newPassword && <p className="text-primary text-[10px] mt-1.5 font-bold flex items-center gap-1"><AlertCircle size={10} />{errors.newPassword}</p>}
+            </div>
+
+            <button
+              onClick={handleUpdatePassword}
+              disabled={loading}
+              className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
+              style={{ opacity: loading ? 0.8 : 1 }}
+            >
+              {loading ? <svg className="animate-spin w-5 h-5 text-white" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : <><CheckCircle2 size={18} /> Simpan Sandi Baru</>}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── FORGOT PASSWORD REQUEST SCREEN ──
+  if (step === "forgot") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
+          <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
+            <button onClick={() => { setStep("form"); setErrors({}); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+              <ArrowLeft size={18} className="text-white" />
+            </button>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <span className="text-primary font-black text-[11px]">LJM</span>
+              </div>
+              <span className="text-white font-black text-base">Lapak Jas Merah</span>
+            </div>
+          </div>
+          <div className="relative z-10 px-6 pt-6">
+            <h1 className="text-white font-black text-2xl leading-tight">Lupa Sandi? 🔍</h1>
+            <p className="text-white/80 text-sm mt-1.5 font-medium">Masukkan email untuk mendapatkan kode pemulihan</p>
+          </div>
+        </div>
+
+        <div className="flex-1 px-6 pt-8 pb-10">
+          <div className="space-y-4">
+            {errors.form && (
+              <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle size={16} />
+                {errors.form}
+              </div>
+            )}
+            <div>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Email Webmail UMM</label>
+              <div className={`flex items-center gap-2.5 bg-card rounded-2xl px-4 py-3.5 border-2 transition-colors ${errors.email ? "border-primary" : "border-border focus-within:border-primary/50"}`}>
+                <Mail size={18} className="text-muted-foreground" />
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors({ ...errors, email: "" }); }}
+                  placeholder="nama@webmail.umm.ac.id"
+                  className="flex-1 text-sm font-semibold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/50 placeholder:font-medium"
+                />
+              </div>
+              {errors.email && <p className="text-primary text-[10px] mt-1.5 font-bold flex items-center gap-1"><AlertCircle size={10} />{errors.email}</p>}
+            </div>
+
+            <button
+              onClick={handleForgotRequest}
+              disabled={loading}
+              className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-[0_8px_16px_-6px_rgba(196,18,48,0.4)] active:scale-95 transition-all mt-4 flex justify-center"
+              style={{ opacity: loading ? 0.8 : 1 }}
+            >
+              {loading ? <svg className="animate-spin w-6 h-6" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : "Kirim Kode Pemulihan"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── FORM SCREEN (Login/Register) ──
   return (
     <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 220 }}>
@@ -251,12 +404,19 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         </div>
         <div className="relative z-10 px-6 pt-6">
           <h1 className="text-white font-black text-3xl leading-tight">{isLogin ? "Selamat\nDatang Kembali!" : "Mulai Jual Beli\ndi Kampus!"}</h1>
-          <p className="text-white/80 text-sm mt-1.5 font-medium">{isLogin ? "Masuk dengan OTP untuk melanjutkan" : "Daftar dengan Webmail UMM kamu"}</p>
+          <p className="text-white/80 text-sm mt-1.5 font-medium">{isLogin ? "Masuk dengan Kata Sandi Anda" : "Daftar dengan Webmail UMM kamu"}</p>
         </div>
       </div>
 
       <div className="flex-1 px-6 pt-8 pb-10">
         <div className="space-y-4">
+          {errors.form && (
+            <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
+              <AlertCircle size={16} />
+              {errors.form}
+            </div>
+          )}
+
           {!isLogin && (
             <>
               <div>
@@ -295,7 +455,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           <div>
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Email Webmail UMM</label>
             <div className={`flex items-center gap-2.5 bg-card rounded-2xl px-4 py-3.5 border-2 transition-colors ${errors.email ? "border-primary" : "border-border focus-within:border-primary/50"}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <Mail size={18} className="text-muted-foreground" />
               <input
                 type="email"
                 value={form.email}
@@ -307,13 +467,47 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             {errors.email && <p className="text-primary text-[10px] mt-1.5 font-bold flex items-center gap-1"><AlertCircle size={10} />{errors.email}</p>}
           </div>
 
+          <div>
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Kata Sandi</label>
+            <div className={`flex items-center gap-2.5 bg-card rounded-2xl px-4 py-3.5 border-2 transition-colors ${errors.password ? "border-primary" : "border-border focus-within:border-primary/50"}`}>
+              <Lock size={18} className="text-muted-foreground" />
+              <input
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: "" }); }}
+                placeholder="Minimal 6 karakter"
+                className="flex-1 text-sm font-semibold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/50 placeholder:font-medium"
+              />
+              <button 
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                type="button"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.password && <p className="text-primary text-[10px] mt-1.5 font-bold flex items-center gap-1"><AlertCircle size={10} />{errors.password}</p>}
+            
+            {isLogin && (
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="button" 
+                  onClick={() => { setErrors({}); setStep("forgot"); }}
+                  className="text-xs font-bold text-primary hover:underline"
+                >
+                  Lupa Sandi?
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-[0_8px_16px_-6px_rgba(196,18,48,0.4)] active:scale-95 transition-all mt-4 flex justify-center"
             style={{ opacity: loading ? 0.8 : 1 }}
           >
-            {loading ? <svg className="animate-spin w-6 h-6" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : "Kirim OTP"}
+            {loading ? <svg className="animate-spin w-6 h-6" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : (isLogin ? "Masuk" : "Daftar Akun")}
           </button>
         </div>
 
@@ -324,7 +518,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           <button
             onClick={() => {
               setErrors({});
-              setForm({ nim: "", email: "", name: "" });
+              setForm({ nim: "", email: "", name: "", password: "", newPassword: "" });
               navigate(isLogin ? "/register" : "/login");
             }}
             className="text-primary font-black text-sm mt-1"

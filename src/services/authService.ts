@@ -2,6 +2,38 @@ import { supabase } from '../config/supabaseClient';
 
 export const authService = {
   /**
+   * Register a new user with Email and Password
+   */
+  async registerWithPassword(email: string, password: string, fullName?: string, nim?: string) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName || '',
+          nim: nim || ''
+        }
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Login an existing user with Email and Password
+   */
+  async loginWithPassword(email: string, password: string) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Send an OTP to the user's email.
    * Supabase handles the rate limiting automatically (e.g., 3 emails per hour on free tier).
    */
@@ -22,6 +54,41 @@ export const authService = {
   },
 
   /**
+   * Send an OTP to the user's email for password recovery.
+   */
+  async sendPasswordResetOTP(email: string) {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Verify the OTP sent to the user's email for password recovery.
+   */
+  async verifyPasswordResetOTP(email: string, token: string) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery'
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Update the user's password (must be logged in, or immediately after recovery).
+   */
+  async updatePassword(password: string) {
+    const { data, error } = await supabase.auth.updateUser({
+      password
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Verify the OTP sent to the user's email.
    */
   async verifyOTP(email: string, token: string) {
@@ -29,6 +96,20 @@ export const authService = {
       email,
       token,
       type: 'email'
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Verify the OTP sent to the user's email after password signup.
+   */
+  async verifySignupOTP(email: string, token: string) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup'
     });
 
     if (error) throw error;
