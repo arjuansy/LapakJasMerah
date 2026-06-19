@@ -603,8 +603,7 @@ export default function ProductDetailPage() {
             </button>
             <button
               onClick={() => {
-                const userInfo = localStorage.getItem("userInfo");
-                if (!userInfo) {
+                if (!user) {
                   toast.error("Anda harus login terlebih dahulu untuk membeli barang.");
                   navigate("/auth");
                   return;

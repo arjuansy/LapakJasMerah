@@ -3,22 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
-import { categories, banners, recentProducts, extraProducts, requestBoard, formatPrice } from "../data";
+import { categories, banners, requestBoard, formatPrice } from "../data";
 import logo from "../../assets/logo.png";
 import {
   Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag, Package, Shield, TrendingUp, ChevronLeft,
   PlusCircle, MessageCircle, User, Tag
 } from "lucide-react";
+import { supabase } from "../../services/supabase";
 
 export default function MarketplaceFeed() {
   const navigate = useNavigate();
   const { 
     searchFocused, setSearchFocused, globalSearch, setGlobalSearch, setShowSearchResults,
     activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
-    products, requests
+    products, requests, setRequests, setEditingRequest
   } = useApp();
 
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   return (
     <>
@@ -293,13 +294,40 @@ export default function MarketplaceFeed() {
                           <p className="text-[8px] text-muted-foreground">{req.postedAt}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => navigate("/chat")}
-                        className="flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-bold px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform"
-                      >
-                        <MessageCircle size={11} />
-                        {req.offers > 0 ? `${req.offers} penawaran` : "Tawarkan"}
-                      </button>
+                      {req.posterId && req.posterId === user?.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => { setEditingRequest(req); setShowPostRequestModal(true); }}
+                            className="text-blue-600 bg-blue-50 text-[10px] font-bold px-2 py-1.5 rounded-lg active:scale-95 transition-transform"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (window.confirm("Yakin ingin menghapus permintaan ini?")) {
+                                const { error } = await supabase.from('requests').delete().eq('id', req.id);
+                                if (error) {
+                                  console.error("Gagal menghapus permintaan:", error);
+                                  alert("Gagal menghapus permintaan dari server.");
+                                } else {
+                                  setRequests(prev => prev.filter(r => r.id !== req.id));
+                                }
+                              }
+                            }}
+                            className="text-red-600 bg-red-50 text-[10px] font-bold px-2 py-1.5 rounded-lg active:scale-95 transition-transform"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => navigate("/chat")}
+                          className="flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-bold px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform"
+                        >
+                          <MessageCircle size={11} />
+                          {req.offers > 0 ? `${req.offers} penawaran` : "Tawarkan"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -350,7 +378,7 @@ export default function MarketplaceFeed() {
             </button>
           </div>
           <div className="grid grid-cols-2 gap-3 px-4">
-            {products.filter((p) => p.id > 4 || p.isNew).slice(0, 6).map((p) => (
+            {products.slice(0, 6).map((p) => (
               <div
                 key={p.id}
                 onClick={() => navigate(`/product/${p.id}`)}

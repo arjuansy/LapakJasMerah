@@ -34,8 +34,8 @@ export type SalesOrder = {
 
 export type AppContextType = {
   // wishlist
-  wishlist: number[];
-  toggleWishlist: (id: number) => void;
+  wishlist: string[];
+  toggleWishlist: (id: string) => void;
   // chat
   activeChatId: number | null;
   setActiveChatId: (id: number | null) => void;
@@ -92,6 +92,8 @@ export type AppContextType = {
   // new additions
   requests: RequestItem[];
   setRequests: React.Dispatch<React.SetStateAction<RequestItem[]>>;
+  editingRequest: RequestItem | null;
+  setEditingRequest: (r: RequestItem | null) => void;
   showPostRequestModal: boolean;
   setShowPostRequestModal: (v: boolean) => void;
   notifData: any[];

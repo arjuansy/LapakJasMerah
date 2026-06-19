@@ -1915,7 +1915,7 @@ export default function ProfilePage() {
 
   const { user, profile } = useAuth();
   const isLoggedIn = !!user;
-  const displayName = profile?.full_name || "Pengguna Tamu";
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || (isLoggedIn ? "Mahasiswa" : "Pengguna Tamu");
   const displayRole = profile?.role === 'ADMIN' ? 'Admin' : (isLoggedIn ? "Mahasiswa UMM" : "Tamu");
   const displayNim = profile?.nim || "";
 
@@ -2101,7 +2101,7 @@ export default function ProfilePage() {
           {isLoggedIn && <BadgeCheck size={18} className="text-blue-500 fill-blue-100" />}
         </div>
         <p className="text-muted-foreground text-sm mb-1">
-          {isLoggedIn ? `@${(profile?.full_name || 'guest').replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
+          {isLoggedIn ? `@${displayName.replace(/\s+/g, '').toLowerCase()} · ${displayRole}` : '@guest · Tamu'}
         </p>
         <div className="flex items-center justify-center gap-1 mb-4">
           <MapPin size={12} className="text-muted-foreground" />

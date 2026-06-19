@@ -1,24 +1,27 @@
 import React, { useState } from "react";
 import { useApp } from "../context";
+import { useAuth } from "../../hooks/useAuth";
 import type { RequestItem } from "../data";
 import {
   X, CheckCircle2, Banknote, Zap, AlertCircle, Eye, Shield, Package, MessageCircle, ToggleRight, ToggleLeft, Send
 } from "lucide-react";
+import { supabase } from "../../services/supabase";
 
 // ── POST REQUEST MODAL ──
 export function PostRequestModal() {
-  const { setShowPostRequestModal, setRequests } = useApp();
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [category, setCategory] = useState("");
-  const [budgetMin, setBudgetMin] = useState("");
-  const [budgetMax, setBudgetMax] = useState("");
-  const [urgency, setUrgency] = useState<"normal" | "segera" | "mendesak">("normal");
-  const [location, setLocation] = useState("");
+  const { setShowPostRequestModal, setRequests, editingRequest, setEditingRequest } = useApp();
+  const { profile, user } = useAuth();
+  const [title, setTitle] = useState(editingRequest?.title || "");
+  const [desc, setDesc] = useState(editingRequest?.description || "");
+  const [category, setCategory] = useState(editingRequest?.category || "");
+  const [budgetMin, setBudgetMin] = useState(editingRequest ? String(editingRequest.budget) : "");
+  const [budgetMax, setBudgetMax] = useState(editingRequest?.budgetMax ? String(editingRequest.budgetMax) : "");
+  const [urgency, setUrgency] = useState<"normal" | "segera" | "mendesak">(editingRequest?.urgency || "normal");
+  const [location, setLocation] = useState(editingRequest?.location || "");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [requestDuration, setRequestDuration] = useState<"3" | "7">("3");
+  const [requestDuration, setRequestDuration] = useState<"1" | "7">("1");
 
   const reqCategories = ["Elektronik", "Buku & Modul", "Fashion", "Makanan", "Jasa", "Kendaraan", "Kost & Kontrakan", "Lainnya"];
   const urgencies: { key: "normal" | "segera" | "mendesak"; label: string; color: string }[] = [
@@ -27,34 +30,88 @@ export function PostRequestModal() {
     { key: "mendesak", label: "Mendesak!", color: "#EF4444" },
   ];
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim()) { setError("Judul permintaan wajib diisi"); return; }
     if (!category) { setError("Pilih kategori terlebih dahulu"); return; }
     if (!desc.trim() || desc.length < 10) { setError("Deskripsi minimal 10 karakter"); return; }
+    if (!user) { setError("Anda harus login untuk memposting permintaan"); return; }
+    
     setError("");
     setLoading(true);
-    setTimeout(() => {
+
+    const budgetMinNum = parseInt(budgetMin.replace(/\D/g, "")) || 0;
+    const budgetMaxNum = budgetMax ? parseInt(budgetMax.replace(/\D/g, "")) : null;
+
+    const requestPayload = {
+      user_id: user.id,
+      title: title.trim(),
+      description: desc.trim(),
+      category: category,
+      budget_min: budgetMinNum,
+      budget_max: budgetMaxNum,
+      location: location.trim() || "UMM",
+      urgency: urgency,
+    };
+
+    let resultError = null;
+    let savedRequest = null;
+
+    if (editingRequest) {
+      const { data, error } = await supabase
+        .from('requests')
+        .update(requestPayload)
+        .eq('id', editingRequest.id)
+        .select()
+        .single();
+      resultError = error;
+      savedRequest = data;
+    } else {
+      const { data, error } = await supabase
+        .from('requests')
+        .insert([requestPayload])
+        .select()
+        .single();
+      resultError = error;
+      savedRequest = data;
+    }
+
+    if (resultError) {
+      console.error("Gagal menyimpan permintaan:", resultError);
+      setError("Gagal menyimpan permintaan ke server.");
+      setLoading(false);
+      return;
+    }
+    
+    if (savedRequest) {
+      // Reload UI directly with new item logic so UI updates immediately
       const newReq: RequestItem = {
-        id: Date.now(),
-        title: title.trim(),
-        description: desc.trim(),
-        category,
-        budget: parseInt(budgetMin.replace(/\D/g, "")) || 0,
-        budgetMax: parseInt(budgetMax.replace(/\D/g, "")) || undefined,
-        poster: "Ahmad Rizky",
-        posterAvatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
-        location: location.trim() || "UMM",
+        id: savedRequest.id,
+        title: savedRequest.title,
+        description: savedRequest.description,
+        category: savedRequest.category,
+        budget: savedRequest.budget_min,
+        budgetMax: savedRequest.budget_max,
+        poster: profile?.full_name || user?.user_metadata?.full_name || "Mahasiswa",
+        posterId: user.id,
+        posterAvatar: profile?.avatar_url || user?.user_metadata?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
+        location: savedRequest.location,
         postedAt: "Baru saja",
-        urgency,
-        offers: 0,
+        urgency: savedRequest.urgency,
+        offers: editingRequest ? editingRequest.offers : 0,
         categoryColor: reqCategories.indexOf(category) >= 0
           ? ["#8B5CF6","#3B82F6","#EC4899","#F97316","#10B981","#06B6D4","#F59E0B","#6B7280"][reqCategories.indexOf(category)]
           : "#6B7280",
       };
-      setRequests(prev => [newReq, ...prev]);
-      setLoading(false);
-      setSubmitted(true);
-    }, 1200);
+
+      if (editingRequest) {
+        setRequests(prev => prev.map(r => r.id === editingRequest.id ? newReq : r));
+      } else {
+        setRequests(prev => [newReq, ...prev]);
+      }
+    }
+    
+    setLoading(false);
+    setSubmitted(true);
   }
 
   return (
@@ -66,10 +123,11 @@ export function PostRequestModal() {
           {!submitted && (
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-foreground font-black text-lg">Pasang Permintaan</h3>
-                <p className="text-muted-foreground text-xs">Beritahu penjual apa yang kamu cari</p>
+                <h3 className="text-foreground font-black text-lg">
+                  {editingRequest ? "Edit Permintaan" : "Buat Permintaan Baru"}
+                </h3>
               </div>
-              <button onClick={() => setShowPostRequestModal(false)} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+              <button onClick={() => { setShowPostRequestModal(false); setEditingRequest(null); }} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                 <X size={15} className="text-foreground" />
               </button>
             </div>
@@ -81,11 +139,13 @@ export function PostRequestModal() {
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 size={40} className="text-green-500" />
             </div>
-            <h3 className="text-foreground font-black text-xl mb-2">Permintaan Terpasang! 🎉</h3>
+            <h3 className="text-foreground font-black text-xl mb-2">
+              {editingRequest ? "Berhasil Diperbarui!" : "Permintaan Terpasang! 🎉"}
+            </h3>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-              Permintaanmu sudah ditayangkan di Papan Permintaan. Penjual yang cocok akan segera menghubungimu!
+              {editingRequest ? "Papan permintaan Anda berhasil diperbarui." : "Permintaanmu sudah ditayangkan di Papan Permintaan. Penjual yang cocok akan segera menghubungimu!"}
             </p>
-            <button onClick={() => setShowPostRequestModal(false)} className="w-full bg-primary text-white font-black py-3.5 rounded-2xl text-sm">
+            <button onClick={() => { setShowPostRequestModal(false); setEditingRequest(null); }} className="w-full bg-primary text-white font-black py-3.5 rounded-2xl text-sm">
               Lihat Papan Permintaan
             </button>
           </div>
@@ -211,16 +271,16 @@ export function PostRequestModal() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setRequestDuration("3")}
+                  onClick={() => setRequestDuration("1")}
                   className="p-3 rounded-2xl border-2 text-left transition-all cursor-pointer"
                   style={{
-                    borderColor: requestDuration === "3" ? "#F59E0B" : "rgba(0,0,0,0.1)",
-                    background: requestDuration === "3" ? "rgba(245,158,11,0.06)" : "transparent",
+                    borderColor: requestDuration === "1" ? "#F59E0B" : "rgba(0,0,0,0.1)",
+                    background: requestDuration === "1" ? "rgba(245,158,11,0.06)" : "transparent",
                   }}
                 >
-                  <p className="font-bold text-xs text-foreground">3 Hari</p>
-                  <p className="text-muted-foreground text-[10px] mb-1">Cepat & efektif</p>
-                  <p className="font-black text-sm text-amber-600">Rp 300</p>
+                  <p className="font-bold text-xs text-foreground">1 Hari</p>
+                  <p className="text-muted-foreground text-[10px] mb-1">Singkat & cepat</p>
+                  <p className="font-black text-sm text-emerald-600">Gratis</p>
                 </button>
                 <button
                   type="button"
@@ -246,11 +306,11 @@ export function PostRequestModal() {
                 </div>
                 <div>
                   <p className="text-amber-800 font-bold text-xs">Biaya Pasang Permintaan</p>
-                  <p className="text-amber-600 text-[10px]">Tayang {requestDuration === "3" ? "3 hari" : "7 hari"}</p>
+                  <p className="text-amber-600 text-[10px]">Tayang {requestDuration === "1" ? "1 hari" : "7 hari"}</p>
                 </div>
               </div>
               <p className="text-amber-700 font-black text-base">
-                {requestDuration === "3" ? "Rp 300" : "Rp 500"}
+                {requestDuration === "1" ? "Gratis" : "Rp 500"}
               </p>
             </div>
 
@@ -262,7 +322,9 @@ export function PostRequestModal() {
             >
               {loading
                 ? <><svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Memposting...</>
-                : <><Banknote size={16} /> Bayar {requestDuration === "3" ? "Rp 300" : "Rp 500"} & Pasang</>}
+                : submitted
+                ? <><CheckCircle2 size={16} /> Tersimpan!</>
+                : <><Banknote size={16} /> {requestDuration === "1" ? "Pasang Permintaan" : "Bayar Rp 500 & Pasang"}</>}
             </button>
           </div>
         )}

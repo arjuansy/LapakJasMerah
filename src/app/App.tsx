@@ -18,6 +18,7 @@ import { PostRequestModal, SuggestionBoxModal } from "./components/Modals";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { supabase } from "../config/supabaseClient";
+import { useAuth } from "./hooks/useAuth";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
@@ -38,7 +39,7 @@ const OnboardingPage = React.lazy(() => import("./pages/OnboardingPage"));
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Record<number, Message[]>>({});
   const [inputText, setInputText] = useState("");
@@ -51,12 +52,15 @@ export default function App() {
   const [showSuggestionBox, setShowSuggestionBox] = useState(false);
   const [showSalesStats, setShowSalesStats] = useState(false);
   const [requests, setRequests] = useState<RequestItem[]>(requestBoard);
+  const [editingRequest, setEditingRequest] = useState<RequestItem | null>(null);
   const [showPostRequestModal, setShowPostRequestModal] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("Semua");
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  
+  const { user } = useAuth();
   const [purchaseData, setPurchaseData] = useState<PurchaseOrder[]>([]);
   const [salesData, setSalesData] = useState<SalesOrder[]>([]);
   const [profileAvatar, setProfileAvatar] = useState("");
@@ -68,8 +72,19 @@ export default function App() {
   const [trackingOrder, setTrackingOrder] = useState<TrackingOrder | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const toggleWishlist = (id: number) => {
-    setWishlist(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleWishlist = async (id: string) => {
+    if (!user) {
+      toast.error("Silakan login untuk menyimpan wishlist");
+      return;
+    }
+    const isWished = wishlist.includes(id);
+    if (isWished) {
+      setWishlist(prev => prev.filter(x => x !== id));
+      await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', id);
+    } else {
+      setWishlist(prev => [...prev, id]);
+      await supabase.from('wishlists').insert({ user_id: user.id, product_id: id });
+    }
   };
 
   const triggerToast = (msg: string) => {
@@ -117,8 +132,121 @@ export default function App() {
         setProducts(fetchedProducts);
       }
     };
+    const fetchRequests = async () => {
+      const { data: requestsData, error } = await supabase
+        .from('requests')
+        .select(`
+          *,
+          user:profiles!requests_user_id_fkey(full_name, avatar_url)
+        `)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Gagal memuat permintaan dari Supabase:", error);
+        return;
+      }
+      
+      if (requestsData) {
+        const reqCategories = ["Elektronik", "Buku & Modul", "Fashion", "Makanan", "Jasa", "Kendaraan", "Kost & Kontrakan", "Lainnya"];
+        
+        const formattedRequests: RequestItem[] = requestsData.map((req: any) => ({
+          id: req.id,
+          title: req.title,
+          description: req.description,
+          category: req.category,
+          budget: req.budget_min,
+          budgetMax: req.budget_max,
+          poster: req.user?.full_name || "Mahasiswa",
+          posterId: req.user_id,
+          posterAvatar: req.user?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
+          location: req.location || "UMM",
+          postedAt: new Date(req.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+          urgency: req.urgency as "normal" | "segera" | "mendesak",
+          offers: 0,
+          categoryColor: reqCategories.indexOf(req.category) >= 0
+            ? ["#8B5CF6","#3B82F6","#EC4899","#F97316","#10B981","#06B6D4","#F59E0B","#6B7280"][reqCategories.indexOf(req.category)]
+            : "#6B7280",
+        }));
+        setRequests(formattedRequests);
+      }
+    };
+
     fetchProducts();
+    fetchRequests();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setPurchaseData([]);
+      setSalesData([]);
+      setWishlist([]);
+      return;
+    }
+
+    const fetchOrdersAndWishlist = async () => {
+      // Fetch Wishlist
+      const { data: wishData } = await supabase.from('wishlists').select('product_id').eq('user_id', user.id);
+      if (wishData) setWishlist(wishData.map(w => w.product_id));
+
+      // Fetch Purchase Data (user as buyer)
+      const { data: purchases, error: purErr } = await supabase
+        .from('orders')
+        .select(`
+          id, total_amount, status, created_at, location,
+          order_items(quantity, price_at_purchase, product:products(name, image, seller:profiles(full_name, avatar_url)))
+        `)
+        .eq('buyer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (purchases && !purErr) {
+        const formattedPurchases: PurchaseOrder[] = purchases.flatMap(o => {
+          return o.order_items.map((item: any) => ({
+            id: o.id,
+            product: item.product?.name || "Unknown Product",
+            price: item.price_at_purchase,
+            seller: item.product?.seller?.full_name || "Unknown Seller",
+            date: new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+            status: (o.status === "PENDING" ? "diproses" : o.status === "PAID" ? "menuju_lokasi" : o.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
+            image: item.product?.image || "",
+            qty: item.quantity
+          }));
+        });
+        setPurchaseData(formattedPurchases);
+      }
+
+      // Fetch Sales Data (user as seller via products)
+      const { data: sales, error: saleErr } = await supabase
+        .from('order_items')
+        .select(`
+          order_id, quantity, price_at_purchase,
+          order:orders(id, created_at, status, buyer:profiles(full_name, avatar_url)),
+          product:products!inner(name, image, seller_id)
+        `)
+        .eq('product.seller_id', user.id);
+
+      if (sales && !saleErr) {
+        const formattedSales: SalesOrder[] = sales.map((item: any) => {
+          const o = item.order;
+          return {
+            id: o?.id || item.order_id,
+            product: item.product?.name || "Unknown Product",
+            price: item.price_at_purchase,
+            buyer: o?.buyer?.full_name || "Unknown Buyer",
+            buyerAvatar: o?.buyer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
+            date: o?.created_at ? new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "",
+            status: (o?.status === "PENDING" ? "diproses" : o?.status === "PAID" ? "menuju_lokasi" : o?.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
+            image: item.product?.image || "",
+            qty: item.quantity
+          };
+        });
+        // Sort sales by date descending
+        formattedSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setSalesData(formattedSales);
+      }
+    };
+
+    fetchOrdersAndWishlist();
+  }, [user]);
 
   const contextValue = {
     wishlist, toggleWishlist,
@@ -148,6 +276,7 @@ export default function App() {
     contacts, setContacts,
     startChat,
     requests, setRequests,
+    editingRequest, setEditingRequest,
     showPostRequestModal, setShowPostRequestModal,
     notifData,
     toastMessage, setToastMessage,

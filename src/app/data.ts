@@ -366,13 +366,14 @@ export const productDescriptions: Record<number, string> = {
 };
 
 export type RequestItem = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   category: string;
   budget: number;
   budgetMax?: number;
   poster: string;
+  posterId?: string;
   posterAvatar: string;
   location: string;
   postedAt: string;

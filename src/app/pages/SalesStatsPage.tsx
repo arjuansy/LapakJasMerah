@@ -9,22 +9,18 @@ import {
 export default function SalesStatsPage() {
   const navigate = useNavigate();
 
-    const salesData = [
-      { id: "TRX-001", product: "Laptop Asus VivoBook 14",  price: 4500000, status: "selesai", date: "17 Jun", month: "Jun" },
-      { id: "TRX-002", product: "Kalkulator Casio FX-991",  price: 360000,  status: "selesai", date: "15 Jun", month: "Jun" },
-      { id: "TRX-003", product: "Buku Metode Penelitian",   price: 45000,   status: "selesai", date: "12 Jun", month: "Jun" },
-      { id: "TRX-004", product: "Earphone Bluetooth TWS",   price: 95000,   status: "dibatalkan", date: "10 Jun", month: "Jun" },
-      { id: "TRX-005", product: "Jaket Almamater UMM",      price: 185000,  status: "proses", date: "8 Jun",  month: "Jun" },
-    ];
-    const selesai = salesData.filter((s) => s.status === "selesai");
-    const totalRevenue = selesai.reduce((s, t) => s + t.price, 0);
-    const chartBars = [
-      { label: "Feb", value: 280000 },
-      { label: "Mar", value: 750000 },
-      { label: "Apr", value: 420000 },
-      { label: "Mei", value: 1200000 },
-      { label: "Jun", value: totalRevenue },
-    ];
+  const { salesData } = useApp();
+  
+  const selesai = salesData.filter((s) => s.status === "selesai");
+  const totalRevenue = selesai.reduce((s, t) => s + (t.price * t.qty), 0);
+  
+  const chartBars = [
+    { label: "Feb", value: 0 },
+    { label: "Mar", value: 0 },
+    { label: "Apr", value: 0 },
+    { label: "Mei", value: 0 },
+    { label: "Jun", value: totalRevenue },
+  ];
     const maxVal = Math.max(...chartBars.map((b) => b.value));
 
     return (
@@ -92,6 +88,9 @@ export default function SalesStatsPage() {
             <div className="px-4 py-3 border-b border-border bg-secondary/50">
               <p className="text-foreground font-bold text-sm flex items-center gap-2"><TrendingUp size={14} className="text-primary" />Produk Terlaris</p>
             </div>
+            {selesai.length === 0 && (
+              <div className="p-6 text-center text-muted-foreground text-xs font-semibold">Belum ada produk yang terjual.</div>
+            )}
             {selesai.map((t, i) => (
               <div key={t.id} className={`flex items-center gap-3 px-4 py-3 ${i < selesai.length - 1 ? "border-b border-border" : ""}`}>
                 <div className="w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0"
@@ -102,7 +101,7 @@ export default function SalesStatsPage() {
                   <p className="text-foreground font-semibold text-xs truncate">{t.product}</p>
                   <p className="text-muted-foreground text-[10px]">{t.date}</p>
                 </div>
-                <p className="text-primary font-black text-sm shrink-0">{formatPrice(t.price)}</p>
+                <p className="text-primary font-black text-sm shrink-0">{formatPrice(t.price * t.qty)}</p>
               </div>
             ))}
           </div>
