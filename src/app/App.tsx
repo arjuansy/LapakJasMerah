@@ -58,6 +58,10 @@ export default function App() {
   const [profileBanner, setProfileBanner] = useState("");
   const [listings, setListings] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<any>(null);
+  const [trackingOrder, setTrackingOrder] = useState<TrackingOrder | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const toggleWishlist = (id: number) => {
     setWishlist(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -127,7 +131,11 @@ export default function App() {
     startChat,
     requests, setRequests,
     showPostRequestModal, setShowPostRequestModal,
-    notifData
+    notifData,
+    toastMessage, setToastMessage,
+    activeTab, setActiveTab,
+    trackingOrder, setTrackingOrder,
+    selectedProduct, setSelectedProduct
   };
 
 

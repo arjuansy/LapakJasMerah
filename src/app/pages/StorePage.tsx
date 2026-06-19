@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../context";
-import { Product, formatPrice, storeProducts } from "../data";
+import { Product, formatPrice, sellerAvatars } from "../data";
 import {
-  ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X
+  ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X, BadgeCheck
 } from "lucide-react";
+import { useParams } from "react-router-dom";
 
-export default function StorePage({ sellerName }: { sellerName: string }) {
+export default function StorePage() {
+  const { sellerName } = useParams<{ sellerName: string }>();
   const navigate = useNavigate();
+  const { products, triggerToast, setShowReportModal } = useApp();
+  
+  if (!sellerName) return null;
 
     const avatar = sellerAvatars[sellerName] ?? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&auto=format";
     const storeProducts = products.filter((p) => p.seller === sellerName);
@@ -33,8 +38,8 @@ export default function StorePage({ sellerName }: { sellerName: string }) {
             <h1 className="flex-1 text-white font-black text-lg">Toko Penjual</h1>
             <button
               onClick={() => {
-                const shareText = `Lapak Jas Merah - Kunjungi toko "${viewStoreSeller}" di Lapak Jas Merah UMM!`;
-                const shareUrl = `${window.location.origin}/seller/${viewStoreSeller}`;
+                const shareText = `Lapak Jas Merah - Kunjungi toko "${sellerName}" di Lapak Jas Merah UMM!`;
+                const shareUrl = `${window.location.origin}/seller/${sellerName}`;
                 if (navigator.share) {
                   navigator.share({
                     title: 'Lapak Jas Merah',

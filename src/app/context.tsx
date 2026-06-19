@@ -95,6 +95,14 @@ export type AppContextType = {
   showPostRequestModal: boolean;
   setShowPostRequestModal: (v: boolean) => void;
   notifData: any[];
+  toastMessage: string | null;
+  setToastMessage: (msg: string | null) => void;
+  activeTab: any;
+  setActiveTab: (tab: any) => void;
+  trackingOrder: TrackingOrder | null;
+  setTrackingOrder: (order: TrackingOrder | null) => void;
+  selectedProduct: Product | null;
+  setSelectedProduct: (p: Product | null) => void;
 };
 
 export const AppContext = createContext<AppContextType>(null!);

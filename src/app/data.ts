@@ -249,19 +249,22 @@ export type Message = {
 };
 
 export interface Product {
-  id: string;
+  id: string | number;
   name: string;
   price: number;
-  category: string;
-  condition: string;
+  category?: string;
+  condition?: string;
   location: string;
   seller: string;
-  sellerAvatar: string;
+  sellerAvatar?: string;
   image: string;
   rating: number;
   sold: number;
-  description: string;
-  stock: number;
+  description?: string;
+  stock?: number;
+  originalPrice?: number;
+  discount?: number;
+  isNew?: boolean;
 }
 
 export const initialMessages: Record<number, Message[]> = {
@@ -297,20 +300,6 @@ export const initialMessages: Record<number, Message[]> = {
     { id: 3, text: "Mix menu aja kak, anggaran 15rb/kotak", fromMe: true, time: "Senin 10:05", status: "read" },
     { id: 4, text: "Pesanan 5 kotak sudah siap kak!", fromMe: false, time: "Senin 11:00", status: "read" },
   ],
-};
-
-export type Product = {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  rating: number;
-  sold: number;
-  image: string;
-  seller: string;
-  location: string;
-  isNew?: boolean;
 };
 
 export const extraProducts: Product[] = [

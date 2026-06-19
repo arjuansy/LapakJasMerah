@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import jwt from 'jsonwebtoken';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -15,16 +16,12 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     try {
       token = req.headers.authorization.split(' ')[1];
       
-      const { data: { user }, error } = await supabase.auth.getUser(token);
-
-      if (error || !user) {
-        throw new Error('Not authorized');
-      }
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123') as { id: string, role: string };
 
       // Default role to BUYER. You could also fetch it from public.users if needed
       req.user = {
-        id: user.id,
-        role: 'BUYER',
+        id: decoded.id,
+        role: decoded.role || 'BUYER',
       };
       
       next();

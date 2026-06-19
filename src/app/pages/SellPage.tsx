@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
+import api from "../api";
 
 export default function SellPage() {
   const navigate = useNavigate();
@@ -225,13 +226,13 @@ export default function SellPage() {
         </div>
 
         <button
-          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); navigate("/marketplace"); }}
+          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,stock:"1",description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); navigate("/marketplace"); }}
           className="w-full bg-primary text-white font-bold py-3.5 rounded-2xl text-sm mb-3"
         >
           Kembali ke Beranda
         </button>
         <button
-          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
+          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,stock:"1",description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
           className="w-full bg-secondary text-primary font-bold py-3.5 rounded-2xl text-sm border border-primary/20"
         >
           Pasang Iklan Lagi
@@ -295,7 +296,7 @@ export default function SellPage() {
             <input
               type="file"
               ref={fileInputRef}
-              onChange={handleFileChange}
+              onChange={handlePhotoUpload}
               accept="image/*"
               multiple
               className="hidden"
