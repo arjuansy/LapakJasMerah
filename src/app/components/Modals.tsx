@@ -352,12 +352,34 @@ export function SuggestionBoxModal() {
     { id: "lainnya", label: "Lainnya", icon: MessageCircle, color: "#6B7280" },
   ];
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!category) { setError("Pilih kategori saran terlebih dahulu"); return; }
     if (!message.trim() || message.length < 10) { setError("Saran minimal 10 karakter"); return; }
     setError("");
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1200);
+
+    try {
+      const userInfoStr = localStorage.getItem("userInfo");
+      const user = userInfoStr ? JSON.parse(userInfoStr) : null;
+      const payload: any = {
+        category,
+        message,
+        is_anonymous: anonymous
+      };
+      if (user && user.id && !anonymous) {
+        payload.user_id = user.id;
+      }
+      
+      const { error: dbErr } = await supabase.from('suggestions').insert(payload);
+      if (dbErr) throw dbErr;
+      
+      setSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal mengirim saran. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

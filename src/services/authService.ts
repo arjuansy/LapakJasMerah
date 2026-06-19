@@ -17,6 +17,12 @@ export const authService = {
     });
 
     if (error) throw error;
+    
+    // If identities is empty, it means the user already exists
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      throw new Error("Akun dengan email ini sudah terdaftar. Silakan gunakan menu Masuk.");
+    }
+
     return data;
   },
 

@@ -19,6 +19,7 @@ import {
   Edit2,
   Plus,
   Shield,
+  MessageCircle,
   ShieldAlert,
   UserX,
   UserCheck,
@@ -125,6 +126,17 @@ type AdminType = {
   permissions?: string[];
 };
 
+type SuggestionType = {
+  id: string;
+  userName: string;
+  userAvatar: string;
+  category: string;
+  message: string;
+  status: "Terbuka" | "Selesai" | "Ditolak";
+  createdAt: string;
+  isAnonymous: boolean;
+};
+
 export default function AdminDashboard({
   onLogout,
   defaultTab = "dashboard",
@@ -137,6 +149,7 @@ export default function AdminDashboard({
     | "listings"
     | "categories"
     | "reports"
+    | "suggestions"
     | "transactions"
     | "subscriptions"
     | "settings"
@@ -159,6 +172,7 @@ export default function AdminDashboard({
     | "listings"
     | "categories"
     | "reports"
+    | "suggestions"
     | "transactions"
     | "subscriptions"
     | "settings"
@@ -246,6 +260,46 @@ export default function AdminDashboard({
     { id: "ADM-02", name: "Aisyah Nabila", email: "aisyah.adm@webmail.umm.ac.id", role: "Admin", addedAt: "2026-02-10", permissions: ["manage_users", "manage_sellers", "manage_listings", "manage_reports", "manage_transactions"] },
     { id: "ADM-03", name: "Fandy Septian", email: "fandy.adm@webmail.umm.ac.id", role: "Admin", addedAt: "2026-04-05", permissions: ["manage_listings", "manage_categories", "manage_reports", "manage_transactions"] },
   ]);
+
+  const [suggestions, setSuggestions] = useState<SuggestionType[]>([]);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const { data, error } = await supabase
+        .from('suggestions')
+        .select(`
+          id, category, message, is_anonymous, status, created_at,
+          user:profiles(name, avatar_url)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (data && !error) {
+        setSuggestions(data.map((s: any) => ({
+          id: s.id,
+          userName: s.is_anonymous || !s.user ? "Pengguna Anonim" : s.user.name,
+          userAvatar: s.is_anonymous || !s.user ? "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format" : s.user.avatar_url,
+          category: s.category,
+          message: s.message,
+          status: s.status as any,
+          createdAt: new Date(s.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
+          isAnonymous: s.is_anonymous
+        })));
+      }
+    };
+    fetchSuggestions();
+  }, []);
+
+  const handleUpdateSuggestionStatus = async (id: string, newStatus: string) => {
+    try {
+      const { error } = await supabase.from('suggestions').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      setSuggestions(prev => prev.map(s => s.id === id ? { ...s, status: newStatus as any } : s));
+      showToast("Status saran berhasil diperbarui", "success");
+    } catch (e) {
+      console.error(e);
+      showToast("Gagal memperbarui status", "error");
+    }
+  };
 
   // ── MODAL STATES ──
   const [modalType, setModalType] = useState<
@@ -548,8 +602,9 @@ export default function AdminDashboard({
             { id: "users", label: "Kelola Pengguna", icon: Users },
             { id: "sellers", label: "Kelola Penjual", icon: Store },
             { id: "listings", label: "Kelola Jasa & Barang", icon: Tag },
-            { id: "categories", label: "Kelola Kategori", icon: Grid3X3 },
+            { id: "categories", label: "Kategori Produk", icon: Grid3X3 },
             { id: "reports", label: "Laporan & Aduan", icon: AlertTriangle, badge: reports.filter((r) => r.status === "Terbuka").length },
+            { id: "suggestions", label: "Kotak Saran", icon: MessageCircle, badge: suggestions.filter((s) => s.status === "Terbuka").length },
             { id: "transactions", label: "Riwayat Transaksi", icon: ArrowRightLeft },
             { id: "subscriptions", label: "Paket Premium", icon: Zap, badge: subscriptions.filter((s) => s.status === "Pending").length },
             { id: "admins", label: "Manajemen Admin", icon: Shield, roleRestricted: "Super Admin" as AdminRole },
@@ -572,12 +627,13 @@ export default function AdminDashboard({
                       let hash = "";
                       if (item.id === "users") pageName = "users.html";
                       else if (item.id === "listings") pageName = "listings.html";
+                      else if (item.id === "categories") pageName = "categories.html";
                       else if (item.id === "reports") pageName = "reports.html";
-                      else if (item.id === "transactions") { pageName = "payments.html"; hash = "#transactions"; }
+                      else if (item.id === "suggestions") pageName = "suggestions.html";
+                      else if (item.id === "transactions") pageName = "transactions.html";
                       else if (item.id === "subscriptions") { pageName = "payments.html"; hash = "#subscriptions"; }
                       else if (item.id === "settings") { pageName = "dashboard.html"; hash = "#settings"; }
                       else if (item.id === "sellers") { pageName = "dashboard.html"; hash = "#sellers"; }
-                      else if (item.id === "categories") { pageName = "dashboard.html"; hash = "#categories"; }
                       else if (item.id === "admins") { pageName = "dashboard.html"; hash = "#admins"; }
 
                       const basePath = window.location.pathname.split("/admin/")[0];
@@ -749,8 +805,9 @@ export default function AdminDashboard({
                 {activeTab === "users" && "Kelola Data Pengguna"}
                 {activeTab === "sellers" && "Persetujuan Penjual Terverifikasi"}
                 {activeTab === "listings" && "Verifikasi Listing Jasa & Barang"}
-                {activeTab === "categories" && "Kelola Kategori Marketplace"}
+                {activeTab === "categories" && "Manajemen Kategori"}
                 {activeTab === "reports" && "Laporan & Pengaduan Masalah"}
+                {activeTab === "suggestions" && "Kotak Saran Pengguna"}
                 {activeTab === "transactions" && "Log Transaksi Lapak"}
                 {activeTab === "subscriptions" && "Pengajuan Iklan Premium"}
                 {activeTab === "settings" && "Pengaturan Akun Admin"}
@@ -761,8 +818,9 @@ export default function AdminDashboard({
                 {activeTab === "users" && "Cari, verifikasi, tangguhkan, atau aktifkan kembali akun mahasiswa UMM."}
                 {activeTab === "sellers" && "Review pengajuan toko verifikasi NIM mahasiswa untuk badge Penjual Terverifikasi."}
                 {activeTab === "listings" && "Moderasi dan kelola perizinan barang/jasa yang ditawarkan mahasiswa."}
-                {activeTab === "categories" && "Ubah, tambahkan, atau hapus kategori utama transaksi di marketplace."}
+                {activeTab === "categories" && "Kelola direktori kategori barang di marketplace."}
                 {activeTab === "reports" && "Tinjau aduan spam, penipuan, atau pelanggaran tata tertib COD di kampus."}
+                {activeTab === "suggestions" && "Tinjau saran, kritik, dan laporan bug dari pengguna."}
                 {activeTab === "transactions" && "Log transaksi pembelian via UMM Pay, bank transfer, dan Cash-On-Delivery."}
                 {activeTab === "subscriptions" && "Approve/Reject pembayaran highlight pencarian berbayar untuk iklan penjual."}
                 {activeTab === "settings" && "Konfigurasi informasi pribadi Anda, ubah sandi, dan preferensi laporan notifikasi."}
@@ -1815,6 +1873,92 @@ export default function AdminDashboard({
                     Berikutnya
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ──────────────────────────────────────────────────────────── */}
+          {/* TAB: SUGGESTIONS */}
+          {/* ──────────────────────────────────────────────────────────── */}
+          {activeTab === "suggestions" && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <MessageCircle className="text-blue-500" size={20} />
+                  Daftar Saran & Laporan Bug
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200 font-bold tracking-wider">
+                    <tr>
+                      <th className="px-6 py-4">Pengirim</th>
+                      <th className="px-6 py-4">Kategori</th>
+                      <th className="px-6 py-4 w-1/3">Pesan</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {suggestions.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                          <MessageCircle className="mx-auto mb-3 opacity-20" size={48} />
+                          <p className="font-semibold text-base">Belum Ada Saran Masuk</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      suggestions.map((s) => (
+                        <tr key={s.id} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <img src={s.userAvatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                              <div>
+                                <p className="font-bold text-gray-800">{s.userName}</p>
+                                <p className="text-[10px] text-gray-500 font-medium">{s.createdAt}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[11px] font-bold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-100">
+                              {s.category}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 font-medium leading-relaxed">
+                            {s.message}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
+                              s.status === "Selesai" ? "bg-green-50 text-green-700 border border-green-150" :
+                              s.status === "Ditolak" ? "bg-red-50 text-red-700 border border-red-150" :
+                              "bg-yellow-50 text-yellow-700 border border-yellow-150"
+                            }`}>
+                              {s.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {s.status === "Terbuka" && (
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleUpdateSuggestionStatus(s.id, "Selesai")}
+                                  className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100" title="Tandai Selesai"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateSuggestionStatus(s.id, "Ditolak")}
+                                  className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Tolak Saran"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

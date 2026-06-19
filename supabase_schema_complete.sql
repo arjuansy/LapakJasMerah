@@ -27,6 +27,8 @@ CREATE TABLE public.profiles (
   role TEXT DEFAULT 'USER'::text,
   faculty TEXT,
   major TEXT,
+  avatar_url TEXT,
+  banner_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -273,3 +275,21 @@ INSERT INTO public.categories (name, slug) VALUES
 ('Jasa', 'jasa'),
 ('Lainnya', 'lainnya')
 ON CONFLICT (slug) DO NOTHING;
+
+-- ==========================================
+-- 6. KOTAK SARAN
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.suggestions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    category TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_anonymous BOOLEAN DEFAULT false,
+    status TEXT DEFAULT 'Terbuka',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.suggestions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable insert for authenticated users only" ON public.suggestions FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Enable read access for all" ON public.suggestions FOR SELECT USING (true);
+CREATE POLICY "Enable update for all" ON public.suggestions FOR UPDATE USING (true);
