@@ -5,27 +5,16 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function testSignup() {
-  console.log("Attempting signup...");
-  const { data, error } = await supabase.auth.signUp({
-    email: 'test3@webmail.umm.ac.id',
-    password: 'hangatkantubuh',
-    options: {
-      data: {
-        full_name: 'Akhmad Arjuan Syuhada',
-        nim: '202410370110043'
-      }
-    }
-  });
+async function testSelect() {
+  console.log("Attempting select nim...");
+  const { data, error } = await supabase.from('profiles').select('nim').limit(1);
 
   if (error) {
     console.error("ERROR CAUGHT!");
     console.error("error:", error);
-    console.error("error.message:", error.message);
-    console.error("JSON stringify:", JSON.stringify(error));
   } else {
-    console.log("Signup successful!", data);
+    console.log("Select nim successful! This means the column exists.");
   }
 }
 
-testSignup();
+testSelect();
