@@ -16,6 +16,7 @@ import { useApp } from "../context";
 import { authService } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
 import { toast } from "react-hot-toast";
+import logoImg from "../../assets/logo.png";
 
 type AuthStep = "form" | "otp" | "forgot" | "forgot_otp" | "reset_password";
 
@@ -238,7 +239,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             </button>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-primary font-black text-[11px]">LJM</span>
+                <img src={logoImg} alt="LapakJasMerah" className="w-5 h-5 object-contain" />
               </div>
               <span className="text-white font-black text-base">Lapak Jas Merah</span>
             </div>
@@ -314,7 +315,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           <div className="relative z-10 px-6 pt-12 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-primary font-black text-[11px]">LJM</span>
+                <img src={logoImg} alt="LapakJasMerah" className="w-5 h-5 object-contain" />
               </div>
               <span className="text-white font-black text-base tracking-wide">Lapak Jas Merah</span>
             </div>
@@ -381,7 +382,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
             </button>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-primary font-black text-[11px]">LJM</span>
+                <img src={logoImg} alt="LapakJasMerah" className="w-5 h-5 object-contain" />
               </div>
               <span className="text-white font-black text-base">Lapak Jas Merah</span>
             </div>
@@ -437,7 +438,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         <div className="relative z-10 px-6 pt-12 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-primary font-black text-[11px]">LJM</span>
+              <img src={logoImg} alt="LapakJasMerah" className="w-5 h-5 object-contain" />
             </div>
             <span className="text-white font-black text-base tracking-wide">Lapak Jas Merah</span>
           </div>

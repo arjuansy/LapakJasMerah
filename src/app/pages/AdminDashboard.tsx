@@ -567,8 +567,8 @@ export default function AdminDashboard({
       >
         {/* Brand logo header */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 bg-white">
-          <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-md shadow-red-500/30">
-            <span className="text-white font-black text-sm">UMM</span>
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md border border-gray-100">
+            <img src="/assets/logo.png" alt="LJM" className="w-6 h-6 object-contain" />
           </div>
           <div>
             <h1 className="font-extrabold text-base text-gray-900 tracking-tight leading-none">Dashboard Admin</h1>
