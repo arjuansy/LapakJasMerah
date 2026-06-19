@@ -29,7 +29,7 @@ export default function StorePage() {
             setStoreReviews(reviews.map((r: any) => ({
               id: r.id,
               user: r.reviewer?.username || r.reviewer?.full_name || "Pembeli",
-              avatar: r.reviewer?.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format",
+              avatar: r.reviewer?.avatar_url || "/default-avatar.png",
               rating: r.rating,
               comment: r.comment,
               date: new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
