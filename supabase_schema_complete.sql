@@ -47,6 +47,10 @@ CREATE POLICY "Users can update own profile." ON public.profiles FOR UPDATE USIN
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
+  IF NOT (NEW.email ILIKE '%@webmail.umm.ac.id') THEN
+    RAISE EXCEPTION 'Hanya email @webmail.umm.ac.id yang diizinkan untuk mendaftar.';
+  END IF;
+
   INSERT INTO public.profiles (id, email, full_name, nim, role, avatar_url)
   VALUES (
     NEW.id,

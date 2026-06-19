@@ -59,6 +59,18 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     return () => clearTimeout(t);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes("error=server_error")) {
+      const params = new URLSearchParams(hash.replace("#", "?"));
+      const errorDesc = params.get("error_description") || "";
+      if (errorDesc.includes("Database error saving new user")) {
+        toast.error("Gagal mendaftar: Hanya email @webmail.umm.ac.id yang diizinkan.", { duration: 5000 });
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    }
+  }, []);
+
   function validate() {
     const e: Record<string, string> = {};
     if (!isLogin && !form.name.trim()) e.name = "Nama wajib diisi";
