@@ -256,6 +256,7 @@ export interface Product {
   condition?: string;
   location: string;
   seller: string;
+  seller_id?: string;
   sellerAvatar?: string;
   image: string;
   rating: number;

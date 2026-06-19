@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { useApp } from "../context";
 import { Product, formatPrice } from "../data";
 import {
-  ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X
+  ArrowLeft, Star, MapPin, Search, Grid3X3, Clock, Share2, Flag, ShoppingCart, MessageSquare, CheckCheck, Send, CheckCircle2, Package, TrendingUp, Filter, Heart, Tag, ExternalLink, ChevronRight, Zap, Bell, Image as ImageIcon, Smile, Settings, Edit3, Shield, Info, MoreVertical, Search as SearchIcon, X, BadgeCheck, RefreshCw
 } from "lucide-react";
 import { supabase } from "../../config/supabaseClient";
 import { useAuth } from "../../hooks/useAuth";
@@ -386,7 +386,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
             <button
-              onClick={() => setViewStoreSeller(product.seller)}
+              onClick={() => navigate('/store/' + encodeURIComponent(product.seller))}
               className="bg-secondary text-primary text-xs font-bold px-3 py-2 rounded-xl border border-primary/20"
             >
               Lihat Toko
@@ -456,7 +456,7 @@ export default function ProductDetailPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-foreground font-bold text-sm">Ulasan Pembeli</h3>
                 <button
-                  onClick={() => setViewStoreSeller(product.seller)}
+                  onClick={() => navigate('/store/' + encodeURIComponent(product.seller))}
                   className="text-primary text-xs font-semibold flex items-center gap-0.5"
                 >
                   Semua <ChevronRight size={12} />

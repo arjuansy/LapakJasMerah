@@ -122,6 +122,7 @@ export default function App() {
           condition: p.condition || "Baru",
           location: p.location,
           seller: p.seller?.full_name || "Penjual",
+          seller_id: p.seller_id,
           sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
           image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
           rating: 0,

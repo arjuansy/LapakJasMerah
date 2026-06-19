@@ -1,5 +1,5 @@
 import { toast } from "react-hot-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -1948,6 +1948,12 @@ export default function ProfilePage() {
   const [badgePaid, setBadgePaid] = useState(false);
   const [showKtm, setShowKtm] = useState(false);
 
+  useEffect(() => {
+    if (user && products) {
+      setListings(products.filter((p: any) => p.seller_id === user.id));
+    }
+  }, [user, products, setListings]);
+
   if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage onBack={() => setProfileSubPage(null)} /></div>;
@@ -2099,7 +2105,7 @@ export default function ProfilePage() {
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">0</p>
+            <p className="text-foreground font-black text-lg leading-none">{listings.length}</p>
             <p className="text-muted-foreground text-[10px] mt-1">Iklan Aktif</p>
           </div>
           <div className="w-px h-10 bg-border" />
@@ -2266,7 +2272,7 @@ export default function ProfilePage() {
         <h3 className="text-foreground font-bold text-sm mb-3">Iklan Saya</h3>
         <div className="flex bg-muted rounded-xl p-1 gap-1">
           {([
-            { id: "iklan", label: "Aktif", count: 0 },
+            { id: "iklan", label: "Aktif", count: listings.length },
             { id: "terjual", label: "Terjual", count: 0 },
             { id: "disukai", label: "Disukai", count: 0 },
           ] as const).map((t) => (
