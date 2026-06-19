@@ -34,7 +34,7 @@ export default function ProductDetailPage() {
         .from('products')
         .select(`
           *,
-          seller:profiles!products_seller_id_fkey(name, avatar_url),
+          seller:profiles!products_seller_id_fkey(full_name, avatar_url),
           category:categories(name)
         `)
         .eq('id', id)
@@ -53,7 +53,7 @@ export default function ProductDetailPage() {
         category: p.category?.name || "Lainnya",
         condition: p.condition || "Baru",
         location: p.location,
-        seller: p.seller?.name || "Penjual",
+        seller: p.seller?.full_name || "Penjual",
         seller_id: p.seller_id,
         sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
         image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",

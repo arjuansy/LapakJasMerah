@@ -14,7 +14,7 @@ export default function WishlistPage() {
     return (
       <>
         {/* Backdrop */}
-        <div className="fixed inset-0 z-[70]" onClick={() => setShowWishlist(false)} />
+        <div className="fixed inset-0 z-[70]" onClick={() => navigate("/marketplace")} />
 
         {/* Panel */}
         <div
@@ -25,7 +25,7 @@ export default function WishlistPage() {
           <div className="bg-primary px-4 pt-10 pb-4">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-white font-black text-xl">Wishlist</h2>
-              <button onClick={() => setShowWishlist(false)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <button onClick={() => navigate("/marketplace")} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <X size={16} className="text-white" />
               </button>
             </div>
@@ -41,7 +41,7 @@ export default function WishlistPage() {
                 <p className="text-foreground font-bold text-base mb-1">Wishlist masih kosong</p>
                 <p className="text-muted-foreground text-sm">Tekan ikon ♡ pada produk untuk menyimpannya di sini</p>
                 <button
-                  onClick={() => setShowWishlist(false)}
+                  onClick={() => navigate("/marketplace")}
                   className="mt-6 bg-primary text-white font-bold px-6 py-3 rounded-2xl text-sm"
                 >
                   Jelajahi Produk
@@ -52,13 +52,13 @@ export default function WishlistPage() {
                 {wishlisted.map((p) => (
                   <div key={p.id} className="bg-background rounded-2xl border border-border flex items-center gap-3 p-3 shadow-sm">
                     <button
-                      onClick={() => { setShowWishlist(false); navigate(`/product/${p.id}`); }}
+                      onClick={() => { navigate(`/product/${p.id}`); }}
                       className="shrink-0"
                     >
                       <img src={p.image} alt={p.name} className="w-16 h-16 rounded-xl object-cover bg-muted" />
                     </button>
                     <button
-                      onClick={() => { setShowWishlist(false); navigate(`/product/${p.id}`); }}
+                      onClick={() => { navigate(`/product/${p.id}`); }}
                       className="flex-1 min-w-0 text-left"
                     >
                       <p className="text-foreground font-bold text-sm line-clamp-2 leading-tight">{p.name}</p>
@@ -79,7 +79,7 @@ export default function WishlistPage() {
                         <Heart size={14} className="text-primary fill-primary" />
                       </button>
                       <button
-                        onClick={() => { setShowWishlist(false); navigate(`/product/${p.id}`); }}
+                        onClick={() => { navigate(`/product/${p.id}`); }}
                         className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center"
                       >
                         <ShoppingCart size={13} className="text-white" />
@@ -100,5 +100,3 @@ export default function WishlistPage() {
       </>
     );
   }
-
-  // ── CATEGORIES PAGE ──

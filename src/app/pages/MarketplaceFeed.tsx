@@ -42,7 +42,7 @@ export default function MarketplaceFeed() {
               </div>
             </div>
             <div className="flex items-center gap-3 relative z-20">
-              <button className="relative p-1.5 cursor-pointer" onClick={() => setShowNotif(true)}>
+              <button className="relative p-1.5 cursor-pointer" onClick={() => navigate('/notifications')}>
                 <Bell size={20} className="text-white" />
                 {notifData.filter((n) => !n.read && !readNotifs.includes(n.id)).length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">

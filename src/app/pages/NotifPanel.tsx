@@ -15,7 +15,7 @@ export default function NotifPanel() {
     return (
       <>
         {/* Backdrop */}
-        <div className="fixed inset-0 z-[70]" onClick={() => setShowNotif(false)} />
+        <div className="fixed inset-0 z-[70]" onClick={() => navigate('/marketplace')} />
 
         {/* Panel */}
         <div
@@ -26,7 +26,7 @@ export default function NotifPanel() {
           <div className="bg-primary px-4 pt-10 pb-4">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-white font-black text-xl">Notifikasi</h2>
-              <button onClick={() => setShowNotif(false)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <button onClick={() => navigate('/marketplace')} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <X size={16} className="text-white" />
               </button>
             </div>
