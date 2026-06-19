@@ -229,7 +229,7 @@ export default function ProductDetailPage() {
             <MapPin size={18} /> Lacak Pesanan
           </button>
           <button
-            onClick={() => { setOrdered(false); setSelectedProduct(null); }}
+            onClick={() => { setOrdered(false); navigate('/marketplace'); }}
             className="w-full bg-secondary text-primary font-bold py-3.5 rounded-2xl text-sm border border-primary/20"
           >
             Kembali ke Beranda
@@ -253,7 +253,7 @@ export default function ProductDetailPage() {
           <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-10 pb-4"
             style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)" }}>
             <button
-              onClick={() => setSelectedProduct(null)}
+              onClick={() => navigate(-1)}
               className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
             >
               <ArrowLeft size={18} className="text-white" />
@@ -522,7 +522,7 @@ export default function ProductDetailPage() {
             {related.map((p) => (
               <button
                 key={p.id}
-                onClick={() => setSelectedProduct(p)}
+                onClick={() => navigate(`/product/${p.id}`)}
                 className="bg-card rounded-2xl border border-border overflow-hidden text-left shadow-sm active:scale-95 transition-transform"
               >
                 <img src={p.image} alt={p.name} className="w-full h-28 object-cover bg-muted" />
