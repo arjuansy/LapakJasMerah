@@ -9,7 +9,7 @@ import {
   Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag, Package, Shield, TrendingUp, ChevronLeft,
   PlusCircle, MessageCircle, User, Tag
 } from "lucide-react";
-import { supabase } from "../../services/supabase";
+import { supabase } from "../../config/supabaseClient";
 
 export default function MarketplaceFeed() {
   const navigate = useNavigate();

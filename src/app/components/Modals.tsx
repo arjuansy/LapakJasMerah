@@ -5,7 +5,7 @@ import type { RequestItem } from "../data";
 import {
   X, CheckCircle2, Banknote, Zap, AlertCircle, Eye, Shield, Package, MessageCircle, ToggleRight, ToggleLeft, Send
 } from "lucide-react";
-import { supabase } from "../../services/supabase";
+import { supabase } from "../../config/supabaseClient";
 
 // ── POST REQUEST MODAL ──
 export function PostRequestModal() {

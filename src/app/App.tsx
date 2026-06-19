@@ -18,7 +18,7 @@ import { PostRequestModal, SuggestionBoxModal } from "./components/Modals";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { supabase } from "../config/supabaseClient";
-import { useAuth } from "./hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
