@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
+import { authService } from "../../services/authService";
 import { formatPrice, productDescriptions } from "../data";
 
 // ── DAFTAR PENJUALAN ──
@@ -2466,7 +2467,7 @@ export default function ProfilePage() {
 
         {/* Logout */}
         <button
-          onClick={() => { navigate("/marketplace"); navigate("/"); }}
+          onClick={async () => { await authService.logout(); navigate("/"); }}
           className="w-full bg-card rounded-2xl border border-border p-4 flex items-center justify-center gap-2 text-primary font-bold text-sm shadow-sm hover:bg-secondary/50 active:bg-secondary transition-colors"
         >
           <LogOut size={16} className="text-primary" />
