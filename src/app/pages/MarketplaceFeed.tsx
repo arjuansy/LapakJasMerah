@@ -15,7 +15,7 @@ export default function MarketplaceFeed() {
   const navigate = useNavigate();
   const { 
     searchFocused, setSearchFocused, globalSearch, setGlobalSearch, setShowSearchResults,
-    activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
+    activeBanner, setActiveBanner, wishlist, toggleWishlist, notifications, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
     products, requests, setRequests, setEditingRequest,
     setSelectedProduct, setSelectedRequest, triggerToast
   } = useApp();
@@ -58,10 +58,10 @@ export default function MarketplaceFeed() {
             <div className="flex items-center gap-3 relative z-20">
               <button className="relative p-1.5 cursor-pointer" onClick={() => setShowNotif(true)}>
                 <Bell size={20} className="text-white" />
-                {notifData.filter((n) => !n.read && !readNotifs.includes(n.id)).length > 0 && (
+                {notifications.filter((n) => !n.is_read).length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">
                     <span className="text-[9px] font-black text-foreground">
-                      {notifData.filter((n) => !n.read && !readNotifs.includes(n.id)).length}
+                      {notifications.filter((n) => !n.is_read).length}
                     </span>
                   </span>
                 )}

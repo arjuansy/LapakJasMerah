@@ -46,6 +46,15 @@ export default function ProductDetailPage() {
         return;
       }
 
+      // Fetch total sold using RPC
+      let totalSold = 0;
+      const { data: soldData, error: soldError } = await supabase.rpc('get_product_sold_count', {
+        p_product_id: p.id
+      });
+      if (!soldError && soldData !== null) {
+        totalSold = soldData;
+      }
+
       setProduct({
         id: p.id,
         name: p.name,
@@ -58,7 +67,7 @@ export default function ProductDetailPage() {
         sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
         image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
         rating: 0,
-        sold: 0,
+        sold: totalSold,
         description: p.description || "",
         stock: p.stock ?? 0,             // <-- pastikan ini ada
         status: p.status || "AVAILABLE"  // <-- tambahkan ini
@@ -586,6 +595,10 @@ export default function ProductDetailPage() {
                 if (!user) {
                   toast.error("Anda harus login terlebih dahulu untuk membeli barang.");
                   navigate("/auth");
+                  return;
+                }
+                if (user.id === product.seller_id) {
+                  toast.error("Anda tidak dapat membeli barang milik Anda sendiri.");
                   return;
                 }
                 setShowOrder(true);
