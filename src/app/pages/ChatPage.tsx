@@ -22,8 +22,8 @@ interface Chat {
   messages: Message[];
 }
 
-class ChatErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
-  constructor(props: {children: React.ReactNode}) {
+class ChatErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -134,15 +134,15 @@ function ChatPageInner() {
           const extractObj = (rel: any) => Array.isArray(rel) ? rel[0] : rel;
 
           const mapped = data.map((c: any) => {
-             const sellerObj = extractObj(c.seller);
-             const buyerObj = extractObj(c.buyer);
+            const sellerObj = extractObj(c.seller);
+            const buyerObj = extractObj(c.buyer);
 
-             return {
-               ...c,
-               product: extractObj(c.product),
-               seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
-               buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
-             };
+            return {
+              ...c,
+              product: extractObj(c.product),
+              seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
+              buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
+            };
           });
           setChats(mapped as any);
         }
@@ -281,11 +281,11 @@ function ChatPageInner() {
             prev.map(c =>
               c.id === chatId
                 ? {
-                    ...c,
-                    messages: (c.messages || []).map(m =>
-                      m.sender_id !== myId ? { ...m, is_read: true } : m
-                    )
-                  }
+                  ...c,
+                  messages: (c.messages || []).map(m =>
+                    m.sender_id !== myId ? { ...m, is_read: true } : m
+                  )
+                }
                 : c
             )
           );
@@ -487,9 +487,8 @@ function ChatPageInner() {
             <button
               key={f.id}
               onClick={() => setFilter(f.id as any)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
-                filter === f.id ? "bg-white text-primary" : "bg-white/20 text-white hover:bg-white/30"
-              }`}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filter === f.id ? "bg-white text-primary" : "bg-white/20 text-white hover:bg-white/30"
+                }`}
             >
               {f.label}
             </button>
@@ -526,27 +525,27 @@ function ChatPageInner() {
                   >
                     <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
                     <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center mb-0.5">
-                      <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp?.name || "Pengguna"}</p>
-                      {lastMsgObj && (
-                        <span className={`text-[10px] whitespace-nowrap ${isUnread ? "text-primary font-bold" : "text-muted-foreground"}`}>
-                          {lastMsgObj.sent_at ? formatTime(lastMsgObj.sent_at) : ""}
+                      <div className="flex justify-between items-center mb-0.5">
+                        <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp?.name || "Pengguna"}</p>
+                        {lastMsgObj && (
+                          <span className={`text-[10px] whitespace-nowrap ${isUnread ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                            {lastMsgObj.sent_at ? formatTime(lastMsgObj.sent_at) : ""}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className={`text-xs truncate pr-4 ${isUnread ? "text-foreground font-bold" : "text-muted-foreground"}`}>{lastMsg}</p>
+                        {isUnread && (
+                          <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0"></span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded-md font-medium border border-border truncate max-w-[150px]">
+                          {chat?.product?.name || "Produk"}
                         </span>
-                      )}
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <p className={`text-xs truncate pr-4 ${isUnread ? "text-foreground font-bold" : "text-muted-foreground"}`}>{lastMsg}</p>
-                      {isUnread && (
-                        <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0"></span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded-md font-medium border border-border truncate max-w-[150px]">
-                        {chat?.product?.name || "Produk"}
-                      </span>
-                    </div>
-                  </div>
-                </button>
+                  </button>
                 </div>
               );
             })}
