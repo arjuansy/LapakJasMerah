@@ -20,7 +20,7 @@ import logoImg from "../../assets/logo.png";
 
 type AuthStep = "form" | "otp" | "forgot" | "forgot_otp" | "reset_password";
 
-export default function AuthPage({ mode }: { mode: "login" | "register" }) {
+export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "register", isAdminLogin?: boolean }) {
   const navigate = useNavigate();
   const { setScreen } = useApp();
   const { user, profile } = useAuth();
@@ -43,6 +43,9 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
 
   // Automatically redirect if already logged in (only if not doing reset flow)
   useEffect(() => {
+    // Jangan redirect otomatis jika ini halaman Admin Login (sesuai permintaan user: polos on load)
+    if (isAdminLogin) return;
+
     if (user && profile && step !== "reset_password") {
       if (user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
         authService.logout().then(() => {
@@ -433,21 +436,21 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   // ── FORM SCREEN (Login/Register) ──
   return (
     <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 220 }}>
+      <div className="relative overflow-hidden" style={{ background: isAdminLogin ? "linear-gradient(150deg, #111827 0%, #000000 100%)" : "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 220 }}>
         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
         <div className="relative z-10 px-6 pt-12 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <img src={logoImg} alt="LapakJasMerah" className="w-5 h-5 object-contain" />
             </div>
-            <span className="text-white font-black text-base tracking-wide">Lapak Jas Merah</span>
+            <span className="text-white font-black text-base tracking-wide">Lapak Jas Merah {isAdminLogin && "Admin"}</span>
           </div>
           <button onClick={() => navigate("/")} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <X size={18} className="text-white" />
           </button>
         </div>
         <div className="relative z-10 px-6 pt-6">
-          <h1 className="text-white font-black text-3xl leading-tight">{isLogin ? "Selamat\nDatang Kembali!" : "Mulai Jual Beli\ndi Kampus!"}</h1>
+          <h1 className="text-white font-black text-3xl leading-tight">{isAdminLogin ? "Portal Admin\nLapak Jas Merah" : isLogin ? "Selamat\nDatang Kembali!" : "Mulai Jual Beli\ndi Kampus!"}</h1>
           <p className="text-white/80 text-sm mt-1.5 font-medium">{isLogin ? "Masuk dengan Kata Sandi Anda" : "Daftar dengan Webmail UMM kamu"}</p>
         </div>
       </div>
@@ -539,21 +542,23 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         </div>
 
         <div className="mt-8 text-center flex flex-col items-center gap-5">
-          <div>
-            <p className="text-muted-foreground text-xs font-semibold">
-              {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
-            </p>
-            <button
-              onClick={() => {
-                setErrors({});
-                setForm({ nim: "", email: "", name: "", password: "", newPassword: "" });
-                navigate(isLogin ? "/register" : "/login");
-              }}
-              className="text-primary font-black text-sm mt-1"
-            >
-              {isLogin ? "Daftar Sekarang" : "Masuk di sini"}
-            </button>
-          </div>
+          {!isAdminLogin && (
+            <div>
+              <p className="text-muted-foreground text-xs font-semibold">
+                {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
+              </p>
+              <button
+                onClick={() => {
+                  setErrors({});
+                  setForm({ nim: "", email: "", name: "", password: "", newPassword: "" });
+                  navigate(isLogin ? "/register" : "/login");
+                }}
+                className="text-primary font-black text-sm mt-1"
+              >
+                {isLogin ? "Daftar Sekarang" : "Masuk di sini"}
+              </button>
+            </div>
+          )}
 
           <button
             onClick={() => navigate("/marketplace")}

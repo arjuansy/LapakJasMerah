@@ -21,7 +21,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
   if (!profile || (profile.role !== 'ADMIN' && profile.role !== 'SUPER_ADMIN')) {

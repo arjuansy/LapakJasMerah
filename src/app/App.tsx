@@ -394,6 +394,7 @@ export default function App() {
           <Route path="/register" element={<Navigate to="/register/akun-google" replace />} />
           <Route path="/register/akun-google" element={<AuthPage mode="register" />} />
           <Route path="/register/data-diri" element={<OnboardingPage />} />
+          <Route path="/admin/login" element={<AuthPage mode="login" isAdminLogin={true} />} />
           
           {/* Admin routes protected by AdminRoute */}
           <Route path="/admin/*" element={

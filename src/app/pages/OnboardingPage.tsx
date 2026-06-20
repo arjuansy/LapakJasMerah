@@ -61,8 +61,14 @@ export default function OnboardingPage() {
         toast.error("Akses ditolak: Hanya email @webmail.umm.ac.id yang diizinkan.", { duration: 5000 });
         navigate('/login');
       });
+    } else if (!authLoading && user && profile && profile.nim) {
+      if (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/marketplace', { replace: true });
+      }
     }
-  }, [user, navigate, authLoading]);
+  }, [user, profile, navigate, authLoading]);
 
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
