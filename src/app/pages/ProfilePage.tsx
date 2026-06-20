@@ -41,6 +41,8 @@ import {
   Search,
   Clock,
   CheckCheck,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";

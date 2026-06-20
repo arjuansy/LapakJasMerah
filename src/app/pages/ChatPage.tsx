@@ -18,7 +18,8 @@ interface Message {
 
 interface Chat {
   id: string;
-  product: { id: string; name: string; price: string; image_url: string };
+  product?: { id: string; name: string; price: string; image_url: string };
+  request?: any;
   seller: { id: string; name: string; avatar_url: string };
   buyer: { id: string; name: string; avatar_url: string };
   messages: Message[];
@@ -83,6 +84,7 @@ function ChatPageInner() {
           .select(`
             id,
             product:products(id, name, price, image_url),
+            request:requests(*),
             seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
             buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url)
           `)
@@ -101,6 +103,7 @@ function ChatPageInner() {
           setActiveChat({
             ...chatData,
             product: productObj,
+            request: extractObj(chatData.request),
             seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
             buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
           } as any);
@@ -128,6 +131,7 @@ function ChatPageInner() {
           .select(`
             id,
             product:products(id, name, price, image_url),
+            request:requests(*),
             seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
             buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url),
             messages(id, content, sent_at, sender_id, is_read, image_url, message_type)
@@ -146,6 +150,7 @@ function ChatPageInner() {
             return {
               ...c,
               product: extractObj(c.product),
+              request: extractObj(c.request),
               seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
               buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
             };
@@ -458,6 +463,7 @@ function ChatPageInner() {
   if (chatId && activeChat) {
     const opponent = getOpponent(activeChat);
     const prod = activeChat.product;
+    const req = activeChat.request;
 
     return (
       <div className="flex flex-col h-screen bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
@@ -517,7 +523,30 @@ function ChatPageInner() {
           </div>
         )}
 
-        {/* Messages */}
+        {/* Request context card */}
+        {req && (
+          <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm">
+            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl p-2.5">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center shrink-0">
+                <span className="text-xl">📋</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-blue-900 dark:text-blue-100 font-bold text-xs truncate">Permintaan: {req.title}</p>
+                <p className="text-blue-700 dark:text-blue-300 font-black text-xs">
+                  Budget: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(req.budget_min)}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate(`/`)}
+                className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shrink-0 active:scale-95 transition-transform"
+              >
+                Lihat
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MESSAGES LIST */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(196,18,48,0.04) 1px, transparent 0)", backgroundSize: "20px 20px" }}>
           {messages.map((msg) => {
             const isMe = msg.sender_id === myId;
@@ -721,7 +750,7 @@ function ChatPageInner() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded-md font-medium border border-border truncate max-w-[150px]">
-                          {chat?.product?.name || "Produk"}
+                          {chat?.product?.name || chat?.request?.title || "Diskusi"}
                         </span>
                       </div>
                     </div>

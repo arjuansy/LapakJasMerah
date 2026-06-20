@@ -133,7 +133,8 @@ CREATE TABLE public.chats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     buyer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     seller_id TEXT NOT NULL,
-    product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    request_id UUID REFERENCES public.requests(id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.messages (

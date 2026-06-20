@@ -112,6 +112,8 @@ export type AppContextType = {
   setTrackingOrder: (order: TrackingOrder | null) => void;
   selectedProduct: Product | null;
   setSelectedProduct: (p: Product | null) => void;
+  selectedRequest: RequestItem | null;
+  setSelectedRequest: (r: RequestItem | null) => void;
   isDarkMode: boolean;
   setIsDarkMode: (v: boolean) => void;
 };

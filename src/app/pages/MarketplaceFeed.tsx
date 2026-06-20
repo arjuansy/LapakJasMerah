@@ -16,7 +16,8 @@ export default function MarketplaceFeed() {
   const { 
     searchFocused, setSearchFocused, globalSearch, setGlobalSearch, setShowSearchResults,
     activeBanner, setActiveBanner, wishlist, toggleWishlist, notifData, readNotifs, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
-    products, requests, setRequests, setEditingRequest
+    products, requests, setRequests, setEditingRequest,
+    setSelectedProduct, setSelectedRequest, triggerToast
   } = useApp();
 
   const { profile, user } = useAuth();
@@ -335,7 +336,51 @@ export default function MarketplaceFeed() {
                         </div>
                       ) : (
                         <button
-                          onClick={() => navigate("/chat")}
+                          onClick={async () => {
+                            if (!user) {
+                              triggerToast("Anda harus login untuk menawarkan.");
+                              navigate("/auth");
+                              return;
+                            }
+                            if (user.id === req.posterId) {
+                              triggerToast("Anda tidak bisa chat diri sendiri!");
+                              return;
+                            }
+                            try {
+                              const { data: existingChat, error: checkError } = await supabase.from('chats')
+                                .select('id')
+                                .eq('buyer_id', user.id)
+                                .eq('seller_id', req.posterId)
+                                .maybeSingle();
+
+                              if (checkError) throw checkError;
+
+                              let finalChatId;
+                              if (existingChat) {
+                                // Update request_id 
+                                await supabase.from('chats')
+                                  .update({ request_id: req.id, product_id: null })
+                                  .eq('id', existingChat.id);
+                                finalChatId = existingChat.id;
+                              } else {
+                                const { data: newChat, error } = await supabase.from('chats').insert({
+                                  buyer_id: user.id,
+                                  seller_id: req.posterId,
+                                  request_id: req.id
+                                  // product_id will be null
+                                }).select().single();
+                                if (error) throw error;
+                                finalChatId = newChat.id;
+                              }
+                              
+                              setSelectedProduct(null);
+                              setSelectedRequest(req);
+                              navigate(`/chat/${finalChatId}`);
+                            } catch (e) {
+                              console.error(e);
+                              triggerToast("Gagal membuka chat penawaran.");
+                            }
+                          }}
                           className="flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-bold px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform"
                         >
                           <MessageCircle size={11} />

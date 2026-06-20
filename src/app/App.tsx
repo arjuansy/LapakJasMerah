@@ -71,6 +71,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<any>(null);
   const [trackingOrder, setTrackingOrder] = useState<TrackingOrder | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("darkMode");
     return saved ? JSON.parse(saved) : false;
@@ -384,6 +385,7 @@ export default function App() {
     activeTab, setActiveTab,
     trackingOrder, setTrackingOrder,
     selectedProduct, setSelectedProduct,
+    selectedRequest, setSelectedRequest,
     isDarkMode, setIsDarkMode
   };
 
