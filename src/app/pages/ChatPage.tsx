@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Phone, MoreVertical, Send } from "lucide-react";
+import { ArrowLeft, Phone, MoreVertical, Send, Camera, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { useApp } from "../context";
 import { supabase } from "../../config/supabaseClient";
 import { useAuth } from "../../hooks/useAuth";
@@ -12,6 +12,8 @@ interface Message {
   content: string;
   sent_at: string;
   is_read?: boolean;
+  image_url?: string | null;
+  message_type?: "text" | "image";
 }
 
 interface Chat {
@@ -51,8 +53,6 @@ function ChatPageInner() {
 
   // =========================================================
   // SEMUA HOOK HARUS DI SINI, DI PALING ATAS, TANPA TERKECUALI.
-  // Jangan ada hook lagi di bawah setelah ini, dan jangan ada
-  // `if (...) return ...` di ATAS baris-baris hook ini.
   // =========================================================
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
@@ -60,7 +60,15 @@ function ChatPageInner() {
   const [inputText, setInputText] = useState("");
   const [filter, setFilter] = useState<"semua" | "belum_dibaca" | "sudah_dibaca">("semua");
 
+  // State untuk fitur kamera/upload gambar
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const myId = user?.id;
 
@@ -97,7 +105,6 @@ function ChatPageInner() {
             buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
           } as any);
         } else if (!chatErr) {
-          // chat tidak ditemukan — reset activeChat supaya tidak nyangkut data lama
           setActiveChat(null);
         }
 
@@ -112,7 +119,6 @@ function ChatPageInner() {
       };
       fetchChat();
     } else {
-      // Reset activeChat ketika balik ke daftar chat
       setActiveChat(null);
       setMessages([]);
 
@@ -124,7 +130,7 @@ function ChatPageInner() {
             product:products(id, name, price, image_url),
             seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
             buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url),
-            messages(id, content, sent_at, sender_id, is_read)
+            messages(id, content, sent_at, sender_id, is_read, image_url, message_type)
           `)
           .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`);
 
@@ -162,20 +168,12 @@ function ChatPageInner() {
         table: 'messages',
         filter: `chat_id=eq.${chatId}`
       }, (payload) => {
-        console.log("[realtime] pesan baru masuk:", payload.new);
         setMessages(prev => {
-          if (prev.find(m => m.id === payload.new.id)) {
-            console.log("[realtime] duplikat, di-skip:", payload.new.id);
-            return prev;
-          }
-          const next = [...prev, payload.new as Message];
-          console.log("[realtime] messages setelah update, total:", next.length);
-          return next;
+          if (prev.find(m => m.id === payload.new.id)) return prev;
+          return [...prev, payload.new as Message];
         });
       })
-      .subscribe((status) => {
-        console.log("[realtime] status subscription untuk chat", chatId, ":", status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -184,7 +182,6 @@ function ChatPageInner() {
 
   // Subscription global: update preview "pesan terakhir" + badge unread
   // di tampilan DAFTAR chat, walau chat itu belum dibuka.
-  // Ini aktif terus selama ChatPage mount, terlepas dari chatId.
   useEffect(() => {
     if (!myId) return;
 
@@ -196,11 +193,8 @@ function ChatPageInner() {
         table: 'messages'
       }, (payload) => {
         const newMsg = payload.new as Message & { chat_id: string };
-        console.log("[realtime-list] pesan baru untuk salah satu chat:", newMsg);
 
         setChats(prev => {
-          // Kalau chat ini belum ada di state (belum pernah di-fetch), abaikan;
-          // fetch awal akan menanganinya saat user buka halaman daftar lagi.
           const idx = prev.findIndex(c => c.id === newMsg.chat_id);
           if (idx === -1) return prev;
 
@@ -208,7 +202,6 @@ function ChatPageInner() {
           const targetChat = updated[idx];
           const existingMsgs = Array.isArray(targetChat.messages) ? targetChat.messages : [];
 
-          // Hindari duplikat
           if (existingMsgs.find(m => m.id === newMsg.id)) return prev;
 
           updated[idx] = {
@@ -234,9 +227,7 @@ function ChatPageInner() {
           };
         }));
       })
-      .subscribe((status) => {
-        console.log("[realtime-list] status subscription daftar chat:", status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(listChannel);
@@ -250,33 +241,22 @@ function ChatPageInner() {
   // Mark messages as read when opening a chat
   useEffect(() => {
     if (chatId && myId) {
-      console.log("[mark-as-read] triggered for chatId:", chatId, "myId:", myId);
       supabase.from('messages')
         .update({ is_read: true })
         .eq('chat_id', chatId)
         .neq('sender_id', myId)
-        .select() // <-- penting: paksa supabase mengembalikan baris yang ter-update
-        .then(({ data, error }) => {
-          console.log("[mark-as-read] result:", { updatedRows: data?.length, error });
+        .then(({ error }) => {
           if (error) {
             console.error("Failed to mark as read:", error);
             return;
           }
-          if (!data || data.length === 0) {
-            console.warn("[mark-as-read] 0 baris ter-update — kemungkinan kena RLS atau chat_id/sender_id tidak match!");
-          }
 
-          // Sinkronkan state lokal supaya badge "belum dibaca" di daftar chat
-          // langsung hilang, tanpa perlu fetch ulang seluruh daftar chat.
-
-          // 1) Update messages di tampilan detail chat (kalau lagi dibuka)
           setMessages(prev =>
             prev.map(m =>
               m.sender_id !== myId ? { ...m, is_read: true } : m
             )
           );
 
-          // 2) Update messages di dalam state `chats` (dipakai daftar chat)
           setChats(prev =>
             prev.map(c =>
               c.id === chatId
@@ -292,24 +272,140 @@ function ChatPageInner() {
         });
     }
   }, [chatId, myId]);
+
+  // Bersihkan object URL preview saat komponen unmount / file berubah,
+  // supaya tidak ada memory leak.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
   // =========================================================
   // AKHIR DARI SEMUA HOOK
   // =========================================================
 
+  function handleFileSelected(file: File | null) {
+    setShowAttachMenu(false);
+    if (!file) return;
+
+    // Validasi sederhana di sisi client (selaras dengan limit bucket: 5MB, tipe gambar)
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Format file tidak didukung. Gunakan JPG, PNG, WEBP, atau GIF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB.");
+      return;
+    }
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  }
+
+  function cancelPreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewFile(null);
+    setPreviewUrl(null);
+  }
+
+  async function uploadImageAndGetUrl(file: File): Promise<string | null> {
+    if (!chatId || !myId) return null;
+
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    // Path konvensi: {chat_id}/{user_id}/{filename} -> dipakai juga oleh RLS storage policy
+    const filePath = `${chatId}/${myId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chat-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error("Gagal upload gambar:", uploadError);
+      toast.error("Gagal mengunggah gambar: " + uploadError.message);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('chat-images')
+      .getPublicUrl(filePath);
+
+    return publicUrlData?.publicUrl || null;
+  }
+
   async function handleSendMessage() {
-    if (!inputText.trim() || !chatId || !myId) return;
+    if (!chatId || !myId) return;
+    if (!inputText.trim() && !previewFile) return;
 
     const content = inputText.trim();
     setInputText("");
 
-    // Optimistic UI Update
+    // ===== Kirim pesan GAMBAR =====
+    if (previewFile) {
+      const fileToUpload = previewFile;
+      cancelPreview();
+      setUploading(true);
+
+      const tempId = `temp-${Date.now()}`;
+      const tempImageUrl = URL.createObjectURL(fileToUpload);
+
+      // Optimistic UI: tampilkan dulu pakai object URL lokal sambil upload jalan
+      const optimisticMsg: Message = {
+        id: tempId,
+        sender_id: myId,
+        content: content,
+        sent_at: new Date().toISOString(),
+        is_read: false,
+        image_url: tempImageUrl,
+        message_type: "image"
+      };
+      setMessages(prev => [...prev, optimisticMsg]);
+
+      const uploadedUrl = await uploadImageAndGetUrl(fileToUpload);
+      setUploading(false);
+
+      if (!uploadedUrl) {
+        // Upload gagal -> rollback optimistic message
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+        URL.revokeObjectURL(tempImageUrl);
+        return;
+      }
+
+      const { data, error } = await supabase.from('messages').insert({
+        chat_id: chatId,
+        sender_id: myId,
+        content: content,
+        image_url: uploadedUrl,
+        message_type: "image",
+        is_read: false
+      }).select().single();
+
+      URL.revokeObjectURL(tempImageUrl);
+
+      if (error) {
+        console.error("Gagal mengirim pesan gambar", error.message);
+        toast.error("Gagal mengirim gambar: " + error.message);
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+      } else if (data) {
+        setMessages(prev => prev.map(m => m.id === tempId ? data : m));
+      }
+      return;
+    }
+
+    // ===== Kirim pesan TEKS biasa =====
     const tempId = `temp-${Date.now()}`;
     const newMessage: Message = {
       id: tempId,
       sender_id: myId,
       content: content,
       sent_at: new Date().toISOString(),
-      is_read: false
+      is_read: false,
+      message_type: "text"
     };
 
     setMessages(prev => [...prev, newMessage]);
@@ -318,17 +414,15 @@ function ChatPageInner() {
       chat_id: chatId,
       sender_id: myId,
       content: content,
+      message_type: "text",
       is_read: false
     }).select().single();
 
     if (error) {
       console.error("Gagal mengirim pesan", error.message);
       toast.error("Gagal mengirim pesan: " + error.message);
-
-      // Rollback optimistic update
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } else if (data) {
-      // Replace temp ID with real ID from database
       setMessages(prev => prev.map(m => m.id === tempId ? data : m));
     }
   }
@@ -361,14 +455,29 @@ function ChatPageInner() {
   });
 
   // ==== TAMPILAN DETAIL CHAT ====
-  // Catatan: ini sekarang HANYA mengontrol JSX yang ditampilkan,
-  // bukan jumlah hook yang dipanggil — jadi aman.
   if (chatId && activeChat) {
     const opponent = getOpponent(activeChat);
     const prod = activeChat.product;
 
     return (
       <div className="flex flex-col h-screen bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
+        {/* Hidden file inputs untuk kamera & galeri */}
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => handleFileSelected(e.target.files?.[0] || null)}
+        />
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleFileSelected(e.target.files?.[0] || null)}
+        />
+
         {/* Chat Header */}
         <div className="bg-primary text-white px-4 pt-10 pb-3 flex items-center gap-3 shadow-md sticky top-0 z-40">
           <button onClick={() => navigate("/chat")} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
@@ -412,15 +521,38 @@ function ChatPageInner() {
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(196,18,48,0.04) 1px, transparent 0)", backgroundSize: "20px 20px" }}>
           {messages.map((msg) => {
             const isMe = msg.sender_id === myId;
+            const isImage = msg.message_type === "image" && msg.image_url;
+
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm relative ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
-                  <p className="text-sm leading-relaxed">
-                    {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
-                  </p>
-                  <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
-                    <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
-                  </div>
+                <div className={`max-w-[75%] rounded-2xl shadow-sm relative ${isImage ? "p-1.5" : "px-4 py-2.5"} ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
+                  {isImage ? (
+                    <div>
+                      <img
+                        src={msg.image_url!}
+                        alt="Lampiran gambar"
+                        className="rounded-xl max-h-72 w-full object-cover cursor-pointer"
+                        onClick={() => window.open(msg.image_url!, '_blank')}
+                      />
+                      {msg.content && (
+                        <p className="text-sm leading-relaxed mt-2 px-1.5">
+                          {String(msg.content)}
+                        </p>
+                      )}
+                      <div className={`flex items-center justify-end gap-1 mt-1 px-1.5 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
+                        <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm leading-relaxed">
+                        {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
+                      </p>
+                      <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
+                        <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             );
@@ -428,12 +560,54 @@ function ChatPageInner() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Preview gambar sebelum kirim */}
+        {previewUrl && (
+          <div className="px-4 pt-3 bg-card border-t border-border">
+            <div className="relative inline-block">
+              <img src={previewUrl} alt="Preview" className="h-24 rounded-xl object-cover border border-border" />
+              <button
+                onClick={cancelPreview}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-neutral-900 text-white rounded-full flex items-center justify-center shadow-md"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Attach menu popup (pilih kamera / galeri) */}
+        {showAttachMenu && (
+          <div className="px-4 pt-2 bg-card border-t border-border flex gap-3">
+            <button
+              onClick={() => { setShowAttachMenu(false); cameraInputRef.current?.click(); }}
+              className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
+            >
+              <Camera size={20} />
+              Kamera
+            </button>
+            <button
+              onClick={() => { setShowAttachMenu(false); galleryInputRef.current?.click(); }}
+              className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
+            >
+              <ImageIcon size={20} />
+              Galeri
+            </button>
+          </div>
+        )}
+
         {/* Input Bar */}
         <div className="bg-card border-t border-border px-4 py-3 flex gap-2 items-end z-40">
+          <button
+            onClick={() => setShowAttachMenu(prev => !prev)}
+            disabled={uploading}
+            className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center shrink-0 text-primary disabled:opacity-50"
+          >
+            <Camera size={18} />
+          </button>
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Tulis Pesan..."
+            placeholder={previewFile ? "Tambahkan keterangan (opsional)..." : "Tulis Pesan..."}
             className="flex-1 bg-secondary text-sm rounded-2xl px-4 py-3 outline-none resize-none max-h-32 text-foreground"
             rows={1}
             onKeyDown={(e) => {
@@ -445,10 +619,14 @@ function ChatPageInner() {
           />
           <button
             onClick={handleSendMessage}
-            disabled={!inputText.trim()}
+            disabled={(!inputText.trim() && !previewFile) || uploading}
             className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shrink-0 disabled:opacity-50 disabled:bg-muted"
           >
-            <Send size={18} className="text-white ml-1" />
+            {uploading ? (
+              <Loader2 size={18} className="text-white animate-spin" />
+            ) : (
+              <Send size={18} className="text-white ml-1" />
+            )}
           </button>
         </div>
       </div>
@@ -514,7 +692,9 @@ function ChatPageInner() {
               });
 
               const lastMsgObj = sortedMessages[0];
-              const lastMsg = lastMsgObj?.content || "Mulai percakapan";
+              const lastMsg = lastMsgObj?.message_type === "image"
+                ? "📷 Foto"
+                : (lastMsgObj?.content || "Mulai percakapan");
               const isUnread = hasUnread(chat);
 
               return (
