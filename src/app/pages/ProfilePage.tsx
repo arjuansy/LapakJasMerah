@@ -48,6 +48,7 @@ import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
 import { authService } from "../../services/authService";
 import { formatPrice, productDescriptions } from "../data";
+import { supabase } from "../../config/supabaseClient";
 
 // ── DAFTAR PENJUALAN ──
 function SalesPage({ onBack }: { onBack: () => void }) {
