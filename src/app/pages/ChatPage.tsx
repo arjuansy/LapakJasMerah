@@ -164,8 +164,13 @@ function ChatPageInner() {
       }, (payload) => {
         console.log("[realtime] pesan baru masuk:", payload.new);
         setMessages(prev => {
-          if (prev.find(m => m.id === payload.new.id)) return prev;
-          return [...prev, payload.new as Message];
+          if (prev.find(m => m.id === payload.new.id)) {
+            console.log("[realtime] duplikat, di-skip:", payload.new.id);
+            return prev;
+          }
+          const next = [...prev, payload.new as Message];
+          console.log("[realtime] messages setelah update, total:", next.length);
+          return next;
         });
       })
       .subscribe((status) => {
@@ -176,6 +181,67 @@ function ChatPageInner() {
       supabase.removeChannel(channel);
     };
   }, [chatId]);
+
+  // Subscription global: update preview "pesan terakhir" + badge unread
+  // di tampilan DAFTAR chat, walau chat itu belum dibuka.
+  // Ini aktif terus selama ChatPage mount, terlepas dari chatId.
+  useEffect(() => {
+    if (!myId) return;
+
+    const listChannel = supabase
+      .channel(`realtime:chats_list:${myId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages'
+      }, (payload) => {
+        const newMsg = payload.new as Message & { chat_id: string };
+        console.log("[realtime-list] pesan baru untuk salah satu chat:", newMsg);
+
+        setChats(prev => {
+          // Kalau chat ini belum ada di state (belum pernah di-fetch), abaikan;
+          // fetch awal akan menanganinya saat user buka halaman daftar lagi.
+          const idx = prev.findIndex(c => c.id === newMsg.chat_id);
+          if (idx === -1) return prev;
+
+          const updated = [...prev];
+          const targetChat = updated[idx];
+          const existingMsgs = Array.isArray(targetChat.messages) ? targetChat.messages : [];
+
+          // Hindari duplikat
+          if (existingMsgs.find(m => m.id === newMsg.id)) return prev;
+
+          updated[idx] = {
+            ...targetChat,
+            messages: [...existingMsgs, newMsg]
+          };
+          return updated;
+        });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages'
+      }, (payload) => {
+        const updatedMsg = payload.new as Message & { chat_id: string };
+
+        setChats(prev => prev.map(c => {
+          if (c.id !== updatedMsg.chat_id) return c;
+          const existingMsgs = Array.isArray(c.messages) ? c.messages : [];
+          return {
+            ...c,
+            messages: existingMsgs.map(m => m.id === updatedMsg.id ? { ...m, ...updatedMsg } : m)
+          };
+        }));
+      })
+      .subscribe((status) => {
+        console.log("[realtime-list] status subscription daftar chat:", status);
+      });
+
+    return () => {
+      supabase.removeChannel(listChannel);
+    };
+  }, [myId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
