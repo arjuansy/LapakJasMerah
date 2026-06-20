@@ -58,6 +58,7 @@ export default function OrderTrackingPage() {
   } = useApp();
   const [showReview, setShowReview] = useState(false);
   const [rating, setRating] = useState(0);
+  const [confirming, setConfirming] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -78,28 +79,36 @@ export default function OrderTrackingPage() {
   };
 
   async function handleConfirmReceipt() {
-    if (!trackingOrder) return;
+    if (!trackingOrder || confirming) return;
+
+    setConfirming(true);
     try {
-      await orderService.updateOrderStatus(trackingOrder.id, 'selesai');
-      // Update active trackingOrder
+      // Ini akan: (a) cek hak akses, (b) cegah double-konfirmasi,
+      // (c) kurangi stok produk terkait secara atomik (aman dari race
+      // condition), (d) update orders.status jadi 'COMPLETED' di database.
+      await orderService.confirmReceiptAndReduceStock(trackingOrder.id);
+
+      // Update tampilan lokal -> status 'selesai' (format frontend)
       setTrackingOrder({
         ...trackingOrder,
         status: "selesai",
       });
 
-      // Update purchase list
       setPurchaseData((prev) =>
         prev.map((p) => p.id === trackingOrder.id ? { ...p, status: "selesai" } : p)
       );
 
-      // Update sales list
       const orderIdNum = trackingOrder.id.slice(-6);
       setSalesData((prev) =>
         prev.map((s) => s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
       );
-    } catch (err) {
+
+      toast.success("Pesanan berhasil dikonfirmasi! Stok produk telah diperbarui.");
+    } catch (err: any) {
       console.error("Gagal konfirmasi pesanan", err);
-      toast.error("Terjadi kesalahan saat mengkonfirmasi pesanan");
+      toast.error(err?.message || "Terjadi kesalahan saat mengonfirmasi pesanan");
+    } finally {
+      setConfirming(false);
     }
   }
 
@@ -186,21 +195,20 @@ export default function OrderTrackingPage() {
               onClick={async () => { 
                 if (rating > 0) {
                   try {
-                    const profile = await authService.getProfile();
-                    if (profile) {
+                    if (user) {
                       await orderService.submitReview({
                         order_id: trackingOrder.id,
                         product_id: trackingOrder.productId || trackingOrder.product,
-                        reviewer_id: profile.id,
+                        reviewer_id: user.id,
                         seller_id: trackingOrder.sellerId || trackingOrder.seller,
                         rating,
                         comment: reviewText
                       });
                     }
                     setReviewSubmitted(true);
-                  } catch (err) {
+                  } catch (err: any) {
                     console.error("Gagal mengirim ulasan", err);
-                    toast.error("Gagal mengirim ulasan");
+                    toast.error(err?.message || "Gagal mengirim ulasan");
                   }
                 } 
               }}
@@ -442,9 +450,18 @@ export default function OrderTrackingPage() {
             </button>
             <button
               onClick={handleConfirmReceipt}
-              className="flex-1 bg-primary text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
+              disabled={confirming}
+              className="flex-1 bg-primary text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              <CheckCircle2 size={15} /> Konfirmasi Terima
+              {confirming ? (
+                <>
+                  <RefreshCw size={15} className="animate-spin" /> Memproses...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={15} /> Konfirmasi Terima
+                </>
+              )}
             </button>
           </div>
         )}

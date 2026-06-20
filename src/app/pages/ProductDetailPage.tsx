@@ -60,7 +60,8 @@ export default function ProductDetailPage() {
         rating: 0,
         sold: 0,
         description: p.description || "",
-        stock: p.stock || 1
+        stock: p.stock ?? 0,             // <-- pastikan ini ada
+        status: p.status || "AVAILABLE"  // <-- tambahkan ini
       });
       setLoading(false);
     };
@@ -73,6 +74,7 @@ export default function ProductDetailPage() {
 
   const sellerAvatar = product.sellerAvatar || "";
   const desc = product.description || "";
+  const isOutOfStock = product.stock <= 0 || product.status === "OUT_OF_STOCK";
 
   const imgs = product.image ? [product.image] : [];
 
@@ -338,11 +340,13 @@ export default function ProductDetailPage() {
             {product.originalPrice && (
               <span className="text-muted-foreground text-sm line-through pb-0.5">{formatPrice(product.originalPrice)}</span>
             )}
-            {product.isNew && (
+            {product.isNew && !isOutOfStock && (
               <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full pb-0.5">BARU</span>
             )}
-            {product.stock === 0 && (
-              <span className="bg-red-100 text-primary text-[10px] font-black px-2 py-0.5 rounded-full pb-0.5">STOK HABIS</span>
+            {isOutOfStock && (
+              <span className="bg-neutral-200 text-neutral-600 text-[10px] font-black px-2 py-0.5 rounded-full pb-0.5">
+                STOK HABIS
+              </span>
             )}
           </div>
 
@@ -354,6 +358,10 @@ export default function ProductDetailPage() {
             </div>
             <div className="w-px h-4 bg-border" />
             <span className="text-sm text-muted-foreground">{product.sold} terjual</span>
+            <div className="w-px h-4 bg-border" />
+            <span className={`text-sm font-semibold ${isOutOfStock ? "text-red-500" : "text-muted-foreground"}`}>
+              {isOutOfStock ? "Stok habis" : `Sisa ${product.stock} stok`}
+            </span>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-1">
               <MapPin size={12} className="text-muted-foreground" />
@@ -484,14 +492,16 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-8 h-8 rounded-full border-2 border-border flex items-center justify-center text-foreground font-bold text-lg"
+                disabled={isOutOfStock}
+                className="w-8 h-8 rounded-full border-2 border-border flex items-center justify-center text-foreground font-bold text-lg disabled:opacity-40"
               >
                 −
               </button>
               <span className="text-foreground font-black text-base w-6 text-center">{qty}</span>
               <button
-                onClick={() => setQty((q) => q + 1)}
-                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg"
+                onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                disabled={isOutOfStock || qty >= product.stock}
+                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg disabled:opacity-40 disabled:bg-muted"
               >
                 +
               </button>
@@ -571,9 +581,8 @@ export default function ProductDetailPage() {
               Chat
             </button>
             <button
-              disabled={product.stock === 0}
               onClick={() => {
-                if (product.stock === 0) return;
+                if (isOutOfStock) return;
                 if (!user) {
                   toast.error("Anda harus login terlebih dahulu untuk membeli barang.");
                   navigate("/auth");
@@ -581,10 +590,11 @@ export default function ProductDetailPage() {
                 }
                 setShowOrder(true);
               }}
-              className={`flex-[2] text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg ${product.stock === 0 ? "bg-muted-foreground cursor-not-allowed opacity-80" : "bg-primary"}`}
+              disabled={isOutOfStock}
+              className="flex-[2] bg-primary text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
             >
               <ShoppingCart size={15} />
-              {product.stock === 0 ? "Stok Habis" : "Beli Sekarang"}
+              {isOutOfStock ? "Stok Habis" : "Beli Sekarang"}
             </button>
           </div>
         </div>
