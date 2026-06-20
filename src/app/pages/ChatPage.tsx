@@ -181,14 +181,20 @@ function ChatPageInner() {
   // Mark messages as read when opening a chat
   useEffect(() => {
     if (chatId && myId) {
+      console.log("[mark-as-read] triggered for chatId:", chatId, "myId:", myId);
       supabase.from('messages')
         .update({ is_read: true })
         .eq('chat_id', chatId)
         .neq('sender_id', myId)
-        .then(({ error }) => {
+        .select() // <-- penting: paksa supabase mengembalikan baris yang ter-update
+        .then(({ data, error }) => {
+          console.log("[mark-as-read] result:", { updatedRows: data?.length, error });
           if (error) {
             console.error("Failed to mark as read:", error);
             return;
+          }
+          if (!data || data.length === 0) {
+            console.warn("[mark-as-read] 0 baris ter-update — kemungkinan kena RLS atau chat_id/sender_id tidak match!");
           }
 
           // Sinkronkan state lokal supaya badge "belum dibaca" di daftar chat
