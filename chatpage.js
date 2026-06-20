@@ -1,0 +1,29 @@
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Lapak Jas Merah</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+      <meta name="description" content="This mobile-friendly platform facilitates buying and selling specifically for students at Universitas Muhammadiyah Malang, enhancing campus commerce." />
+      <meta name="robots" content="noindex, nofollow" />
+      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+      <!-- Midtrans Snap JS -->
+      <script type="text/javascript"
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="SB-Mid-client-dummy"></script>
+      
+      <script type="module" crossorigin src="/assets/index-DpOB6UcV.js"></script>
+      <script type="module" crossorigin src="/assets/main-yRNMOvJB.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-K3EawOMn.css">
+    </head>
+
+    <body>
+      
+      <div id="root"></div>
+      
+    </body>
+  </html>
+  
