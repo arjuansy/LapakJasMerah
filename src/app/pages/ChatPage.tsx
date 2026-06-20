@@ -266,7 +266,8 @@ export default function ChatPage() {
 
   // Determine unread status for a chat
   const hasUnread = (chat: Chat) => {
-    return chat.messages?.some(m => m.sender_id !== myId && m.is_read === false);
+    if (!chat || !chat.messages || !Array.isArray(chat.messages)) return false;
+    return chat.messages.some(m => m.sender_id !== myId && m.is_read === false);
   };
 
   const filteredChats = chats.filter(chat => {
@@ -334,7 +335,13 @@ export default function ChatPage() {
               const opp = getOpponent(chat);
               
               // Sort messages to get the latest one reliably
-              const sortedMessages = chat.messages ? [...chat.messages].sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()) : [];
+              const msgsArray = Array.isArray(chat.messages) ? chat.messages : [];
+              const sortedMessages = [...msgsArray].sort((a, b) => {
+                const timeA = a.sent_at ? new Date(a.sent_at).getTime() : 0;
+                const timeB = b.sent_at ? new Date(b.sent_at).getTime() : 0;
+                return timeB - timeA;
+              });
+              
               const lastMsgObj = sortedMessages[0];
               const lastMsg = lastMsgObj?.content || "Mulai percakapan";
               const isUnread = hasUnread(chat);
@@ -348,10 +355,10 @@ export default function ChatPage() {
                     <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
                     <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
-                      <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp.name}</p>
+                      <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp?.name || "Pengguna"}</p>
                       {lastMsgObj && (
                         <span className={`text-[10px] whitespace-nowrap ${isUnread ? "text-primary font-bold" : "text-muted-foreground"}`}>
-                          {formatTime(lastMsgObj.sent_at)}
+                          {lastMsgObj.sent_at ? formatTime(lastMsgObj.sent_at) : ""}
                         </span>
                       )}
                     </div>
@@ -363,7 +370,7 @@ export default function ChatPage() {
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded-md font-medium border border-border truncate max-w-[150px]">
-                        {chat.product?.name}
+                        {chat?.product?.name || "Produk"}
                       </span>
                     </div>
                   </div>
