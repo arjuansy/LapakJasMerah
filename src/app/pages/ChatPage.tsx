@@ -11,6 +11,7 @@ interface Message {
   sender_id: string;
   content: string;
   sent_at: string;
+  is_read?: boolean;
 }
 
 interface Chat {
@@ -47,14 +48,20 @@ function ChatPageInner() {
   const navigate = useNavigate();
   const { chatId } = useParams<{ chatId: string }>();
   const { user } = useAuth();
-  
+
+  // =========================================================
+  // SEMUA HOOK HARUS DI SINI, DI PALING ATAS, TANPA TERKECUALI.
+  // Jangan ada hook lagi di bawah setelah ini, dan jangan ada
+  // `if (...) return ...` di ATAS baris-baris hook ini.
+  // =========================================================
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
-  
+  const [filter, setFilter] = useState<"semua" | "belum_dibaca" | "sudah_dibaca">("semua");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const myId = user?.id;
 
   // Fetch list of chats if no chatId, or fetch specific chat messages
@@ -73,12 +80,12 @@ function ChatPageInner() {
           `)
           .eq('id', chatId)
           .maybeSingle();
-          
+
         if (chatErr) console.error("Error fetching chat:", chatErr.message);
-          
+
         if (chatData) {
           const extractObj = (rel: any) => Array.isArray(rel) ? rel[0] : rel;
-          
+
           const sellerObj = extractObj(chatData.seller);
           const buyerObj = extractObj(chatData.buyer);
           const productObj = extractObj(chatData.product);
@@ -89,19 +96,26 @@ function ChatPageInner() {
             seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
             buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
           } as any);
+        } else if (!chatErr) {
+          // chat tidak ditemukan — reset activeChat supaya tidak nyangkut data lama
+          setActiveChat(null);
         }
-        
+
         const { data: msgs, error: msgErr } = await supabase
           .from('messages')
           .select('*')
           .eq('chat_id', chatId)
           .order('sent_at', { ascending: true });
-          
+
         if (msgErr) console.error("Error fetching messages:", msgErr.message);
         if (msgs) setMessages(msgs);
       };
       fetchChat();
     } else {
+      // Reset activeChat ketika balik ke daftar chat
+      setActiveChat(null);
+      setMessages([]);
+
       const fetchAllChats = async () => {
         const { data, error } = await supabase
           .from('chats')
@@ -110,19 +124,19 @@ function ChatPageInner() {
             product:products(id, name, price, image_url),
             seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
             buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url),
-            messages(id, content, sent_at, sender_id)
+            messages(id, content, sent_at, sender_id, is_read)
           `)
           .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`);
-          
+
         if (error) console.error("Error fetching all chats:", error.message);
-          
+
         if (data) {
           const extractObj = (rel: any) => Array.isArray(rel) ? rel[0] : rel;
 
           const mapped = data.map((c: any) => {
              const sellerObj = extractObj(c.seller);
              const buyerObj = extractObj(c.buyer);
-             
+
              return {
                ...c,
                product: extractObj(c.product),
@@ -164,9 +178,25 @@ function ChatPageInner() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Mark messages as read when opening a chat
+  useEffect(() => {
+    if (chatId && myId) {
+      supabase.from('messages')
+        .update({ is_read: true })
+        .eq('chat_id', chatId)
+        .neq('sender_id', myId)
+        .then(({ error }) => {
+          if (error) console.error("Failed to mark as read:", error);
+        });
+    }
+  }, [chatId, myId]);
+  // =========================================================
+  // AKHIR DARI SEMUA HOOK
+  // =========================================================
+
   async function handleSendMessage() {
     if (!inputText.trim() || !chatId || !myId) return;
-    
+
     const content = inputText.trim();
     setInputText("");
 
@@ -178,7 +208,7 @@ function ChatPageInner() {
       content: content,
       sent_at: new Date().toISOString()
     };
-    
+
     setMessages(prev => [...prev, newMessage]);
 
     const { data, error } = await supabase.from('messages').insert({
@@ -190,7 +220,7 @@ function ChatPageInner() {
     if (error) {
       console.error("Gagal mengirim pesan", error.message);
       toast.error("Gagal mengirim pesan: " + error.message);
-      
+
       // Rollback optimistic update
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } else if (data) {
@@ -201,11 +231,10 @@ function ChatPageInner() {
 
   function getOpponent(chat: Chat) {
     if (!chat) return { name: "Pengguna", avatar_url: "/default-avatar.png", id: "" };
-    
-    // Safely check buyer and seller
+
     const buyer = chat.buyer || { id: "", name: "Pembeli Hapus", avatar_url: "" };
     const seller = chat.seller || { id: "", name: "Penjual Hapus", avatar_url: "" };
-    
+
     return buyer.id === myId ? seller : buyer;
   }
 
@@ -214,11 +243,26 @@ function ChatPageInner() {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
+  const hasUnread = (chat: Chat) => {
+    if (!chat || !chat.messages || !Array.isArray(chat.messages)) return false;
+    return chat.messages.some(m => m.sender_id !== myId && m.is_read === false);
+  };
+
+  const filteredChats = chats.filter(chat => {
+    if (filter === "semua") return true;
+    const unread = hasUnread(chat);
+    if (filter === "belum_dibaca") return unread;
+    if (filter === "sudah_dibaca") return !unread;
+    return true;
+  });
+
   // ==== TAMPILAN DETAIL CHAT ====
+  // Catatan: ini sekarang HANYA mengontrol JSX yang ditampilkan,
+  // bukan jumlah hook yang dipanggil — jadi aman.
   if (chatId && activeChat) {
     const opponent = getOpponent(activeChat);
     const prod = activeChat.product;
-    
+
     return (
       <div className="flex flex-col h-screen bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
         {/* Chat Header */}
@@ -307,34 +351,14 @@ function ChatPageInner() {
     );
   }
 
-  const [filter, setFilter] = useState<"semua" | "belum_dibaca" | "sudah_dibaca">("semua");
-
-  // Determine unread status for a chat
-  const hasUnread = (chat: Chat) => {
-    if (!chat || !chat.messages || !Array.isArray(chat.messages)) return false;
-    return chat.messages.some(m => m.sender_id !== myId && m.is_read === false);
-  };
-
-  const filteredChats = chats.filter(chat => {
-    if (filter === "semua") return true;
-    const unread = hasUnread(chat);
-    if (filter === "belum_dibaca") return unread;
-    if (filter === "sudah_dibaca") return !unread;
-    return true;
-  });
-
-  // Mark messages as read when opening a chat
-  useEffect(() => {
-    if (chatId && myId) {
-      supabase.from('messages')
-        .update({ is_read: true })
-        .eq('chat_id', chatId)
-        .neq('sender_id', myId)
-        .then(({ error }) => {
-          if (error) console.error("Failed to mark as read:", error);
-        });
-    }
-  }, [chatId, myId]);
+  // ==== LOADING STATE: chatId ada tapi activeChat belum siap ====
+  if (chatId && !activeChat) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <p className="text-muted-foreground text-sm">Memuat percakapan...</p>
+      </div>
+    );
+  }
 
   // ==== TAMPILAN DAFTAR CHAT ====
   return (
@@ -348,7 +372,7 @@ function ChatPageInner() {
             <h1 className="text-xl font-black tracking-tight">Pesan</h1>
           </div>
         </div>
-        
+
         {/* Filter Chips */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {[
@@ -378,15 +402,14 @@ function ChatPageInner() {
           <div className="divide-y divide-border">
             {filteredChats.map((chat) => {
               const opp = getOpponent(chat);
-              
-              // Sort messages to get the latest one reliably
+
               const msgsArray = Array.isArray(chat.messages) ? chat.messages : [];
               const sortedMessages = [...msgsArray].sort((a, b) => {
                 const timeA = a.sent_at ? new Date(a.sent_at).getTime() : 0;
                 const timeB = b.sent_at ? new Date(b.sent_at).getTime() : 0;
                 return timeB - timeA;
               });
-              
+
               const lastMsgObj = sortedMessages[0];
               const lastMsg = lastMsgObj?.content || "Mulai percakapan";
               const isUnread = hasUnread(chat);
