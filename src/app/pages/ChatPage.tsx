@@ -40,42 +40,60 @@ export default function ChatPage() {
 
     if (chatId) {
       const fetchChat = async () => {
-        const { data: chatData } = await supabase
+        const { data: chatData, error: chatErr } = await supabase
           .from('chats')
           .select(`
             id,
             product:products(id, name, price, image_url),
-            seller:profiles!chats_seller_id_fkey(id, name, avatar_url),
-            buyer:profiles!chats_buyer_id_fkey(id, name, avatar_url)
+            seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
+            buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url)
           `)
           .eq('id', chatId)
-          .single();
+          .maybeSingle();
           
-        if (chatData) setActiveChat(chatData as any);
+        if (chatErr) console.error("Error fetching chat:", chatErr.message);
+          
+        if (chatData) {
+          setActiveChat({
+            ...chatData,
+            seller: { ...chatData.seller, name: chatData.seller?.full_name },
+            buyer: { ...chatData.buyer, name: chatData.buyer?.full_name }
+          } as any);
+        }
         
-        const { data: msgs } = await supabase
+        const { data: msgs, error: msgErr } = await supabase
           .from('messages')
           .select('*')
           .eq('chat_id', chatId)
           .order('sent_at', { ascending: true });
           
+        if (msgErr) console.error("Error fetching messages:", msgErr.message);
         if (msgs) setMessages(msgs);
       };
       fetchChat();
     } else {
       const fetchAllChats = async () => {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('chats')
           .select(`
             id,
             product:products(id, name, price, image_url),
-            seller:profiles!chats_seller_id_fkey(id, name, avatar_url),
-            buyer:profiles!chats_buyer_id_fkey(id, name, avatar_url),
+            seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
+            buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url),
             messages(id, content, sent_at, sender_id)
           `)
           .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`);
           
-        if (data) setChats(data as any);
+        if (error) console.error("Error fetching all chats:", error.message);
+          
+        if (data) {
+          const mapped = data.map((c: any) => ({
+             ...c,
+             seller: { ...c.seller, name: c.seller?.full_name },
+             buyer: { ...c.buyer, name: c.buyer?.full_name }
+          }));
+          setChats(mapped as any);
+        }
       };
       fetchAllChats();
     }
