@@ -330,7 +330,6 @@ export default function App() {
             .then(({ data }) => {
               if (data) {
                 setUnreadChatCount(prev => prev + 1);
-                toast.success("Pesan baru masuk!");
               }
             });
         }

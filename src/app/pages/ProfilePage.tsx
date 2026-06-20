@@ -877,6 +877,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
   const item = editingItem!;
 
   const [photos, setPhotos] = useState<string[]>([item.image]);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: item.name,
     category: "Elektronik",
@@ -923,49 +924,80 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     return e;
   }
 
-  function handleSave() {
+  async function handleSave() {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
     
+    setSaving(true);
     const numericPrice = Number(form.price.replace(/\./g, ""));
     const numericStock = parseInt(form.stock) || 0;
     const updatedImage = photos[0] || item.image;
+    const newStatus = numericStock === 0 ? "OUT_OF_STOCK" : "AVAILABLE";
 
-    // Update global listings state
-    setListings((prevListings) =>
-      prevListings.map((l) =>
-        l.id === item.id
-          ? {
-              ...l,
-              name: form.title,
-              price: numericPrice,
-              image: updatedImage,
-              status: numericStock === 0 ? "habis" : "aktif",
-              stock: numericStock,
-            }
-          : l
-      )
-    );
+    try {
+      let categoryId = 6;
+      const { data: catData } = await supabase.from('categories').select('id').ilike('name', form.category).single();
+      if (catData) categoryId = catData.id;
 
-    // Update global products state
-    setProducts((prevProducts) =>
-      prevProducts.map((p) =>
-        p.id === item.id
-          ? {
-              ...p,
-              name: form.title,
-              price: numericPrice,
-              image: updatedImage,
-              location: form.location,
-              stock: numericStock,
-            }
-          : p
-      )
-    );
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name: form.title,
+          price: numericPrice,
+          stock: numericStock,
+          description: form.description,
+          condition: form.condition,
+          location: form.location,
+          image_url: updatedImage,
+          category_id: categoryId,
+          status: newStatus
+        })
+        .eq('id', item.id);
 
-    setSaved(true);
-    setTimeout(() => { setSaved(false); onBack(); }, 1500);
+      if (error) throw error;
+
+      // Update global listings state
+      setListings((prevListings) =>
+        prevListings.map((l) =>
+          l.id === item.id
+            ? {
+                ...l,
+                name: form.title,
+                price: numericPrice,
+                image: updatedImage,
+                status: numericStock === 0 ? "habis" : "aktif",
+                stock: numericStock,
+              }
+            : l
+        )
+      );
+
+      // Update global products state
+      setProducts((prevProducts) =>
+        prevProducts.map((p) =>
+          p.id === item.id
+            ? {
+                ...p,
+                name: form.title,
+                price: numericPrice,
+                image: updatedImage,
+                location: form.location,
+                stock: numericStock,
+                status: newStatus,
+              }
+            : p
+        )
+      );
+
+      triggerToast("Produk berhasil diperbarui!", "success");
+      setSaved(true);
+      setTimeout(() => { setSaved(false); setSaving(false); onBack(); }, 1500);
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err?.message || "Gagal menyimpan perubahan.", "error");
+      setSaving(false);
+    }
   }
 
   function handleDelete() {
@@ -1227,9 +1259,18 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
             <AlertCircle size={11} /> Mohon lengkapi data yang masih kosong
           </p>
         )}
-        <button onClick={handleSave}
-          className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
-          {saved ? <><CheckCircle2 size={18} /> Perubahan Tersimpan!</> : "Simpan Perubahan"}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-primary text-white font-black py-4 rounded-xl shadow-lg shadow-primary/25 active:scale-[0.98] transition-transform flex flex-col items-center justify-center disabled:opacity-50"
+        >
+          {saving ? (
+            <span className="flex items-center gap-2">Menyimpan...</span>
+          ) : saved ? (
+            <span className="flex items-center gap-2"><CheckCircle2 size={18} /> Berhasil Disimpan!</span>
+          ) : (
+            "Simpan Perubahan"
+          )}
         </button>
       </div>
     </div>
