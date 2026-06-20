@@ -77,10 +77,17 @@ function ChatPageInner() {
         if (chatErr) console.error("Error fetching chat:", chatErr.message);
           
         if (chatData) {
+          const extractObj = (rel: any) => Array.isArray(rel) ? rel[0] : rel;
+          
+          const sellerObj = extractObj(chatData.seller);
+          const buyerObj = extractObj(chatData.buyer);
+          const productObj = extractObj(chatData.product);
+
           setActiveChat({
             ...chatData,
-            seller: { ...chatData.seller, name: chatData.seller?.full_name },
-            buyer: { ...chatData.buyer, name: chatData.buyer?.full_name }
+            product: productObj,
+            seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
+            buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
           } as any);
         }
         
@@ -126,7 +133,7 @@ function ChatPageInner() {
     if (!chatId) return;
 
     const channel = supabase
-      .channel('realtime:messages')
+      .channel(`realtime:messages:${chatId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -225,7 +232,7 @@ function ChatPageInner() {
         {prod && (
           <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm">
             <div className="flex items-center gap-3 bg-secondary/80 rounded-xl p-2.5">
-              <img src={prod?.image_url} alt={String(prod?.name)} className="w-11 h-11 rounded-lg object-cover bg-muted shrink-0" />
+              <img src={prod?.image_url || "/default-banner.jpg"} alt={String(prod?.name)} className="w-11 h-11 rounded-lg object-cover bg-muted shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-muted-foreground font-medium leading-none mb-0.5">Kamu bertanya tentang produk ini</p>
                 <p className="text-foreground font-bold text-xs truncate">
