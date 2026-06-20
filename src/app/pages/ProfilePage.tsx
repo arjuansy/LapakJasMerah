@@ -886,6 +886,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     meetup: "",
     phone: "081234567890",
     status: item.status,
+    stock: item.stock !== undefined ? item.stock.toString() : "1",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
@@ -914,6 +915,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     if (!form.category) e.category = "Pilih kategori";
     if (!form.condition) e.condition = "Pilih kondisi";
     if (!form.price.trim()) e.price = "Harga wajib diisi";
+    if (!form.stock.trim() || parseInt(form.stock) < 0) e.stock = "Stok tidak valid";
     if (!form.description.trim()) e.description = "Deskripsi wajib diisi";
     if (!form.location) e.location = "Pilih lokasi";
     return e;
@@ -925,6 +927,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     if (Object.keys(e).length > 0) return;
     
     const numericPrice = Number(form.price.replace(/\./g, ""));
+    const numericStock = parseInt(form.stock) || 0;
     const updatedImage = photos[0] || item.image;
 
     // Update global listings state
@@ -937,6 +940,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
               price: numericPrice,
               image: updatedImage,
               status: form.status,
+              stock: numericStock,
             }
           : l
       )
@@ -952,6 +956,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
               price: numericPrice,
               image: updatedImage,
               location: form.location,
+              stock: numericStock,
             }
           : p
       )
@@ -1148,6 +1153,14 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
                   = <span className="font-semibold text-foreground">{Number(form.price.replace(/\./g, "")).toLocaleString("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 })}</span>
                 </p>
               )}
+            </div>
+            <div className="px-4 py-3.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Stok Barang <span className="text-primary">*</span></label>
+              <input type="text" inputMode="numeric" value={form.stock}
+                onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value.replace(/\D/g, "") }))}
+                placeholder="0"
+                className="w-full text-foreground font-bold text-base bg-transparent outline-none placeholder:text-muted-foreground" />
+              {errors.stock && <p className="text-primary text-[11px] mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.stock}</p>}
             </div>
             <div className="px-4 py-3.5 flex items-center justify-between">
               <div>
