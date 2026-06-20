@@ -939,7 +939,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
               name: form.title,
               price: numericPrice,
               image: updatedImage,
-              status: form.status,
+              status: numericStock === 0 ? "habis" : "aktif",
               stock: numericStock,
             }
           : l
@@ -1021,27 +1021,6 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="px-4 space-y-5 pt-5">
-
-        {/* Status toggle */}
-        <div className="bg-card rounded-2xl border border-border p-4 flex items-center justify-between">
-          <div>
-            <p className="text-foreground font-bold text-sm">Status Iklan</p>
-            <p className="text-muted-foreground text-xs mt-0.5">
-              {form.status === "aktif" ? "Iklan sedang tayang dan bisa ditemukan pembeli" : "Iklan disembunyikan sementara"}
-            </p>
-          </div>
-          <button
-            onClick={() => setForm((f) => ({ ...f, status: f.status === "aktif" ? "habis" : "aktif" }))}
-            className="flex items-center gap-2 shrink-0"
-          >
-            <span className="text-xs font-bold" style={{ color: form.status === "aktif" ? "#10B981" : "#EF4444" }}>
-              {form.status === "aktif" ? "Aktif" : "Nonaktif"}
-            </span>
-            {form.status === "aktif"
-              ? <ToggleRight size={32} className="text-green-500" />
-              : <ToggleLeft size={32} className="text-muted-foreground" />}
-          </button>
-        </div>
 
         {/* Photos */}
         <section>
@@ -2447,25 +2426,6 @@ export default function ProfilePage() {
                     className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center cursor-pointer active:scale-95"
                   >
                     <Edit3 size={13} className="text-primary" />
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setListings((prev) =>
-                        prev.map((it) =>
-                          it.id === item.id
-                            ? { ...it, status: it.status === "aktif" ? "habis" : "aktif" }
-                            : it
-                        )
-                      );
-                      triggerToast(
-                        `Status "${item.name}" diubah menjadi ${
-                          item.status === "aktif" ? "Stok Habis" : "Aktif"
-                        }`
-                      );
-                    }}
-                    className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center cursor-pointer active:scale-95"
-                  >
-                    <MoreVertical size={13} className="text-muted-foreground" />
                   </button>
                 </div>
               </div>
