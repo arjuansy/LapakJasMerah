@@ -212,10 +212,12 @@ function ChatPageInner() {
             <ArrowLeft size={20} className="text-white" />
           </button>
           <div className="relative">
-            <img src={opponent.avatar_url || "/default-avatar.png"} alt={opponent.name} className="w-9 h-9 rounded-full object-cover border-2 border-white/30" />
+            <img src={opponent?.avatar_url || "/default-avatar.png"} alt={String(opponent?.name || "Pengguna")} className="w-9 h-9 rounded-full object-cover border-2 border-white/30" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm leading-tight truncate">{opponent.name}</p>
+            <p className="font-bold text-sm leading-tight truncate">
+              {typeof opponent?.name === 'object' ? JSON.stringify(opponent.name) : String(opponent?.name || "Pengguna")}
+            </p>
           </div>
         </div>
 
@@ -223,11 +225,15 @@ function ChatPageInner() {
         {prod && (
           <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm">
             <div className="flex items-center gap-3 bg-secondary/80 rounded-xl p-2.5">
-              <img src={prod.image_url} alt={prod.name} className="w-11 h-11 rounded-lg object-cover bg-muted shrink-0" />
+              <img src={prod?.image_url} alt={String(prod?.name)} className="w-11 h-11 rounded-lg object-cover bg-muted shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-muted-foreground font-medium leading-none mb-0.5">Kamu bertanya tentang produk ini</p>
-                <p className="text-foreground font-bold text-xs truncate">{prod.name}</p>
-                <p className="text-primary font-black text-xs">Rp {prod.price}</p>
+                <p className="text-foreground font-bold text-xs truncate">
+                  {typeof prod?.name === 'object' ? JSON.stringify(prod.name) : String(prod?.name || "")}
+                </p>
+                <p className="text-primary font-black text-xs">
+                  Rp {typeof prod?.price === 'object' ? JSON.stringify(prod.price) : String(prod?.price || 0)}
+                </p>
               </div>
               <button
                 onClick={() => navigate(`/product/${prod.id}`)}
@@ -246,9 +252,11 @@ function ChatPageInner() {
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm relative ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
-                  <p className="text-sm leading-relaxed">{msg.content}</p>
+                  <p className="text-sm leading-relaxed">
+                    {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
+                  </p>
                   <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
-                    <span className="text-[9px] font-medium">{formatTime(msg.sent_at)}</span>
+                    <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
                   </div>
                 </div>
               </div>
