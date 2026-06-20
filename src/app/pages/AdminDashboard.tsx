@@ -466,12 +466,22 @@ export default function AdminDashboard({
 
   // Notification panel state
   const [showNotifications, setShowNotifications] = useState(false);
-  const notifications = [
-    { id: 1, text: "KostDinoyo mendaftar sebagai Penjual baru", time: "5 menit lalu", type: "seller" },
-    { id: 2, text: "Laporan baru masuk dari Budi Setiawan", time: "15 menit lalu", type: "report" },
-    { id: 3, text: "Pembayaran premium Rp 500 oleh KostDinoyo menunggu persetujuan", time: "1 jam lalu", type: "subscription" },
-    { id: 4, text: "Iklan 'Nasi Kotak Ayam Bakar UMM' butuh verifikasi", time: "3 jam lalu", type: "listing" },
-  ];
+  const notifications = useMemo(() => {
+    const notifs: any[] = [];
+    sellers.filter(s => s.status === 'Pending').forEach(s => {
+      notifs.push({ id: `seller-${s.id}`, text: `${s.shopName} mendaftar sebagai Penjual baru`, time: s.registeredAt, type: "seller" });
+    });
+    reports.filter(r => r.status === 'Terbuka').forEach(r => {
+      notifs.push({ id: `report-${r.id}`, text: `Laporan masuk dari ${r.reporterName}`, time: r.createdAt, type: "report" });
+    });
+    subscriptions.filter(s => s.status === 'Pending').forEach(s => {
+      notifs.push({ id: `sub-${s.id}`, text: `Pembayaran premium Rp ${s.price} oleh ${s.sellerName} menunggu persetujuan`, time: s.requestedAt, type: "subscription" });
+    });
+    listings.filter(l => l.status === 'Pending').forEach(l => {
+      notifs.push({ id: `listing-${l.id}`, text: `Iklan '${l.title}' butuh verifikasi`, time: l.createdAt, type: "listing" });
+    });
+    return notifs.sort((a, b) => b.time.localeCompare(a.time));
+  }, [sellers, reports, subscriptions, listings]);
 
   // Responsive Sidebar Menu Toggle for Mobile
   const [sidebarOpen, setSidebarOpen] = useState(false);

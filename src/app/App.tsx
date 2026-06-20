@@ -431,7 +431,10 @@ export default function App() {
           {/* Admin routes protected by AdminRoute */}
           <Route path="/admin/*" element={
             <AdminRoute>
-              <AdminDashboard onLogout={() => {}} />
+              <AdminDashboard onLogout={async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/";
+              }} />
             </AdminRoute>
           } />
           
