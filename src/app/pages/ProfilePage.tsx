@@ -2218,8 +2218,8 @@ export default function ProfilePage() {
           onClick={() => !profile?.is_verified_seller && setShowBadgePay(true)}
           className={`w-full rounded-2xl border-2 p-4 flex items-center gap-3 text-left transition-all shadow-sm ${
             profile?.is_verified_seller
-              ? "bg-blue-50 border-blue-100"
-              : "bg-card border-border active:scale-[0.98] hover:border-blue-200"
+              ? "bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800"
+              : "bg-card border-border active:scale-[0.98] hover:border-blue-200 dark:hover:border-blue-800"
           }`}
         >
           <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
