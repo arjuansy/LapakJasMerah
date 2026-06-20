@@ -14,7 +14,7 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { purchaseData, setPurchaseData, salesData, setSalesData, profileAvatar, products, wishlist, toggleWishlist, setRequests, setShowPostRequestModal, setShowSuggestionBox } = useApp();
+  const { purchaseData, setPurchaseData, salesData, setSalesData, profileAvatar, products, wishlist, toggleWishlist, setRequests, setShowPostRequestModal, setShowSuggestionBox, setTrackingOrder } = useApp();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +96,20 @@ export default function ProductDetailPage() {
 
   function launchTracking() {
     const orderId = (window as any).currentOrderId;
-    if (orderId) {
+    if (orderId && product) {
+      setTrackingOrder({
+        id: orderId.toString(),
+        product: product.name,
+        productId: product.id.toString(),
+        image: product.image || "",
+        seller: product.seller,
+        sellerId: product.seller_id,
+        price: product.price,
+        qty: qty,
+        payment: selectedPayment,
+        location: product.location,
+        status: "dikonfirmasi"
+      });
       setOrdered(false);
       navigate(`/order/${orderId}`);
     } else {
@@ -709,6 +722,12 @@ export default function ProductDetailPage() {
                         
                         (window as any).currentOrderId = createdOrderId;
                         
+                        if (selectedPayment === "cod") {
+                          setShowOrder(false);
+                          setOrdered(true);
+                          return;
+                        }
+
                         try {
                           const paymentRes = await fetch('/api/pay', {
                             method: 'POST',
