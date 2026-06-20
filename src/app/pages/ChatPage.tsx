@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Phone, MoreVertical, Send } from "lucide-react";
 import { useApp } from "../context";
@@ -21,7 +21,29 @@ interface Chat {
   messages: Message[];
 }
 
-export default function ChatPage() {
+class ChatErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-red-100 text-red-900 h-screen overflow-auto">
+          <h1 className="font-bold text-xl mb-2">Error in ChatPage!</h1>
+          <p className="font-mono text-sm whitespace-pre-wrap">{this.state.error?.toString()}</p>
+          <p className="font-mono text-xs whitespace-pre-wrap mt-4">{this.state.error?.stack}</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function ChatPageInner() {
   const navigate = useNavigate();
   const { chatId } = useParams<{ chatId: string }>();
   const { user } = useAuth();
@@ -382,5 +404,13 @@ export default function ChatPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <ChatErrorBoundary>
+      <ChatPageInner />
+    </ChatErrorBoundary>
   );
 }
