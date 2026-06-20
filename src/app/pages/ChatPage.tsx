@@ -162,12 +162,15 @@ function ChatPageInner() {
         table: 'messages',
         filter: `chat_id=eq.${chatId}`
       }, (payload) => {
+        console.log("[realtime] pesan baru masuk:", payload.new);
         setMessages(prev => {
           if (prev.find(m => m.id === payload.new.id)) return prev;
           return [...prev, payload.new as Message];
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[realtime] status subscription untuk chat", chatId, ":", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
