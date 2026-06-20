@@ -151,7 +151,14 @@ export default function StorePage() {
                 className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm cursor-pointer active:scale-95 transition-transform">
                 <div className="relative">
                   <img src={p.image} alt={p.name} className="w-full h-32 object-cover bg-muted" />
-                  {p.discount && <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">-{p.discount}%</span>}
+                  {p.discount && <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md z-10">-{p.discount}%</span>}
+                  {p.stock === 0 && (
+                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                      <span className="bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-sm">
+                        Stok Habis
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-2.5">
                   <p className="text-xs font-semibold text-foreground line-clamp-2 mb-1">{p.name}</p>

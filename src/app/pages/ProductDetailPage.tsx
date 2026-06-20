@@ -341,6 +341,9 @@ export default function ProductDetailPage() {
             {product.isNew && (
               <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full pb-0.5">BARU</span>
             )}
+            {product.stock === 0 && (
+              <span className="bg-red-100 text-primary text-[10px] font-black px-2 py-0.5 rounded-full pb-0.5">STOK HABIS</span>
+            )}
           </div>
 
           {/* Stats row */}
@@ -450,7 +453,16 @@ export default function ProductDetailPage() {
                 onClick={() => navigate(`/product/${p.id}`)}
                 className="bg-card rounded-2xl border border-border overflow-hidden text-left shadow-sm active:scale-95 transition-transform"
               >
-                <img src={p.image} alt={p.name} className="w-full h-28 object-cover bg-muted" />
+                <div className="relative">
+                  <img src={p.image} alt={p.name} className="w-full h-28 object-cover bg-muted" />
+                  {p.stock === 0 && (
+                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                      <span className="bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-sm">
+                        Stok Habis
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <div className="p-2.5">
                   <p className="text-foreground font-semibold text-xs truncate">{p.name}</p>
                   <p className="text-primary font-black text-sm mt-0.5">{formatPrice(p.price)}</p>
@@ -559,7 +571,9 @@ export default function ProductDetailPage() {
               Chat
             </button>
             <button
+              disabled={product.stock === 0}
               onClick={() => {
+                if (product.stock === 0) return;
                 if (!user) {
                   toast.error("Anda harus login terlebih dahulu untuk membeli barang.");
                   navigate("/auth");
@@ -567,10 +581,10 @@ export default function ProductDetailPage() {
                 }
                 setShowOrder(true);
               }}
-              className="flex-[2] bg-primary text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg"
+              className={`flex-[2] text-white font-black py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg ${product.stock === 0 ? "bg-muted-foreground cursor-not-allowed opacity-80" : "bg-primary"}`}
             >
               <ShoppingCart size={15} />
-              Beli Sekarang
+              {product.stock === 0 ? "Stok Habis" : "Beli Sekarang"}
             </button>
           </div>
         </div>

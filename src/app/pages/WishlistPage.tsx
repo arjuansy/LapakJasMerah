@@ -62,7 +62,10 @@ export default function WishlistPage() {
                       className="flex-1 min-w-0 text-left"
                     >
                       <p className="text-foreground font-bold text-sm line-clamp-2 leading-tight">{p.name}</p>
-                      <p className="text-primary font-black text-sm mt-0.5">{formatPrice(p.price)}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-primary font-black text-sm">{formatPrice(p.price)}</p>
+                        {p.stock === 0 && <span className="bg-red-100 text-primary text-[9px] font-black px-1.5 py-0.5 rounded-md">Habis</span>}
+                      </div>
                       {p.originalPrice && (
                         <p className="text-muted-foreground text-[11px] line-through">{formatPrice(p.originalPrice)}</p>
                       )}

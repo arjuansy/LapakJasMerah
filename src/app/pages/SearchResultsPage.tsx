@@ -372,9 +372,16 @@ export default function SearchResultsPage() {
                     </span>
                   )}
                   {p.isNew && !p.discount && (
-                    <span className="absolute top-2 left-2 bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                    <span className="absolute top-2 left-2 bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md z-10">
                       Baru
                     </span>
+                  )}
+                  {p.stock === 0 && (
+                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                      <span className="bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-sm">
+                        Stok Habis
+                      </span>
+                    </div>
                   )}
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleWishlist(p.id); }}
