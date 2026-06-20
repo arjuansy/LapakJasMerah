@@ -306,6 +306,7 @@ export default function App() {
           supabase.from('chats').select('id').eq('id', payload.new.chat_id).single().then(({ data }) => {
             if (data) {
               setUnreadChatCount(prev => prev + 1);
+              toast.success("Pesan baru masuk!");
             }
           });
         }
