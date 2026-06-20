@@ -482,6 +482,10 @@ export default function ProductDetailPage() {
                   navigate("/auth");
                   return;
                 }
+                if (user.id === product.seller_id) {
+                  toast.error("Anda tidak bisa chat diri sendiri!");
+                  return;
+                }
                 
                 try {
                   const { data: existingChat, error: checkError } = await supabase.from('chats')

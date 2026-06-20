@@ -4,6 +4,7 @@ import { ArrowLeft, Phone, MoreVertical, Send } from "lucide-react";
 import { useApp } from "../context";
 import { supabase } from "../../config/supabaseClient";
 import { useAuth } from "../../hooks/useAuth";
+import toast from "react-hot-toast";
 
 interface Message {
   id: string;
@@ -132,14 +133,32 @@ export default function ChatPage() {
     const content = inputText.trim();
     setInputText("");
 
-    try {
-      await supabase.from('messages').insert({
-        chat_id: chatId,
-        sender_id: myId,
-        content: content
-      });
-    } catch (e) {
-      console.error("Gagal mengirim pesan", e);
+    // Optimistic UI Update
+    const tempId = `temp-${Date.now()}`;
+    const newMessage: Message = {
+      id: tempId,
+      sender_id: myId,
+      content: content,
+      sent_at: new Date().toISOString()
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+
+    const { data, error } = await supabase.from('messages').insert({
+      chat_id: chatId,
+      sender_id: myId,
+      content: content
+    }).select().single();
+
+    if (error) {
+      console.error("Gagal mengirim pesan", error.message);
+      toast.error("Gagal mengirim pesan: " + error.message);
+      
+      // Rollback optimistic update
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } else if (data) {
+      // Replace temp ID with real ID from database
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m));
     }
   }
 
