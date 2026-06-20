@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../data";
+import { useAuth } from "../../hooks/useAuth";
 import {
   LayoutDashboard,
   Users,
@@ -155,15 +156,17 @@ export default function AdminDashboard({
     | "settings"
     | "admins";
 }) {
+  const { user, profile } = useAuth();
+
   // Current logged in admin configuration
-  const [currentAdmin, setCurrentAdmin] = useState<AdminType>({
-    id: "ADM-01",
-    name: "M. Iqbal Pratama",
-    email: "iqbal.admin@webmail.umm.ac.id",
-    role: "Super Admin",
-    addedAt: "2025-01-15",
+  const currentAdmin: AdminType = useMemo(() => ({
+    id: user?.id || "ADM-01",
+    name: profile?.full_name || "M. Iqbal Pratama",
+    email: user?.email || "iqbal.admin@webmail.umm.ac.id",
+    role: (profile?.role === "SUPER_ADMIN" ? "Super Admin" : "Admin") as AdminRole,
+    addedAt: profile?.created_at ? new Date(profile.created_at).toISOString().split('T')[0] : "2025-01-15",
     permissions: ["manage_users", "manage_sellers", "manage_listings", "manage_categories", "manage_reports", "manage_transactions", "manage_premium", "manage_admins"],
-  });
+  }), [user, profile]);
 
   const [activeTab, setActiveTab] = useState<
     | "dashboard"
@@ -244,17 +247,17 @@ export default function AdminDashboard({
       }
 
       // 3. Fetch Listings (Products)
-      const { data: productsData } = await supabase
+      const { data: productsData, error: productErr } = await supabase
         .from('products')
-        .select('*, seller:profiles(full_name, username)');
+        .select('*, seller:profiles!products_seller_id_fkey(full_name, username), categories(name)');
       if (productsData) {
         setListings(productsData.map((p: any) => ({
           id: p.id,
           title: p.name,
-          category: p.category,
+          category: p.categories?.name || 'Kategori',
           sellerName: p.seller?.full_name || p.seller?.username || 'Penjual',
           price: p.price,
-          status: p.is_active ? 'Disetujui' : 'Pending', // Assuming active means approved
+          status: p.status === 'AVAILABLE' ? 'Disetujui' : (p.status === 'SUSPENDED' ? 'Ditolak' : 'Pending'),
           createdAt: new Date(p.created_at).toISOString().split('T')[0],
           image: p.image_url || 'https://via.placeholder.com/100'
         })));
@@ -975,58 +978,8 @@ export default function AdminDashboard({
                   </div>
 
                   {/* Aesthetic Custom Vector Chart */}
-                  <div className="relative h-64 w-full flex items-end">
-                    <svg className="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="#ef4444" stopOpacity="0.0" />
-                        </linearGradient>
-                      </defs>
-                      {/* Grid Lines */}
-                      <line x1="0" y1="50" x2="500" y2="50" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="100" x2="500" y2="100" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="150" x2="500" y2="150" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
-                      
-                      {/* Chart Area Fill */}
-                      <path
-                        d="M 10 180 L 100 130 L 200 150 L 300 70 L 400 90 L 490 30 L 490 200 L 10 200 Z"
-                        fill="url(#chartGradient)"
-                      />
-                      
-                      {/* Line Path */}
-                      <path
-                        d="M 10 180 L 100 130 L 200 150 L 300 70 L 400 90 L 490 30"
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      {/* Interactive Dots */}
-                      <circle cx="10" cy="180" r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                      <circle cx="100" cy="130" r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                      <circle cx="200" cy="150" r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                      <circle cx="300" cy="70" r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                      <circle cx="400" cy="90" r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                      <circle cx="490" cy="30" r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                    </svg>
-                    
-                    {/* Tooltip Overlay Mock */}
-                    <div className="absolute top-10 right-28 bg-gray-900 text-white rounded-lg px-2.5 py-1.5 shadow-md text-[10px] font-bold pointer-events-none">
-                      Mei: Rp 18.000.000
-                    </div>
-                  </div>
-
-                  {/* Chart X labels */}
-                  <div className="flex items-center justify-between px-2 pt-3 text-[10px] text-gray-400 font-extrabold uppercase">
-                    <span>Jan</span>
-                    <span>Feb</span>
-                    <span>Mar</span>
-                    <span>Apr</span>
-                    <span>Mei</span>
-                    <span>Jun</span>
+                  <div className="relative h-64 w-full flex items-center justify-center bg-gray-50/50 rounded-xl mt-4 border border-dashed border-gray-200">
+                    <p className="text-xs font-bold text-gray-400">Belum ada data transaksi untuk semester ini.</p>
                   </div>
                 </div>
 
@@ -1064,24 +1017,25 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="space-y-4">
-                    {[
-                      { text: "Persetujuan Jasa 'Poster & PPT' disetujui", time: "10 menit lalu", type: "success" },
-                      { text: "Akun 'Sari Wulandari' ditangguhkan (Laporan Spam)", time: "32 menit lalu", type: "error" },
-                      { text: "Kategori baru 'Makanan & Minuman' ditambahkan", time: "1 jam lalu", type: "info" },
-                      { text: "Akun penjual 'Rizki_FT2022' berhasil diverifikasi", time: "2 jam lalu", type: "success" },
-                    ].map((act, idx) => (
-                      <div key={idx} className="flex gap-3 text-xs leading-relaxed">
-                        <div className="pt-0.5">
-                          <span className={`w-2 h-2 rounded-full block ${
-                            act.type === "success" ? "bg-green-500" : act.type === "error" ? "bg-red-500" : "bg-blue-500"
-                          }`} />
+                    {[] as any[].length > 0 ? (
+                      [].map((act: any, idx: number) => (
+                        <div key={idx} className="flex gap-3 text-xs leading-relaxed">
+                          <div className="pt-0.5">
+                            <span className={`w-2 h-2 rounded-full block ${
+                              act.type === "success" ? "bg-green-500" : act.type === "error" ? "bg-red-500" : "bg-blue-500"
+                            }`} />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-700">{act.text}</p>
+                            <span className="text-[9px] text-gray-400 font-bold block mt-0.5">{act.time}</span>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-700">{act.text}</p>
-                          <span className="text-[9px] text-gray-400 font-bold block mt-0.5">{act.time}</span>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6">
+                        <p className="text-xs font-bold text-gray-400">Belum ada aktivitas moderasi.</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 

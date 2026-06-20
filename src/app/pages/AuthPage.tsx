@@ -47,7 +47,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
     if (isAdminLogin) return;
 
     if (user && profile && step !== "reset_password") {
-      if (user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
+      if (user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id") && user.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
         authService.logout().then(() => {
           toast.error("Akses ditolak: Hanya email @webmail.umm.ac.id yang diizinkan.", { duration: 5000 });
         });
@@ -88,7 +88,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email tidak valid";
     if (!form.password.trim() || form.password.length < 6) e.password = "Kata sandi minimal 6 karakter";
     // Check webmail requirement
-    if (!form.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
+    if (!form.email.toLowerCase().endsWith("@webmail.umm.ac.id") && form.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
       e.email = "Harus menggunakan email @webmail.umm.ac.id";
     }
     return e;

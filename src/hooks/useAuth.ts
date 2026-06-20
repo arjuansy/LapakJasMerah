@@ -20,7 +20,7 @@ export function useAuth() {
         if (error) throw error;
         
         if (session && session.user) {
-          if (session.user.email && !session.user.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
+          if (session.user.email && !session.user.email.toLowerCase().endsWith("@webmail.umm.ac.id") && session.user.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
             await authService.logout();
             if (mounted) {
               setAuthState({ user: null, profile: null, session: null, loading: false });

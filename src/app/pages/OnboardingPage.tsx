@@ -55,7 +55,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
-    } else if (user && user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id")) {
+    } else if (user && user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id") && user.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
       // Force logout if non-webmail Google account
       authService.logout().then(() => {
         toast.error("Akses ditolak: Hanya email @webmail.umm.ac.id yang diizinkan.", { duration: 5000 });
