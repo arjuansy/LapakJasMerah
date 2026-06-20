@@ -2006,6 +2006,8 @@ export default function ProfilePage() {
     listings,
     setListings,
     products,
+    isDarkMode,
+    setIsDarkMode,
   } = useApp();
 
   const [activeProfileTab, setActiveProfileTab] = useState<"iklan" | "terjual" | "disukai">("iklan");
@@ -2059,6 +2061,18 @@ export default function ProfilePage() {
         { icon: MessageSquare, label: "Kotak Saran", badge: null, color: "#8B5CF6", onPress: () => setShowSuggestionBox(true) },
         { icon: Shield, label: "Kebijakan & Syarat", badge: null, color: "#6B7280", onPress: () => setProfileSubPage("kebijakan") },
         { icon: ExternalLink, label: "Tentang Lapak Jas Merah", badge: null, color: "#c41230", onPress: () => setProfileSubPage("tentang") },
+      ],
+    },
+    {
+      title: "Tampilan",
+      items: [
+        {
+          icon: isDarkMode ? Sun : Moon,
+          label: isDarkMode ? "Mode Terang" : "Mode Gelap",
+          badge: null,
+          color: "#F59E0B",
+          onPress: () => setIsDarkMode(!isDarkMode),
+        },
       ],
     },
   ];

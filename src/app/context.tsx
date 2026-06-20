@@ -112,6 +112,8 @@ export type AppContextType = {
   setTrackingOrder: (order: TrackingOrder | null) => void;
   selectedProduct: Product | null;
   setSelectedProduct: (p: Product | null) => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (v: boolean) => void;
 };
 
 export const AppContext = createContext<AppContextType>(null!);

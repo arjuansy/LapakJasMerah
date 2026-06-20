@@ -71,6 +71,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<any>(null);
   const [trackingOrder, setTrackingOrder] = useState<TrackingOrder | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem("darkMode");
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadChatCount, setUnreadChatCount] = useState<number>(0);
 
@@ -369,7 +383,8 @@ export default function App() {
     toastMessage, setToastMessage,
     activeTab, setActiveTab,
     trackingOrder, setTrackingOrder,
-    selectedProduct, setSelectedProduct
+    selectedProduct, setSelectedProduct,
+    isDarkMode, setIsDarkMode
   };
 
 
