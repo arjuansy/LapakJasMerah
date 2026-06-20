@@ -117,11 +117,19 @@ function ChatPageInner() {
         if (error) console.error("Error fetching all chats:", error.message);
           
         if (data) {
-          const mapped = data.map((c: any) => ({
-             ...c,
-             seller: { ...c.seller, name: c.seller?.full_name },
-             buyer: { ...c.buyer, name: c.buyer?.full_name }
-          }));
+          const extractObj = (rel: any) => Array.isArray(rel) ? rel[0] : rel;
+
+          const mapped = data.map((c: any) => {
+             const sellerObj = extractObj(c.seller);
+             const buyerObj = extractObj(c.buyer);
+             
+             return {
+               ...c,
+               product: extractObj(c.product),
+               seller: sellerObj ? { ...sellerObj, name: sellerObj.full_name } : null,
+               buyer: buyerObj ? { ...buyerObj, name: buyerObj.full_name } : null
+             };
+          });
           setChats(mapped as any);
         }
       };
