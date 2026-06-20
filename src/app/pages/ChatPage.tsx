@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Phone, MoreVertical, Send, Camera, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Phone, MoreVertical, Send, Camera, Image as ImageIcon, X, Loader2, RefreshCw } from "lucide-react";
 import { useApp } from "../context";
 import { supabase } from "../../config/supabaseClient";
 import { useAuth } from "../../hooks/useAuth";
@@ -67,9 +67,16 @@ function ChatPageInner() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // State untuk modal kamera live (getUserMedia) -> bekerja di laptop/desktop & HP
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("environment");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const myId = user?.id;
 
@@ -316,9 +323,90 @@ function ChatPageInner() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  // Buka/tutup stream kamera live saat modal kamera dibuka/ditutup,
+  // atau saat user toggle kamera depan/belakang. Bekerja di laptop
+  // (webcam) maupun HP (kamera depan/belakang) lewat browser yang sama.
+  useEffect(() => {
+    if (!showCameraModal) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      return;
+    }
+
+    setCameraError(null);
+
+    const startCamera = async () => {
+      try {
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCameraError("Browser ini tidak mendukung akses kamera (getUserMedia tidak tersedia).");
+          return;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: cameraFacing },
+          audio: false
+        });
+
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err: any) {
+        console.error("Gagal mengakses kamera:", err);
+        if (err.name === "NotAllowedError") {
+          setCameraError("Akses kamera ditolak. Izinkan akses kamera di browser untuk menggunakan fitur ini.");
+        } else if (err.name === "NotFoundError") {
+          setCameraError("Tidak ada kamera yang terdeteksi di perangkat ini.");
+        } else if (err.name === "NotReadableError") {
+          setCameraError("Kamera sedang digunakan aplikasi lain. Tutup aplikasi lain yang memakai kamera, lalu coba lagi.");
+        } else {
+          setCameraError("Gagal membuka kamera: " + (err.message || "Unknown error"));
+        }
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [showCameraModal, cameraFacing]);
   // =========================================================
   // AKHIR DARI SEMUA HOOK
   // =========================================================
+
+  function capturePhoto() {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        toast.error("Gagal mengambil foto, coba lagi.");
+        return;
+      }
+      const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
+      setShowCameraModal(false);
+      handleFileSelected(file);
+    }, "image/jpeg", 0.9);
+  }
 
   function handleFileSelected(file: File | null) {
     setShowAttachMenu(false);
@@ -498,15 +586,7 @@ function ChatPageInner() {
 
     return (
       <div className="flex flex-col h-screen bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
-        {/* Hidden file inputs untuk kamera & galeri */}
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => handleFileSelected(e.target.files?.[0] || null)}
-        />
+        {/* Hidden file input untuk galeri saja (kamera sekarang pakai modal live getUserMedia) */}
         <input
           ref={galleryInputRef}
           type="file"
@@ -514,6 +594,9 @@ function ChatPageInner() {
           className="hidden"
           onChange={(e) => handleFileSelected(e.target.files?.[0] || null)}
         />
+
+        {/* Canvas tersembunyi, dipakai untuk capture frame dari video kamera */}
+        <canvas ref={canvasRef} className="hidden" />
 
         {/* Chat Header */}
         <div className="bg-primary text-white px-4 pt-10 pb-3 flex items-center gap-3 shadow-md sticky top-0 z-40">
@@ -639,7 +722,7 @@ function ChatPageInner() {
         {showAttachMenu && (
           <div className="px-4 pt-2 bg-card border-t border-border flex gap-3">
             <button
-              onClick={() => { setShowAttachMenu(false); cameraInputRef.current?.click(); }}
+              onClick={() => { setShowAttachMenu(false); setShowCameraModal(true); }}
               className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
             >
               <Camera size={20} />
@@ -689,6 +772,63 @@ function ChatPageInner() {
             )}
           </button>
         </div>
+
+        {/* ===== MODAL KAMERA LIVE (getUserMedia) ===== */}
+        {/* Bekerja di laptop (webcam) maupun HP (kamera depan/belakang),
+            karena pakai live video stream, bukan <input capture> yang
+            cuma didukung browser mobile. */}
+        {showCameraModal && (
+          <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+            <div className="flex items-center justify-between px-4 pt-10 pb-3">
+              <button
+                onClick={() => setShowCameraModal(false)}
+                className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center"
+              >
+                <X size={18} className="text-white" />
+              </button>
+              <p className="text-white font-bold text-sm">Ambil Foto</p>
+              <button
+                onClick={() => setCameraFacing(prev => prev === "user" ? "environment" : "user")}
+                className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center"
+                title="Ganti kamera"
+              >
+                <RefreshCw size={16} className="text-white" />
+              </button>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+              {cameraError ? (
+                <div className="px-6 text-center">
+                  <p className="text-white text-sm leading-relaxed">{cameraError}</p>
+                  <button
+                    onClick={() => { setCameraError(null); setShowCameraModal(false); galleryInputRef.current?.click(); }}
+                    className="mt-4 bg-white text-black font-bold text-sm px-4 py-2.5 rounded-xl"
+                  >
+                    Pilih dari Galeri Saja
+                  </button>
+                </div>
+              ) : (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+
+            {!cameraError && (
+              <div className="px-4 py-8 flex items-center justify-center bg-black">
+                <button
+                  onClick={capturePhoto}
+                  className="w-16 h-16 rounded-full bg-white border-4 border-white/30 active:scale-90 transition-transform"
+                  aria-label="Ambil foto"
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
