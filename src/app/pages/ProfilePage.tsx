@@ -2077,9 +2077,9 @@ export default function ProfilePage() {
   if (profileSubPage === "kebijakan") return <div className="animate-page"><TermsPoliciesPage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "tentang") return <div className="animate-page"><AboutPage onBack={() => setProfileSubPage(null)} /></div>;
 
-  const soldItems: any[] = [];
+  const soldItems = listings.filter((item) => item.sold > 0);
 
-  const likedItems: any[] = [];
+  const likedItems = products.filter((p) => wishlist.includes(p.id));
 
   const menuGroups = [
     {
@@ -2415,8 +2415,8 @@ export default function ProfilePage() {
         <div className="flex bg-muted rounded-xl p-1 gap-1">
           {([
             { id: "iklan", label: "Aktif", count: listings.length },
-            { id: "terjual", label: "Terjual", count: 0 },
-            { id: "disukai", label: "Disukai", count: 0 },
+            { id: "terjual", label: "Terjual", count: soldItems.length },
+            { id: "disukai", label: "Disukai", count: likedItems.length },
           ] as const).map((t) => (
             <button
               key={t.id}
@@ -2452,7 +2452,7 @@ export default function ProfilePage() {
               <div key={item.id} className="bg-card rounded-2xl border border-border flex items-center gap-3 p-3 shadow-sm">
                 <div className="relative shrink-0">
                   <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover bg-muted" />
-                  {item.status === "habis" && (
+                  {item.stock <= 0 && (
                     <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
                       <span className="text-white text-[9px] font-black">HABIS</span>
                     </div>
@@ -2470,11 +2470,11 @@ export default function ProfilePage() {
                     </span>
                     <span
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={item.status === "aktif"
+                      style={item.stock > 0
                         ? { background: "#d1fae5", color: "#065f46" }
                         : { background: "#fee2e2", color: "#991b1b" }}
                     >
-                      {item.status === "aktif" ? "Aktif" : "Stok Habis"}
+                      {item.stock > 0 ? `Sisa ${item.stock} stok` : "Stok Habis"}
                     </span>
                   </div>
                 </div>

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../data";
 import { useAuth } from "../../hooks/useAuth";
+import { supabase } from "../../config/supabaseClient";
 import {
   LayoutDashboard,
   Users,

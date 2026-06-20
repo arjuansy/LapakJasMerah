@@ -1,5 +1,6 @@
 import { Skeleton } from "./components/Skeleton";
 import React, { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import api from "./api";
 
@@ -469,6 +470,7 @@ export default function App() {
       {showPostRequestModal && <PostRequestModal />}
       {showSuggestionBox && <SuggestionBoxModal />}
       <Toaster position="top-center" />
+      <Analytics />
     </AppContext.Provider>
   );
 }
