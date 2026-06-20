@@ -163,7 +163,13 @@ export default function ChatPage() {
   }
 
   function getOpponent(chat: Chat) {
-    return chat.buyer.id === myId ? chat.seller : chat.buyer;
+    if (!chat) return { name: "Pengguna", avatar_url: "/default-avatar.png", id: "" };
+    
+    // Safely check buyer and seller
+    const buyer = chat.buyer || { id: "", name: "Pembeli Hapus", avatar_url: "" };
+    const seller = chat.seller || { id: "", name: "Penjual Hapus", avatar_url: "" };
+    
+    return buyer.id === myId ? seller : buyer;
   }
 
   function formatTime(isoString: string) {
@@ -334,13 +340,13 @@ export default function ChatPage() {
               const isUnread = hasUnread(chat);
 
               return (
-                <button
-                  key={chat.id}
-                  onClick={() => navigate(`/chat/${chat.id}`)}
-                  className={`w-full px-4 py-3.5 flex items-start gap-3 hover:bg-secondary/50 transition-colors text-left ${isUnread ? "bg-primary/5" : ""}`}
-                >
-                  <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
-                  <div className="flex-1 min-w-0">
+                <div key={chat.id} className="border-b-4 border-secondary/60 last:border-b-0">
+                  <button
+                    onClick={() => navigate(`/chat/${chat.id}`)}
+                    className={`w-full px-4 py-3.5 flex items-start gap-3 hover:bg-secondary/50 transition-colors text-left ${isUnread ? "bg-primary/5" : ""}`}
+                  >
+                    <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
+                    <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
                       <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp.name}</p>
                       {lastMsgObj && (
@@ -362,6 +368,7 @@ export default function ChatPage() {
                     </div>
                   </div>
                 </button>
+                </div>
               );
             })}
           </div>

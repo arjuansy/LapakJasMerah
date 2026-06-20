@@ -311,6 +311,10 @@ export default function App() {
           });
         }
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
+        // Recalculate unread count when a message is read
+        fetchUnreadChats();
+      })
       .subscribe();
 
     return () => {
