@@ -488,7 +488,7 @@ export default function ProductDetailPage() {
                 }
                 
                 try {
-                  // Cek chat HANYA berdasarkan (buyer, seller) — TANPA product_id.
+                  // ⬇️ Cek chat HANYA berdasarkan (buyer, seller) — TANPA product_id.
                   // Ini memastikan satu pasangan buyer-seller cuma punya SATU chat,
                   // terlepas dari produk mana yang membuka chat itu.
                   const { data: existingChat, error: checkError } = await supabase.from('chats')
@@ -508,14 +508,31 @@ export default function ProductDetailPage() {
 
                     navigate(`/chat/${existingChat.id}`);
                   } else {
-                    // Belum ada chat sama sekali -> baru buat baru
+                    // Belum ada chat sama sekali -> coba buat baru
                     const { data: newChat, error } = await supabase.from('chats').insert({
                       buyer_id: user.id,
                       seller_id: product.seller_id,
                       product_id: product.id
                     }).select().single();
                     
-                    if (error) throw error;
+                    if (error) {
+                      // Kode 23505 = unique constraint violation.
+                      // Ini bisa terjadi kalau user klik dobel dengan sangat cepat (race condition),
+                      // sehingga insert lain sudah lebih dulu membuat chat untuk pasangan ini.
+                      // Solusinya: ambil ulang chat yang sudah terbentuk itu.
+                      if (error.code === '23505') {
+                        const { data: retryChat } = await supabase.from('chats')
+                          .select('id')
+                          .eq('buyer_id', user.id)
+                          .eq('seller_id', product.seller_id)
+                          .maybeSingle();
+                        if (retryChat) {
+                          navigate(`/chat/${retryChat.id}`);
+                          return;
+                        }
+                      }
+                      throw error;
+                    }
                     if (newChat) navigate(`/chat/${newChat.id}`);
                   }
                 } catch (err) {
