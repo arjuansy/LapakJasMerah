@@ -488,18 +488,27 @@ export default function ProductDetailPage() {
                 }
                 
                 try {
+                  // Cek chat HANYA berdasarkan (buyer, seller) — TANPA product_id.
+                  // Ini memastikan satu pasangan buyer-seller cuma punya SATU chat,
+                  // terlepas dari produk mana yang membuka chat itu.
                   const { data: existingChat, error: checkError } = await supabase.from('chats')
                     .select('id')
                     .eq('buyer_id', user.id)
                     .eq('seller_id', product.seller_id)
-                    .eq('product_id', product.id)
                     .maybeSingle();
 
                   if (checkError) throw checkError;
 
                   if (existingChat) {
+                    // Chat sudah ada -> opsional, update product_id supaya kartu produk
+                    // yang tampil di chat itu adalah produk yang baru dibahas (paling relevan).
+                    await supabase.from('chats')
+                      .update({ product_id: product.id })
+                      .eq('id', existingChat.id);
+
                     navigate(`/chat/${existingChat.id}`);
                   } else {
+                    // Belum ada chat sama sekali -> baru buat baru
                     const { data: newChat, error } = await supabase.from('chats').insert({
                       buyer_id: user.id,
                       seller_id: product.seller_id,
