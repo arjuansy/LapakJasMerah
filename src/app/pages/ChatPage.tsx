@@ -186,7 +186,34 @@ function ChatPageInner() {
         .eq('chat_id', chatId)
         .neq('sender_id', myId)
         .then(({ error }) => {
-          if (error) console.error("Failed to mark as read:", error);
+          if (error) {
+            console.error("Failed to mark as read:", error);
+            return;
+          }
+
+          // Sinkronkan state lokal supaya badge "belum dibaca" di daftar chat
+          // langsung hilang, tanpa perlu fetch ulang seluruh daftar chat.
+
+          // 1) Update messages di tampilan detail chat (kalau lagi dibuka)
+          setMessages(prev =>
+            prev.map(m =>
+              m.sender_id !== myId ? { ...m, is_read: true } : m
+            )
+          );
+
+          // 2) Update messages di dalam state `chats` (dipakai daftar chat)
+          setChats(prev =>
+            prev.map(c =>
+              c.id === chatId
+                ? {
+                    ...c,
+                    messages: (c.messages || []).map(m =>
+                      m.sender_id !== myId ? { ...m, is_read: true } : m
+                    )
+                  }
+                : c
+            )
+          );
         });
     }
   }, [chatId, myId]);
@@ -206,7 +233,8 @@ function ChatPageInner() {
       id: tempId,
       sender_id: myId,
       content: content,
-      sent_at: new Date().toISOString()
+      sent_at: new Date().toISOString(),
+      is_read: false
     };
 
     setMessages(prev => [...prev, newMessage]);
@@ -214,7 +242,8 @@ function ChatPageInner() {
     const { data, error } = await supabase.from('messages').insert({
       chat_id: chatId,
       sender_id: myId,
-      content: content
+      content: content,
+      is_read: false
     }).select().single();
 
     if (error) {
