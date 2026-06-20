@@ -186,8 +186,30 @@ export default function App() {
       setPurchaseData([]);
       setSalesData([]);
       setWishlist([]);
+      setUnreadChatCount(0);
       return;
     }
+
+    const fetchUnreadChats = async () => {
+      const { data: myChats } = await supabase
+        .from('chats')
+        .select('id')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+
+      if (myChats && myChats.length > 0) {
+        const chatIds = myChats.map(c => c.id);
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .in('chat_id', chatIds)
+          .eq('is_read', false)
+          .neq('sender_id', user.id);
+
+        setUnreadChatCount(count || 0);
+      } else {
+        setUnreadChatCount(0);
+      }
+    };
 
     const fetchOrdersAndWishlist = async () => {
       // Fetch Wishlist
@@ -260,26 +282,7 @@ export default function App() {
         .order('created_at', { ascending: false });
       if (notifs) setNotifications(notifs);
 
-      // Fetch Unread Chats count
-      const fetchUnreadChats = async () => {
-        // Find chats where user is participant
-        const { data: myChats } = await supabase
-          .from('chats')
-          .select('id')
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-        
-        if (myChats && myChats.length > 0) {
-          const chatIds = myChats.map(c => c.id);
-          const { count } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .in('chat_id', chatIds)
-            .eq('is_read', false)
-            .neq('sender_id', user.id);
-          
-          setUnreadChatCount(count || 0);
-        }
-      };
+      // Fetch Unread Chats count (panggil function yang sudah dipindah ke atas)
       fetchUnreadChats();
     };
 
@@ -302,17 +305,24 @@ export default function App() {
       .channel('realtime:messages_unread')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         if (payload.new.sender_id !== user.id) {
-          // Verify if it's for this user's chat
-          supabase.from('chats').select('id').eq('id', payload.new.chat_id).single().then(({ data }) => {
-            if (data) {
-              setUnreadChatCount(prev => prev + 1);
-              toast.success("Pesan baru masuk!");
-            }
-          });
+          // Verifikasi chat ini benar-benar milik user (buyer ATAU seller)
+          supabase
+            .from('chats')
+            .select('id')
+            .eq('id', payload.new.chat_id)
+            .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+            .maybeSingle()
+            .then(({ data }) => {
+              if (data) {
+                setUnreadChatCount(prev => prev + 1);
+                toast.success("Pesan baru masuk!");
+              }
+            });
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
-        // Recalculate unread count when a message is read
+        // Sekarang fetchUnreadChats() bisa diakses karena sudah didefinisikan
+        // di level useEffect, bukan di dalam fetchOrdersAndWishlist lagi.
         fetchUnreadChats();
       })
       .subscribe();
