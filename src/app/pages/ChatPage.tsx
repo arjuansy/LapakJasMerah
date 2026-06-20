@@ -79,7 +79,7 @@ function ChatPageInner() {
 
     if (chatId) {
       const fetchChat = async () => {
-        const { data: chatData, error: chatErr } = await supabase
+        let { data: chatData, error: chatErr } = await supabase
           .from('chats')
           .select(`
             id,
@@ -90,6 +90,22 @@ function ChatPageInner() {
           `)
           .eq('id', chatId)
           .maybeSingle();
+
+        if (chatErr && chatErr.message && chatErr.message.includes('relationship')) {
+          console.warn("Schema request_id belum ada, menggunakan fallback...");
+          const fallback = await supabase
+            .from('chats')
+            .select(`
+              id,
+              product:products(id, name, price, image_url),
+              seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
+              buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url)
+            `)
+            .eq('id', chatId)
+            .maybeSingle();
+          chatData = fallback.data;
+          chatErr = fallback.error;
+        }
 
         if (chatErr) console.error("Error fetching chat:", chatErr.message);
 
@@ -126,7 +142,7 @@ function ChatPageInner() {
       setMessages([]);
 
       const fetchAllChats = async () => {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('chats')
           .select(`
             id,
@@ -137,6 +153,21 @@ function ChatPageInner() {
             messages(id, content, sent_at, sender_id, is_read, image_url, message_type)
           `)
           .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`);
+
+        if (error && error.message && error.message.includes('relationship')) {
+          const fallback = await supabase
+            .from('chats')
+            .select(`
+              id,
+              product:products(id, name, price, image_url),
+              seller:profiles!chats_seller_id_fkey(id, full_name, avatar_url),
+              buyer:profiles!chats_buyer_id_fkey(id, full_name, avatar_url),
+              messages(id, content, sent_at, sender_id, is_read, image_url, message_type)
+            `)
+            .or(`buyer_id.eq.${myId},seller_id.eq.${myId}`);
+          data = fallback.data;
+          error = fallback.error;
+        }
 
         if (error) console.error("Error fetching all chats:", error.message);
 
