@@ -1,4 +1,4 @@
-import{u as C,r as l,s as d,j as e}from"./index-3F6q7tRo.js";import{u as S,c as $,S as z}from"./main-Q563yKes.js";import{A as N}from"./arrow-left-CPbiomf_.js";function M(){const c=S(),{chatId:r}=$(),{user:m}=C(),[x,w]=l.useState([]),[u,_]=l.useState(null),[f,h]=l.useState([]),[o,p]=l.useState(""),g=l.useRef(null),n=m==null?void 0:m.id;l.useEffect(()=>{n&&(r?(async()=>{const{data:s}=await d.from("chats").select(`
+import{u as C,r as l,s as d,j as e}from"./index-3F6q7tRo.js";import{u as S,c as $,S as z}from"./main-DmwlAY-V.js";import{A as N}from"./arrow-left-CPbiomf_.js";function M(){const c=S(),{chatId:r}=$(),{user:m}=C(),[x,w]=l.useState([]),[u,_]=l.useState(null),[f,h]=l.useState([]),[o,p]=l.useState(""),g=l.useRef(null),n=m==null?void 0:m.id;l.useEffect(()=>{n&&(r?(async()=>{const{data:s}=await d.from("chats").select(`
             id,
             product:products(id, name, price, image_url),
             seller:profiles!chats_seller_id_fkey(id, name, avatar_url),

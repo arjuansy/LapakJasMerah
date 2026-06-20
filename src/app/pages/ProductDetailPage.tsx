@@ -484,12 +484,14 @@ export default function ProductDetailPage() {
                 }
                 
                 try {
-                  const { data: existingChat } = await supabase.from('chats')
+                  const { data: existingChat, error: checkError } = await supabase.from('chats')
                     .select('id')
                     .eq('buyer_id', user.id)
                     .eq('seller_id', product.seller_id)
                     .eq('product_id', product.id)
-                    .single();
+                    .maybeSingle();
+
+                  if (checkError) throw checkError;
 
                   if (existingChat) {
                     navigate(`/chat/${existingChat.id}`);
