@@ -43,10 +43,12 @@ import {
   CheckCheck,
   Sun,
   Moon,
+  Upload,
 } from "lucide-react";
 import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
 import { authService } from "../../services/authService";
+import { storageService } from "../../services/storageService";
 import { formatPrice, productDescriptions } from "../data";
 import { supabase } from "../../config/supabaseClient";
 
@@ -2000,10 +2002,19 @@ export default function ProfilePage() {
   const [profileSubPage, setProfileSubPage] = useState<any>(null);
 
   const { user, profile, refreshSession } = useAuth();
+  const [showBadgePay, setShowBadgePay] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [badgePaid, setBadgePaid] = useState(false);
+  const [ktmFile, setKtmFile] = useState<File | null>(null);
 
   const handlePurchaseBadge = async () => {
     if (!user) {
       toast.error("Anda harus login untuk membeli badge");
+      return;
+    }
+    
+    if (!ktmFile) {
+      toast.error("Harap unggah foto KTM/KTP terlebih dahulu");
       return;
     }
     
@@ -2012,15 +2023,26 @@ export default function ProfilePage() {
     // Simulasi proses payment gateway
     setTimeout(async () => {
       try {
-        await authService.updateProfile(user.id, { is_verified_seller: true });
-        await refreshSession();
+        const ktmUrl = await storageService.uploadProductImage(ktmFile);
+
+        const { error: insertError } = await supabase.from('package_transactions').insert({
+          user_id: user.id,
+          transaction_type: 'seller_verification',
+          package_name: 'Verifikasi Penjual',
+          amount: 5000,
+          payment_method: 'Transfer',
+          payment_proof_url: ktmUrl,
+          status: 'PENDING'
+        });
+
+        if (insertError) throw insertError;
         
         setIsProcessingPayment(false);
         setBadgePaid(true);
-        toast.success("Pembayaran berhasil!");
-      } catch (err: any) {
+        toast.success("Pengajuan badge penjual berhasil, menunggu persetujuan Admin");
+      } catch (err) {
+        toast.error("Gagal memproses pembayaran");
         setIsProcessingPayment(false);
-        toast.error("Gagal memperbarui profil: " + err.message);
       }
     }, 2000);
   };
@@ -2307,7 +2329,7 @@ export default function ProfilePage() {
                   <CheckCheck size={32} className="text-green-500" />
                 </div>
                 <h3 className="text-foreground font-black text-xl mb-2">Pembayaran Berhasil!</h3>
-                <p className="text-muted-foreground text-sm mb-6">Badge penjual terverifikasi telah ditambahkan ke profil Anda.</p>
+                <p className="text-muted-foreground text-sm mb-6">Pembayaran Anda sedang diverifikasi. Badge akan aktif setelah Admin menyetujui.</p>
                 <button
                   onClick={() => setShowBadgePay(false)}
                   className="w-full bg-primary text-white font-bold py-3.5 rounded-xl"
@@ -2340,6 +2362,33 @@ export default function ProfilePage() {
                   <div className="flex justify-between items-center">
                     <span className="text-foreground font-black">Total Tagihan</span>
                     <span className="text-primary font-black text-lg">Rp 5.000</span>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-bold text-foreground mb-2">
+                    Unggah Foto KTM/KTP <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-3">Foto akan diperiksa oleh Admin untuk memverifikasi identitas Anda.</p>
+                  <div className="flex items-center gap-3">
+                    <div className="relative overflow-hidden w-full h-12 bg-secondary rounded-xl flex items-center justify-center cursor-pointer border-2 border-dashed border-border hover:border-primary transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setKtmFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Upload size={18} />
+                        <span className="font-medium text-sm">
+                          {ktmFile ? ktmFile.name : "Pilih Foto"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

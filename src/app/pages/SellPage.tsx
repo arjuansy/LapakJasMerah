@@ -165,7 +165,7 @@ export default function SellPage() {
         const expireDays = adPackage === 'standard' ? 14 : 7;
         const expiresAt = new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString();
         
-        const { error: insertError } = await supabase.from('products').insert({
+        const { data: newProduct, error: insertError } = await supabase.from('products').insert({
           seller_id: user.id,
           category_id: categoryId,
           name: form.title,
@@ -177,11 +177,24 @@ export default function SellPage() {
           image_url: imageUrl,
           status: 'AVAILABLE',
           ad_package: adPackage,
-          is_premium: adPackage === 'standard',
+          is_premium: false, // Will be activated by Admin
           expires_at: expiresAt
-        });
+        }).select('id').single();
 
         if (insertError) throw insertError;
+
+        if (adPackage === 'standard') {
+          const { error: pkgError } = await supabase.from('package_transactions').insert({
+            user_id: user.id,
+            transaction_type: 'ad_package',
+            product_id: newProduct.id,
+            package_name: 'Highlight Pencarian 14 Hari',
+            amount: 5000,
+            payment_method: 'Transfer',
+            status: 'PENDING'
+          });
+          if (pkgError) throw pkgError;
+        }
 
         setStep("success");
       } catch (err) {

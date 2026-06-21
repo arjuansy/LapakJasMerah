@@ -65,6 +65,8 @@ type SellerType = {
   status: "Pending" | "Disetujui" | "Ditolak" | "Ditangguhkan";
   registeredAt: string;
   rating: number;
+  transactionId?: string;
+  ktmUrl?: string;
 };
 
 type ListingType = {
@@ -235,8 +237,16 @@ export default function AdminDashboard({
         .from('profiles')
         .select('*')
         .eq('is_verified_seller', true);
+        
+      const { data: pendingSellerVerifications } = await supabase
+        .from('package_transactions')
+        .select('*, user:profiles(*)')
+        .eq('transaction_type', 'seller_verification')
+        .eq('status', 'PENDING');
+
+      let allSellers: any[] = [];
       if (sellersData) {
-        setSellers(sellersData.map((s: any) => ({
+        allSellers = sellersData.map((s: any) => ({
           id: s.id,
           nim: s.nim || '-',
           shopName: s.username || s.full_name || 'Toko',
@@ -244,9 +254,33 @@ export default function AdminDashboard({
           major: s.major || '-',
           status: s.status === 'SUSPENDED' ? 'Ditangguhkan' : 'Disetujui',
           registeredAt: new Date(s.created_at).toISOString().split('T')[0],
-          rating: 0 // Requires aggregation from reviews
-        })));
+          rating: 0,
+          transactionId: null
+        }));
       }
+
+      if (pendingSellerVerifications) {
+        const pendingSellers = pendingSellerVerifications.map((tx: any) => {
+          const s = tx.user;
+          return {
+            id: s.id, // the user's id
+            nim: s?.nim || '-',
+            shopName: s?.username || s?.full_name || 'Toko',
+            ownerName: s?.full_name || '-',
+            major: s?.major || '-',
+            status: 'Pending',
+            registeredAt: new Date(tx.created_at).toISOString().split('T')[0],
+            rating: 0,
+            transactionId: tx.id, // Store transaction ID
+            ktmUrl: tx.payment_proof_url // Store the KTM photo URL
+          };
+        });
+        // Avoid duplicate if somehow user is already verified but has pending transaction
+        const existingIds = new Set(allSellers.map(s => s.id));
+        allSellers = [...allSellers, ...pendingSellers.filter(s => !existingIds.has(s.id))];
+      }
+      
+      setSellers(allSellers);
 
       // 3. Fetch Listings (Products)
       const { data: productsData, error: productErr } = await supabase
@@ -270,13 +304,16 @@ export default function AdminDashboard({
         .from('categories')
         .select('*');
       if (categoriesData) {
-        setCategories(categoriesData.map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.name.toLowerCase().replace(/\s+/g, '-'),
-          listingsCount: 0, // Requires aggregation
-          revenue: 0 // Requires aggregation
-        })));
+        setCategories(categoriesData.map((c: any) => {
+          const count = productsData ? productsData.filter((p: any) => p.category_id === c.id).length : 0;
+          return {
+            id: c.id,
+            name: c.name,
+            slug: c.name.toLowerCase().replace(/\s+/g, '-'),
+            listingsCount: count,
+            revenue: 0 // Requires aggregation
+          };
+        }));
       }
 
       // 5. Fetch Reports
@@ -317,7 +354,8 @@ export default function AdminDashboard({
       // 7. Fetch Subscriptions (Package Transactions)
       const { data: pkgData } = await supabase
         .from('package_transactions')
-        .select('*, user:profiles(full_name)');
+        .select('*, user:profiles(full_name)')
+        .in('transaction_type', ['ad_package', 'request_package']);
       if (pkgData) {
         setSubscriptions(pkgData.map((s: any) => ({
           id: s.id,
@@ -2995,6 +3033,17 @@ export default function AdminDashboard({
                 </div>
               </div>
 
+              {selectedSeller.ktmUrl && (
+                <div className="border-t border-gray-100 pt-4">
+                  <h4 className="font-extrabold text-xs text-gray-900 mb-2">Foto KTM / KTP</h4>
+                  <img 
+                    src={selectedSeller.ktmUrl} 
+                    alt="KTM/KTP" 
+                    className="w-full h-40 object-cover rounded-xl border border-gray-200"
+                  />
+                </div>
+              )}
+
               {/* Ratings and Reviews section */}
               <div className="border-t border-gray-100 pt-4">
                 <h4 className="font-extrabold text-xs text-gray-900 mb-2">Penilaian & Ulasan Toko</h4>
@@ -3030,6 +3079,9 @@ export default function AdminDashboard({
                     onClick={() => {
                       const doApprove = async () => {
                         await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                        if (selectedSeller.transactionId) {
+                          await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
+                        }
                         fetchAllData();
                         showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
                         setModalType(null);
@@ -3082,6 +3134,16 @@ export default function AdminDashboard({
                 <p className="text-xs text-gray-500 mt-2 leading-relaxed">
                   Apakah Anda setuju untuk memberikan badge Penjual Terverifikasi kepada <span className="font-bold">{selectedSeller.shopName}</span>? Ini menandakan toko tersebut terdaftar menggunakan NIM valid.
                 </p>
+                {selectedSeller.ktmUrl && (
+                  <div className="mt-4">
+                    <p className="text-xs font-bold text-gray-700 mb-2">Foto KTM / KTP:</p>
+                    <img 
+                      src={selectedSeller.ktmUrl} 
+                      alt="KTM/KTP" 
+                      className="w-full h-40 object-cover rounded-xl border border-gray-200"
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5">
@@ -3095,6 +3157,9 @@ export default function AdminDashboard({
                 onClick={() => {
                   const doApproveModal = async () => {
                     await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                    if (selectedSeller.transactionId) {
+                      await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
+                    }
                     fetchAllData();
                     showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
                     setModalType(null);
@@ -3123,6 +3188,16 @@ export default function AdminDashboard({
                 <p className="text-xs text-gray-500 mt-2 leading-relaxed">
                   Apakah Anda ingin menolak pengajuan verifikasi dari toko <span className="font-bold">{selectedSeller.shopName}</span>?
                 </p>
+                {selectedSeller.ktmUrl && (
+                  <div className="mt-4">
+                    <p className="text-xs font-bold text-gray-700 mb-2">Foto KTM / KTP:</p>
+                    <img 
+                      src={selectedSeller.ktmUrl} 
+                      alt="KTM/KTP" 
+                      className="w-full h-40 object-cover rounded-xl border border-gray-200"
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5">
@@ -3136,6 +3211,9 @@ export default function AdminDashboard({
                 onClick={() => {
                   const doRejectModal = async () => {
                     await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                    if (selectedSeller.transactionId) {
+                      await supabase.from('package_transactions').update({ status: 'FAILED' }).eq('id', selectedSeller.transactionId);
+                    }
                     fetchAllData();
                     showToast(`Pengajuan ${selectedSeller.shopName} ditolak!`, "error");
                     setModalType(null);
@@ -3793,7 +3871,7 @@ export default function AdminDashboard({
                       const duration = tx.package_name.includes('Standard') ? 14 : 7;
                       const expires = new Date(); expires.setDate(expires.getDate() + duration);
                       if (tx.product_id) {
-                        await supabase.from('products').update({ ad_package: tx.package_name, expires_at: expires.toISOString() }).eq('id', tx.product_id);
+                        await supabase.from('products').update({ ad_package: tx.package_name, is_premium: true, expires_at: expires.toISOString() }).eq('id', tx.product_id);
                       } else if (tx.request_id) {
                         await supabase.from('requests').update({ expires_at: expires.toISOString() }).eq('id', tx.request_id);
                       }
