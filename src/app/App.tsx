@@ -98,10 +98,20 @@ export default function App() {
     const isWished = wishlist.includes(id);
     if (isWished) {
       setWishlist(prev => prev.filter(x => x !== id));
-      await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', id);
+      const { error } = await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', id);
+      if (error) {
+        console.error("Gagal menghapus wishlist:", error);
+        toast.error("Gagal menghapus dari wishlist");
+        setWishlist(prev => [...prev, id]); // rollback
+      }
     } else {
       setWishlist(prev => [...prev, id]);
-      await supabase.from('wishlists').insert({ user_id: user.id, product_id: id });
+      const { error } = await supabase.from('wishlists').insert({ user_id: user.id, product_id: id });
+      if (error) {
+        console.error("Gagal menambahkan wishlist:", error);
+        toast.error("Gagal menyimpan ke wishlist");
+        setWishlist(prev => prev.filter(x => x !== id)); // rollback
+      }
     }
   };
 
