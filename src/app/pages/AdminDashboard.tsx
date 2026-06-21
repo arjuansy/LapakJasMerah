@@ -137,6 +137,7 @@ type SuggestionType = {
   status: "Terbuka" | "Selesai" | "Ditolak";
   createdAt: string;
   isAnonymous: boolean;
+  imageUrl?: string;
 };
 
 export default function AdminDashboard({
@@ -359,7 +360,7 @@ export default function AdminDashboard({
       const { data, error } = await supabase
         .from('suggestions')
         .select(`
-          id, category, message, is_anonymous, status, created_at,
+          id, category, message, is_anonymous, status, created_at, image_url,
           user:profiles(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
@@ -373,7 +374,8 @@ export default function AdminDashboard({
           message: s.message,
           status: s.status as any,
           createdAt: new Date(s.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
-          isAnonymous: s.is_anonymous
+          isAnonymous: s.is_anonymous,
+          imageUrl: s.image_url
         })));
       }
     };
@@ -722,36 +724,8 @@ export default function AdminDashboard({
                   if (isRestricted) {
                     handlePermissionWarning();
                   } else {
-                    const isMultiPage = window.location.pathname.includes("/admin/");
-                    if (isMultiPage) {
-                      let pageName = "dashboard.html";
-                      let hash = "";
-                      if (item.id === "users") pageName = "users.html";
-                      else if (item.id === "listings") pageName = "listings.html";
-                      else if (item.id === "categories") pageName = "categories.html";
-                      else if (item.id === "reports") pageName = "reports.html";
-                      else if (item.id === "suggestions") pageName = "suggestions.html";
-                      else if (item.id === "transactions") pageName = "transactions.html";
-                      else if (item.id === "subscriptions") { pageName = "payments.html"; hash = "#subscriptions"; }
-                      else if (item.id === "settings") { pageName = "dashboard.html"; hash = "#settings"; }
-                      else if (item.id === "sellers") { pageName = "dashboard.html"; hash = "#sellers"; }
-                      else if (item.id === "admins") { pageName = "dashboard.html"; hash = "#admins"; }
-
-                      const basePath = window.location.pathname.split("/admin/")[0];
-                      const currentHtml = window.location.pathname.split("/").pop() || "";
-                      const normalizedCurrent = currentHtml.endsWith(".html") ? currentHtml : (currentHtml ? `${currentHtml}.html` : "dashboard.html");
-                      
-                      if (normalizedCurrent === pageName) {
-                        window.location.hash = hash;
-                        setActiveTab(item.id as any);
-                        setSidebarOpen(false);
-                      } else {
-                        window.location.href = `${basePath}/admin/${pageName}${hash}`;
-                      }
-                    } else {
-                      setActiveTab(item.id as any);
-                      setSidebarOpen(false);
-                    }
+                    setActiveTab(item.id as any);
+                    setSidebarOpen(false);
                   }
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
@@ -1978,6 +1952,16 @@ export default function AdminDashboard({
                           </td>
                           <td className="px-6 py-4 text-gray-600 font-medium leading-relaxed">
                             {s.message}
+                            {s.imageUrl && (
+                              <div className="mt-3">
+                                <a href={s.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-block relative rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity" title="Lihat Lampiran Foto">
+                                  <img src={s.imageUrl} alt="Lampiran Saran" className="h-20 w-32 object-cover" />
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                    <Eye size={18} className="text-white" />
+                                  </div>
+                                </a>
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${

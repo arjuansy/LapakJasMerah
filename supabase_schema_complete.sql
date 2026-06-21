@@ -352,6 +352,7 @@ CREATE TABLE IF NOT EXISTS public.suggestions (
     message TEXT NOT NULL,
     is_anonymous BOOLEAN DEFAULT false,
     status TEXT DEFAULT 'Terbuka',
+    image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

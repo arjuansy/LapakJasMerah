@@ -3,7 +3,7 @@ import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
 import type { RequestItem } from "../data";
 import {
-  X, CheckCircle2, Banknote, Zap, AlertCircle, Eye, Shield, Package, MessageCircle, ToggleRight, ToggleLeft, Send
+  X, CheckCircle2, Banknote, Zap, AlertCircle, Eye, Shield, Package, MessageCircle, ToggleRight, ToggleLeft, Send, ImagePlus
 } from "lucide-react";
 import { supabase } from "../../config/supabaseClient";
 
@@ -342,6 +342,8 @@ export function SuggestionBoxModal() {
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [anonymous, setAnonymous] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -355,6 +357,14 @@ export function SuggestionBoxModal() {
     { id: "lainnya", label: "Lainnya", icon: MessageCircle, color: "#6B7280" },
   ];
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   async function handleSubmit() {
     if (!category) { setError("Pilih kategori saran terlebih dahulu"); return; }
     if (!message.trim() || message.length < 10) { setError("Saran minimal 10 karakter"); return; }
@@ -362,11 +372,33 @@ export function SuggestionBoxModal() {
     setLoading(true);
 
     try {
+      let imageUrl = null;
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop() || 'jpg';
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const filePath = `suggestions/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('products') // using existing public bucket
+          .upload(filePath, imageFile);
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: publicUrlData } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath);
+          
+        imageUrl = publicUrlData.publicUrl;
+      }
+
       const payload: any = {
         category,
         message,
         is_anonymous: anonymous
       };
+      if (imageUrl) {
+        payload.image_url = imageUrl;
+      }
       if (user && user.id && !anonymous) {
         payload.user_id = user.id;
       }
@@ -453,6 +485,28 @@ export function SuggestionBoxModal() {
               <p className="text-[10px] text-muted-foreground text-right mt-1">{message.length}/500</p>
             </div>
             {error && <p className="text-primary text-[11px] mb-3 flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
+
+            {/* Image Upload */}
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2 mt-4">Lampiran Foto (Opsional)</p>
+            {!imagePreview ? (
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border rounded-2xl cursor-pointer hover:bg-secondary/50 transition-colors mb-5">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <ImagePlus className="w-6 h-6 mb-2 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground"><span className="font-semibold text-primary">Klik untuk unggah</span></p>
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </label>
+            ) : (
+              <div className="relative w-full mb-5 rounded-2xl overflow-hidden border border-border group">
+                <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover" />
+                <button 
+                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="absolute top-2 right-2 bg-black/60 p-1.5 rounded-full text-white hover:bg-red-500 transition-colors backdrop-blur-md"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
 
             {/* Anonymous toggle */}
             <div className="flex items-center justify-between bg-secondary rounded-2xl px-4 py-3.5 mb-5">
