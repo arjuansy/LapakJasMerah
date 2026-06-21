@@ -360,14 +360,14 @@ export default function AdminDashboard({
         .from('suggestions')
         .select(`
           id, category, message, is_anonymous, status, created_at,
-          user:profiles(name, avatar_url)
+          user:profiles(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
       if (data && !error) {
         setSuggestions(data.map((s: any) => ({
           id: s.id,
-          userName: s.is_anonymous || !s.user ? "Pengguna Anonim" : s.user.name,
+          userName: s.is_anonymous || !s.user ? "Pengguna Anonim" : s.user.full_name,
           userAvatar: s.is_anonymous || !s.user ? "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format" : s.user.avatar_url,
           category: s.category,
           message: s.message,

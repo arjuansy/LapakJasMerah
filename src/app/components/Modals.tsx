@@ -338,6 +338,7 @@ export function PostRequestModal() {
 // ── SUGGESTION BOX MODAL ──
 export function SuggestionBoxModal() {
   const { setShowSuggestionBox, profileAvatar } = useApp();
+  const { profile, user } = useAuth();
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [anonymous, setAnonymous] = useState(false);
@@ -361,8 +362,6 @@ export function SuggestionBoxModal() {
     setLoading(true);
 
     try {
-      const userInfoStr = localStorage.getItem("userInfo");
-      const user = userInfoStr ? JSON.parse(userInfoStr) : null;
       const payload: any = {
         category,
         message,
@@ -472,7 +471,7 @@ export function SuggestionBoxModal() {
               <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-xl p-3.5 mb-5">
                 <img src={profileAvatar || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format"} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                 <div>
-                  <p className="text-blue-800 font-bold text-xs">Ahmad Rizky Pratama</p>
+                  <p className="text-blue-800 font-bold text-xs">{profile?.full_name || user?.user_metadata?.full_name || "Pengguna"}</p>
                   <p className="text-blue-600 text-[10px]">Saran dikirim atas namamu</p>
                 </div>
               </div>
