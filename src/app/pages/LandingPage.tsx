@@ -11,6 +11,22 @@ export default function LandingPage() {
 
   const { setScreen, products } = useApp();
 
+  const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0, users: 0, avgRating: 4.9 });
+  React.useEffect(() => {
+    async function fetchStats() {
+      const { count: pCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+      const { count: oCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+      const { count: uCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      setDbStats(prev => ({
+        ...prev,
+        products: pCount || 0,
+        transactions: oCount || 0,
+        users: uCount || 0,
+      }));
+    }
+    fetchStats();
+  }, []);
+
   const features = [
     { icon: Shield, title: "100% Aman", desc: "Escrow & verifikasi NIM mahasiswa UMM", color: "#10B981" },
     { icon: Tag, title: "Harga Mahasiswa", desc: "Barang bekas & baru, harga terjangkau", color: "#F59E0B" },
@@ -67,7 +83,7 @@ export default function LandingPage() {
               Mahasiswa UMM
             </h1>
             <p className="text-white/75 text-sm leading-relaxed">
-              Marketplace khusus civitas akademika UMM. Aman, terpercaya, dan harga terjangkau — semua terverifikasi NIM.
+              Marketplace khusus civitas akademika UMM. Aman, terpercaya, dan harga terjangkau - semua terverifikasi email UMM.
             </p>
           </div>
 
@@ -94,7 +110,7 @@ export default function LandingPage() {
                 <img key={id} src={`https://images.unsplash.com/${id}?w=40&h=40&fit=crop&auto=format`} className="w-8 h-8 rounded-full border-2 border-primary object-cover" alt="" />
               ))}
             </div>
-            <p className="text-white/80 text-xs"><span className="font-bold text-white">8.200+</span> mahasiswa sudah bergabung</p>
+            <p className="text-white/80 text-xs"><span className="font-bold text-white">{dbStats.users}</span> mahasiswa sudah bergabung</p>
           </div>
         </div>
 
@@ -110,31 +126,13 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* ── STATS ── */}
+        {/* ── STATS ── */}
       <div className="px-5 py-6 bg-card border-b border-border">
         {(() => {
-          const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0, users: 0, avgRating: 4.9 });
-          React.useEffect(() => {
-            async function fetchStats() {
-              const { count: pCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
-              const { count: oCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
-              const { count: uCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-              setDbStats(prev => ({
-                ...prev,
-                products: pCount || 0,
-                transactions: oCount || 0,
-                users: uCount || 0,
-              }));
-            }
-            fetchStats();
-          }, []);
-
           const dynamicStats = [
-            { value: `${dbStats.products}+`, label: "Produk Aktif" },
-            { value: `${dbStats.users}+`, label: "Pengguna" },
-            { value: `${dbStats.transactions}+`, label: "Transaksi" },
+            { value: `${dbStats.products}`, label: "Produk Aktif" },
+            { value: `${dbStats.users}`, label: "Pengguna" },
+            { value: `${dbStats.transactions}`, label: "Transaksi" },
             { value: `${dbStats.avgRating}★`, label: "Rating App" },
           ];
 
@@ -142,13 +140,14 @@ export default function LandingPage() {
             <div className="grid grid-cols-4 gap-2">
               {dynamicStats.map(({ value, label }) => (
                 <div key={label} className="text-center">
-                  <p className="text-primary font-black text-lg leading-none">{value}</p>
-                  <p className="text-muted-foreground text-[10px] mt-1 leading-tight">{label}</p>
+                  <p className="text-primary font-black text-sm">{value}</p>
+                  <p className="text-muted-foreground text-[9px] font-semibold uppercase tracking-wider">{label}</p>
                 </div>
               ))}
             </div>
           );
         })()}
+      </div>    
       </div>
 
       {/* ── FEATURES ── */}
