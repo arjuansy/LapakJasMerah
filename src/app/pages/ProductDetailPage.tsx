@@ -762,6 +762,33 @@ export default function ProductDetailPage() {
                         if (selectedPayment === "cod") {
                           setShowOrder(false);
                           setOrdered(true);
+                          
+                          const sendNotif = async () => {
+                            if (!user) return;
+                            try {
+                              let chatId = null;
+                              const { data: existingChat } = await supabase.from('chats').select('id').eq('buyer_id', user.id).eq('seller_id', product.seller_id).maybeSingle();
+                              if (existingChat) {
+                                chatId = existingChat.id;
+                              } else {
+                                const { data: newChat } = await supabase.from('chats').insert({ buyer_id: user.id, seller_id: product.seller_id, product_id: product.id }).select().single();
+                                if (newChat) chatId = newChat.id;
+                              }
+                              if (chatId) {
+                                await supabase.from('messages').insert({
+                                  chat_id: chatId,
+                                  sender_id: user.id,
+                                  content: `Pesanan Baru: ${qty}x ${product.name}. Klik untuk melihat daftar penjualan/pembelian.`,
+                                  message_type: 'order_notification',
+                                  is_read: false
+                                });
+                              }
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          };
+                          sendNotif();
+
                           return;
                         }
 
@@ -789,6 +816,32 @@ export default function ProductDetailPage() {
                                 });
                                 await supabase.from('orders').update({ status: 'PAID' }).eq('id', createdOrderId);
                                 setOrdered(true);
+                                
+                                const sendNotif = async () => {
+                                  if (!user) return;
+                                  try {
+                                    let chatId = null;
+                                    const { data: existingChat } = await supabase.from('chats').select('id').eq('buyer_id', user.id).eq('seller_id', product.seller_id).maybeSingle();
+                                    if (existingChat) {
+                                      chatId = existingChat.id;
+                                    } else {
+                                      const { data: newChat } = await supabase.from('chats').insert({ buyer_id: user.id, seller_id: product.seller_id, product_id: product.id }).select().single();
+                                      if (newChat) chatId = newChat.id;
+                                    }
+                                    if (chatId) {
+                                      await supabase.from('messages').insert({
+                                        chat_id: chatId,
+                                        sender_id: user.id,
+                                        content: `Pesanan Baru: ${qty}x ${product.name}. Klik untuk melihat daftar penjualan/pembelian.`,
+                                        message_type: 'order_notification',
+                                        is_read: false
+                                      });
+                                    }
+                                  } catch (err) {
+                                    console.error(err);
+                                  }
+                                };
+                                sendNotif();
                               },
                               onPending: function(result: any) {
                                 setShowQrisCode(true);

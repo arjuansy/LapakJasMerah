@@ -13,7 +13,7 @@ interface Message {
   sent_at: string;
   is_read?: boolean;
   image_url?: string | null;
-  message_type?: "text" | "image";
+  message_type?: "text" | "image" | "order_notification";
 }
 
 interface Chat {
@@ -665,38 +665,52 @@ function ChatPageInner() {
           {messages.map((msg) => {
             const isMe = msg.sender_id === myId;
             const isImage = msg.message_type === "image" && msg.image_url;
+            const isOrderNotif = msg.message_type === "order_notification";
 
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] rounded-2xl shadow-sm relative ${isImage ? "p-1.5" : "px-4 py-2.5"} ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
-                  {isImage ? (
-                    <div>
-                      <img
-                        src={msg.image_url!}
-                        alt="Lampiran gambar"
-                        className="rounded-xl max-h-72 w-full object-cover cursor-pointer"
-                        onClick={() => window.open(msg.image_url!, '_blank')}
-                      />
-                      {msg.content && (
-                        <p className="text-sm leading-relaxed mt-2 px-1.5">
-                          {String(msg.content)}
-                        </p>
-                      )}
-                      <div className={`flex items-center justify-end gap-1 mt-1 px-1.5 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
-                        <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
-                      </div>
+                {isOrderNotif ? (
+                  <div
+                    onClick={() => navigate("/profile")}
+                    className="max-w-[85%] rounded-2xl p-3 bg-amber-50 border border-amber-200 cursor-pointer shadow-sm hover:shadow active:scale-95 transition-all text-center"
+                  >
+                    <div className="text-amber-500 font-bold mb-1">🛒 Notifikasi Pesanan Baru</div>
+                    <p className="text-amber-800 text-sm font-semibold">{String(msg.content)}</p>
+                    <div className="flex justify-center gap-1 mt-2 text-amber-500">
+                      <span className="text-[10px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
                     </div>
-                  ) : (
-                    <>
-                      <p className="text-sm leading-relaxed">
-                        {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
-                      </p>
-                      <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
-                        <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                  </div>
+                ) : (
+                  <div className={`max-w-[75%] rounded-2xl shadow-sm relative ${isImage ? "p-1.5" : "px-4 py-2.5"} ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
+                    {isImage ? (
+                      <div>
+                        <img
+                          src={msg.image_url!}
+                          alt="Lampiran gambar"
+                          className="rounded-xl max-h-72 w-full object-cover cursor-pointer"
+                          onClick={() => window.open(msg.image_url!, '_blank')}
+                        />
+                        {msg.content && (
+                          <p className="text-sm leading-relaxed mt-2 px-1.5">
+                            {String(msg.content)}
+                          </p>
+                        )}
+                        <div className={`flex items-center justify-end gap-1 mt-1 px-1.5 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
+                          <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                        </div>
                       </div>
-                    </>
-                  )}
-                </div>
+                    ) : (
+                      <>
+                        <p className="text-sm leading-relaxed">
+                          {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
+                        </p>
+                        <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
+                          <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

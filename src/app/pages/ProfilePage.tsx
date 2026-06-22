@@ -77,7 +77,26 @@ function SalesPage({ onBack }: { onBack: () => void }) {
     dibatalkan:   { label: "Dibatalkan",   bg: "#FEE2E2", text: "#991B1B" },
   };
 
-  function updateOrderStatus(saleId: string, newStatus: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan") {
+  async function updateOrderStatus(saleId: string, newStatus: "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibatalkan") {
+    let dbStatus = "PENDING";
+    if (newStatus === "menuju_lokasi") dbStatus = "PAID";
+    if (newStatus === "selesai") dbStatus = "COMPLETED";
+    if (newStatus === "dibatalkan") dbStatus = "CANCELLED";
+
+    try {
+      const { error } = await supabase.from('orders').update({ status: dbStatus }).eq('id', saleId);
+      if (error) {
+        toast.error("Gagal memperbarui status pesanan di database.");
+        console.error(error);
+        return;
+      }
+      toast.success("Status pesanan diperbarui.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan sistem.");
+      return;
+    }
+
     setSalesData((prev) =>
       prev.map((s) => s.id === saleId ? { ...s, status: newStatus } : s)
     );
@@ -85,13 +104,13 @@ function SalesPage({ onBack }: { onBack: () => void }) {
     const orderIdNum = saleId.slice(-6);
 
     setPurchaseData((prev) =>
-      prev.map((p) => p.id.slice(-6) === orderIdNum ? { ...p, status: newStatus } : p)
+      prev.map((p) => p.id === saleId || p.id.slice(-6) === orderIdNum ? { ...p, status: newStatus } : p)
     );
 
-    if (trackingOrder && trackingOrder.id.slice(-6) === orderIdNum) {
+    if (trackingOrder && (trackingOrder.id === saleId || trackingOrder.id.slice(-6) === orderIdNum)) {
       setTrackingOrder({
         ...trackingOrder,
-        status: newStatus,
+        status: newStatus as any,
       });
     }
   }
@@ -331,7 +350,21 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
     dibatalkan:   { label: "Dibatalkan",   bg: "#FEE2E2", text: "#991B1B" },
   };
 
-  function confirmReceive(id: string) {
+  async function confirmReceive(id: string) {
+    try {
+      const { error } = await supabase.from('orders').update({ status: 'COMPLETED' }).eq('id', id);
+      if (error) {
+        toast.error("Gagal memperbarui status pesanan di database.");
+        console.error(error);
+        return;
+      }
+      toast.success("Pesanan selesai!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan sistem.");
+      return;
+    }
+
     const orderIdNum = id.slice(-6);
 
     // Update purchase list
@@ -339,11 +372,11 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
 
     // Update sales list
     setSalesData((prev) =>
-      prev.map((s) => s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
+      prev.map((s) => s.id === id || s.id.slice(-6) === orderIdNum ? { ...s, status: "selesai" } : s)
     );
 
     // Update active trackingOrder
-    if (trackingOrder && trackingOrder.id.slice(-6) === orderIdNum) {
+    if (trackingOrder && (trackingOrder.id === id || trackingOrder.id.slice(-6) === orderIdNum)) {
       setTrackingOrder({
         ...trackingOrder,
         status: "selesai",
