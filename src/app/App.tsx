@@ -252,6 +252,10 @@ export default function App() {
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
 
+      if (purErr) {
+        console.error("Gagal memuat data pembelian:", purErr);
+      }
+
       if (purchases && !purErr) {
         const formattedPurchases: PurchaseOrder[] = purchases.flatMap(o => {
           return o.order_items.map((item: any) => ({
@@ -271,29 +275,44 @@ export default function App() {
       }
 
       // Fetch Sales Data (user as seller via products)
+      // FIX: PostgREST tidak mendukung .eq() pada kolom nested table (product.seller_id)
+      // saat query dilakukan dari order_items. Solusinya: query dari `orders`,
+      // pakai !inner join ke order_items dan products, lalu filter via dot-path
+      // pada `products.seller_id` yang valid karena join-nya !inner.
       const { data: sales, error: saleErr } = await supabase
-        .from('order_items')
+        .from('orders')
         .select(`
-          order_id, quantity, price_at_purchase,
-          order:orders(id, created_at, status, buyer:profiles(full_name, avatar_url)),
-          product:products!inner(id, name, image_url, seller_id)
+          id, created_at, status,
+          buyer:profiles!orders_buyer_id_fkey(full_name, avatar_url),
+          order_items!inner(
+            quantity, price_at_purchase,
+            product:products!inner(id, name, image_url, seller_id)
+          )
         `)
-        .eq('product.seller_id', user.id);
+        .eq('order_items.product.seller_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (saleErr) {
+        console.error("Gagal memuat data penjualan:", saleErr);
+      }
 
       if (sales && !saleErr) {
-        const formattedSales: SalesOrder[] = sales.map((item: any) => {
-          const o = item.order;
-          return {
-            id: o?.id || item.order_id,
-            product: item.product?.name || "Unknown Product",
-            price: item.price_at_purchase,
-            buyer: o?.buyer?.full_name || "Unknown Buyer",
-            buyerAvatar: o?.buyer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
-            date: o?.created_at ? new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "",
-            status: (o?.status === "PENDING" ? "diproses" : o?.status === "PAID" ? "menuju_lokasi" : o?.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
-            image: item.product?.image_url || "",
-            qty: item.quantity
-          };
+        const formattedSales: SalesOrder[] = sales.flatMap((o: any) => {
+          return o.order_items
+            // jaga-jaga kalau satu order berisi item dari seller lain juga,
+            // hanya tampilkan item yang memang milik seller ini
+            .filter((item: any) => item.product?.seller_id === user.id)
+            .map((item: any) => ({
+              id: o.id,
+              product: item.product?.name || "Unknown Product",
+              price: item.price_at_purchase,
+              buyer: o.buyer?.full_name || "Unknown Buyer",
+              buyerAvatar: o.buyer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
+              date: o.created_at ? new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "",
+              status: (o.status === "PENDING" ? "diproses" : o.status === "PAID" ? "menuju_lokasi" : o.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
+              image: item.product?.image_url || "",
+              qty: item.quantity
+            }));
         });
         // Sort sales by date descending
         formattedSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -308,7 +327,7 @@ export default function App() {
         .order('created_at', { ascending: false });
       if (notifs) setNotifications(notifs);
 
-      // Fetch Unread Chats count (panggil function yang sudah dipindah ke atas)
+      // Fetch Unread Chats count
       fetchUnreadChats();
     };
 
