@@ -324,6 +324,7 @@ function SalesPage({ onBack }: { onBack: () => void }) {
 
 // ── DAFTAR PEMBELIAN ──
 function PurchasePage({ onBack }: { onBack: () => void }) {
+  const navigate = useNavigate();
   const {
     
     setActiveTab: setGlobalTab,
@@ -485,16 +486,39 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
 
               {/* Actions */}
               {(order.status === "dikonfirmasi" || order.status === "diproses" || order.status === "menuju_lokasi") && (
-                <div className="flex gap-2 px-4 pb-3">
-                  <button
-                    onClick={() => startChat(order.seller, order.product, order.image, order.price)}
-                    className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl"
-                  >
-                    Chat Penjual
-                  </button>
+                <div className="flex flex-col gap-2 px-4 pb-3">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setTrackingOrder({
+                          id: order.id,
+                          product: order.product,
+                          productId: order.productId,
+                          image: order.image,
+                          seller: order.seller,
+                          sellerId: order.sellerId,
+                          price: order.price,
+                          qty: order.qty,
+                          payment: "cod",
+                          location: "",
+                          status: order.status
+                        });
+                        navigate(`/order/${order.id}`);
+                      }}
+                      className="flex-1 bg-blue-500 text-white flex items-center justify-center gap-1.5 text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                    >
+                      <MapPin size={14} /> Lacak
+                    </button>
+                    <button
+                      onClick={() => startChat(order.seller, order.product, order.image, order.price)}
+                      className="flex-1 bg-secondary border border-primary/20 text-primary text-xs font-bold py-2 rounded-xl"
+                    >
+                      Chat Penjual
+                    </button>
+                  </div>
                   <button
                     onClick={() => setShowConfirmReceive(order.id)}
-                    className="flex-1 bg-primary text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
+                    className="w-full bg-primary text-white text-xs font-bold py-2 rounded-xl active:scale-95 transition-transform"
                   >
                     Konfirmasi Terima
                   </button>
