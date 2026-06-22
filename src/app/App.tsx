@@ -143,23 +143,57 @@ export default function App() {
       }
 
       if (productsData) {
-        const fetchedProducts: Product[] = productsData.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          price: Number(p.price),
-          category: p.category?.name || "Lainnya",
-          condition: p.condition || "Baru",
-          location: p.location,
-          seller: p.seller?.full_name || "Penjual",
-          seller_id: p.seller_id,
-          sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
-          image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
-          rating: 0,
-          sold: 0,
-          description: p.description || "",
-          stock: p.stock || 1,
-          is_premium: p.is_premium
-        }));
+        // Fetch reviews and sales to calculate rating and sold dynamically
+        const [{ data: allReviews }, { data: allSales }] = await Promise.all([
+          supabase.from('reviews').select('product_id, rating'),
+          supabase.from('order_items').select('product_id, quantity, order:orders!inner(status)')
+        ]);
+
+        const ratingsMap = new Map();
+        if (allReviews) {
+          allReviews.forEach((r: any) => {
+            if (!ratingsMap.has(r.product_id)) ratingsMap.set(r.product_id, { sum: 0, count: 0 });
+            const stat = ratingsMap.get(r.product_id);
+            stat.sum += r.rating;
+            stat.count += 1;
+          });
+        }
+
+        const salesMap = new Map();
+        if (allSales) {
+          allSales.forEach((s: any) => {
+            if (s.order?.status === 'COMPLETED') {
+               salesMap.set(s.product_id, (salesMap.get(s.product_id) || 0) + s.quantity);
+            }
+          });
+        }
+
+        const fetchedProducts: Product[] = productsData.map((p: any) => {
+          let avgRating = 0;
+          if (ratingsMap.has(p.id)) {
+            const stat = ratingsMap.get(p.id);
+            avgRating = Math.round((stat.sum / stat.count) * 10) / 10;
+          }
+          const totalSold = salesMap.get(p.id) || 0;
+
+          return {
+            id: p.id,
+            name: p.name,
+            price: Number(p.price),
+            category: p.category?.name || "Lainnya",
+            condition: p.condition || "Baru",
+            location: p.location,
+            seller: p.seller?.full_name || "Penjual",
+            seller_id: p.seller_id,
+            sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
+            image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+            rating: avgRating,
+            sold: totalSold,
+            description: p.description || "",
+            stock: p.stock || 1,
+            is_premium: p.is_premium
+          };
+        });
         setProducts(fetchedProducts);
       }
     };

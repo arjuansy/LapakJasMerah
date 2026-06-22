@@ -175,18 +175,33 @@ export default function MarketplaceFeed() {
 
         {/* ── QUICK STATS ── */}
         <div className="px-4 pt-4 grid grid-cols-3 gap-2">
-          {[
-            { icon: Package, label: "12.4K Produk", color: "#c41230" },
-            { icon: Shield, label: "100% Aman", color: "#10B981" },
-            { icon: TrendingUp, label: "4.9K Transaksi", color: "#8B5CF6" },
-          ].map(({ icon: Icon, label, color }) => (
-            <div key={label} className="bg-card rounded-xl px-2 py-2.5 flex items-center gap-2 shadow-sm border border-border">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: color + "18" }}>
-                <Icon size={14} style={{ color }} />
+          {(() => {
+            const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0 });
+            React.useEffect(() => {
+              async function fetchStats() {
+                const { count: pCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+                const { count: oCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+                setDbStats({
+                  products: pCount || 0,
+                  transactions: oCount || 0
+                });
+              }
+              fetchStats();
+            }, []);
+
+            return [
+              { icon: Package, label: `${dbStats.products} Produk`, color: "#c41230" },
+              { icon: Shield, label: "100% Aman", color: "#10B981" },
+              { icon: TrendingUp, label: `${dbStats.transactions} Transaksi`, color: "#8B5CF6" },
+            ].map(({ icon: Icon, label, color }) => (
+              <div key={label} className="bg-card rounded-xl px-2 py-2.5 flex items-center gap-2 shadow-sm border border-border">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: color + "18" }}>
+                  <Icon size={14} style={{ color }} />
+                </div>
+                <span className="text-[10px] font-semibold text-foreground leading-tight">{label}</span>
               </div>
-              <span className="text-[10px] font-semibold text-foreground leading-tight">{label}</span>
-            </div>
-          ))}
+            ));
+          })()}
         </div>
 
         {/* ── CATEGORIES ── */}

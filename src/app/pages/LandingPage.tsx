@@ -1,8 +1,10 @@
 import { Shield, Tag, MessageSquare, MapPin, Star, Zap, ShoppingBag } from "lucide-react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
 import logo from "../../assets/logo.png";
+import { supabase } from "../../config/supabaseClient";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -112,14 +114,41 @@ export default function LandingPage() {
 
       {/* ── STATS ── */}
       <div className="px-5 py-6 bg-card border-b border-border">
-        <div className="grid grid-cols-4 gap-2">
-          {stats.map(({ value, label }) => (
-            <div key={label} className="text-center">
-              <p className="text-primary font-black text-lg leading-none">{value}</p>
-              <p className="text-muted-foreground text-[10px] mt-1 leading-tight">{label}</p>
+        {(() => {
+          const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0, users: 0, avgRating: 4.9 });
+          React.useEffect(() => {
+            async function fetchStats() {
+              const { count: pCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+              const { count: oCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+              const { count: uCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+              setDbStats(prev => ({
+                ...prev,
+                products: pCount || 0,
+                transactions: oCount || 0,
+                users: uCount || 0,
+              }));
+            }
+            fetchStats();
+          }, []);
+
+          const dynamicStats = [
+            { value: `${dbStats.products}+`, label: "Produk Aktif" },
+            { value: `${dbStats.users}+`, label: "Pengguna" },
+            { value: `${dbStats.transactions}+`, label: "Transaksi" },
+            { value: `${dbStats.avgRating}★`, label: "Rating App" },
+          ];
+
+          return (
+            <div className="grid grid-cols-4 gap-2">
+              {dynamicStats.map(({ value, label }) => (
+                <div key={label} className="text-center">
+                  <p className="text-primary font-black text-lg leading-none">{value}</p>
+                  <p className="text-muted-foreground text-[10px] mt-1 leading-tight">{label}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
 
       {/* ── FEATURES ── */}
