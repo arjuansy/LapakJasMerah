@@ -87,7 +87,7 @@ export default function StorePage() {
         </div>
 
         {/* Avatar card overlap */}
-        <div className="px-4 -mt-12 mb-4">
+        <div className="relative z-10 px-4 -mt-12 mb-4">
           <div className="bg-card rounded-2xl border border-border shadow-md p-4">
             <div className="flex items-start gap-4">
               <div className="relative shrink-0">
@@ -97,7 +97,7 @@ export default function StorePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <p className="text-foreground font-black text-base">{sellerName}</p>
-                  {isVerified && <BadgeCheck size={15} className="text-blue-500 fill-blue-100" />}
+                  <BadgeCheck size={15} className="text-blue-500 fill-blue-100 shrink-0" />
                 </div>
                 <p className="text-muted-foreground text-xs mb-2">Online sekarang · Bergabung Mar 2024</p>
                 <div className="flex gap-3 text-center">

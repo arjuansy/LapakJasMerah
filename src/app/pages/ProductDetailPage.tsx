@@ -427,7 +427,10 @@ export default function ProductDetailPage() {
               <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white" />
             </div>
             <div className="flex-1">
-              <p className="font-bold text-foreground text-sm">{product.seller}</p>
+              <div className="flex items-center gap-1">
+                <p className="font-bold text-foreground text-sm">{product.seller}</p>
+                <BadgeCheck size={14} className="text-blue-500 shrink-0" />
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-muted-foreground">Belum ada ulasan</span>
               </div>
