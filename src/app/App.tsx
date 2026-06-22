@@ -243,11 +243,14 @@ export default function App() {
       if (wishData) setWishlist(wishData.map(w => w.product_id));
 
       // Fetch Purchase Data (user as buyer)
+      // NOTE: 'profiles' tetap harus eksplisit (products_seller_id_fkey) karena ada >1 relasi
+      // products -> profiles yang sah (seller_id, dan tidak langsung lewat wishlists).
+      // 'order_items' sudah TIDAK perlu eksplisit lagi setelah FK duplikat di-drop.
       const { data: purchases, error: purErr } = await supabase
         .from('orders')
         .select(`
           id, total_amount, status, created_at, location,
-          order_items(quantity, price_at_purchase, product:products(id, name, image_url, seller:profiles(id, full_name, avatar_url)))
+          order_items(quantity, price_at_purchase, product:products(id, name, image_url, seller:profiles!products_seller_id_fkey(id, full_name, avatar_url)))
         `)
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
@@ -257,7 +260,7 @@ export default function App() {
       }
 
       if (purchases && !purErr) {
-        const formattedPurchases: PurchaseOrder[] = purchases.flatMap(o => {
+        const formattedPurchases: PurchaseOrder[] = purchases.flatMap((o: any) => {
           return o.order_items.map((item: any) => ({
             id: o.id,
             product: item.product?.name || "Unknown Product",
@@ -275,10 +278,6 @@ export default function App() {
       }
 
       // Fetch Sales Data (user as seller via products)
-      // FIX: PostgREST tidak mendukung .eq() pada kolom nested table (product.seller_id)
-      // saat query dilakukan dari order_items. Solusinya: query dari `orders`,
-      // pakai !inner join ke order_items dan products, lalu filter via dot-path
-      // pada `products.seller_id` yang valid karena join-nya !inner.
       const { data: sales, error: saleErr } = await supabase
         .from('orders')
         .select(`
@@ -299,8 +298,6 @@ export default function App() {
       if (sales && !saleErr) {
         const formattedSales: SalesOrder[] = sales.flatMap((o: any) => {
           return o.order_items
-            // jaga-jaga kalau satu order berisi item dari seller lain juga,
-            // hanya tampilkan item yang memang milik seller ini
             .filter((item: any) => item.product?.seller_id === user.id)
             .map((item: any) => ({
               id: o.id,
@@ -314,7 +311,6 @@ export default function App() {
               qty: item.quantity
             }));
         });
-        // Sort sales by date descending
         formattedSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setSalesData(formattedSales);
       }
