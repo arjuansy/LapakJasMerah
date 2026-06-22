@@ -107,7 +107,7 @@ export default function StorePage() {
                   <div className="w-px h-6 bg-border self-center" />
                   <div><p className="text-foreground font-black text-sm">98%</p><p className="text-muted-foreground text-[10px]">Respons</p></div>
                   <div className="w-px h-6 bg-border self-center" />
-                  <div><p className="text-foreground font-black text-sm">24</p><p className="text-muted-foreground text-[10px]">Terjual</p></div>
+                  <div><p className="text-foreground font-black text-sm">{storeProducts.reduce((s, p) => s + (p.sold || 0), 0)}</p><p className="text-muted-foreground text-[10px]">Terjual</p></div>
                 </div>
               </div>
             </div>

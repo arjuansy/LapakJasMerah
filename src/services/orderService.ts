@@ -73,20 +73,36 @@ export const orderService = {
 
   // Mengambil ulasan untuk seorang penjual (Store Page)
   async getStoreReviews(sellerId: string) {
-    const { data, error } = await supabase
+    const { data: reviews, error } = await supabase
       .from('reviews')
       .select(`
         id,
         rating,
         comment,
         created_at,
-        product:products(name),
-        reviewer:profiles!reviews_reviewer_id_fkey(full_name, username, avatar_url)
+        product_id,
+        reviewer:profiles!reviewer_id(full_name, username, avatar_url)
       `)
       .eq('seller_id', sellerId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    if (!reviews || reviews.length === 0) return [];
+
+    // Fetch product names manually in case FK is missing
+    const productIds = [...new Set(reviews.map((r: any) => r.product_id).filter(Boolean))];
+    if (productIds.length > 0) {
+      const { data: products } = await supabase
+        .from('products')
+        .select('id, name')
+        .in('id', productIds);
+      
+      const productMap = new Map(products?.map(p => [p.id, p.name]));
+      reviews.forEach((r: any) => {
+        if (r.product_id) r.product = { name: productMap.get(r.product_id) || "Produk" };
+      });
+    }
+
+    return reviews;
   }
 };

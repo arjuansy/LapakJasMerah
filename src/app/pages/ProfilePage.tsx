@@ -384,10 +384,43 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
       });
     }
 
+    triggerToast(`✓ Pesanan #${orderIdNum} selesai. Uang diteruskan ke penjual.`);
     setShowConfirmReceive(null);
+    setShowReviewModal(id);
   }
 
-  function submitReview(id: string) {
+  async function submitReview(id: string) {
+    if (!reviewText.trim()) {
+      triggerToast("Komentar tidak boleh kosong");
+      return;
+    }
+    
+    try {
+      const order = purchaseData.find((p) => p.id === id);
+      if (!order) return;
+      
+      const { error } = await supabase.from('reviews').insert({
+        order_id: id,
+        product_id: order.productId,
+        reviewer_id: user?.id,
+        seller_id: order.sellerId,
+        rating: reviewRating,
+        comment: reviewText
+      });
+      
+      if (error) {
+        console.error(error);
+        triggerToast("Gagal mengirim ulasan.");
+        return;
+      }
+      
+      triggerToast("✓ Ulasan kamu sangat membantu pembeli lain!");
+    } catch (err) {
+      console.error(err);
+      triggerToast("Terjadi kesalahan sistem.");
+      return;
+    }
+
     setReviewSubmitted((prev) => [...prev, id]);
     setShowReviewModal(null);
     setReviewText("");
@@ -2065,14 +2098,25 @@ function ReviewsPage({ onBack }: { onBack: () => void }) {
       const { data, error } = await supabase
         .from('reviews')
         .select(`
-          id, rating, comment, created_at,
-          reviewer:profiles!reviews_reviewer_id_fkey(full_name, avatar_url),
-          product:products(name, image_url)
+          id, rating, comment, created_at, product_id,
+          reviewer:profiles!reviewer_id(full_name, avatar_url)
         `)
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
       
       if (!error && data) {
+        const productIds = [...new Set(data.map((r: any) => r.product_id).filter(Boolean))];
+        if (productIds.length > 0) {
+          const { data: products } = await supabase
+            .from('products')
+            .select('id, name, image_url')
+            .in('id', productIds);
+          
+          const productMap = new Map(products?.map(p => [p.id, p]));
+          data.forEach((r: any) => {
+            if (r.product_id) r.product = productMap.get(r.product_id) || { name: "Produk" };
+          });
+        }
         setReviews(data);
       }
       setLoading(false);
@@ -2583,7 +2627,10 @@ export default function ProfilePage() {
 
       {/* ── TOTAL PENJUALAN CARD ── */}
       {(() => {
-        const salesTotal = 0; // total dari transaksi selesai
+        const salesTotal = salesData ? salesData.filter((s: any) => s.status === 'selesai').reduce((acc: number, curr: any) => acc + (curr.price * curr.qty), 0) : 0;
+        const countTerjual = salesData ? salesData.filter((s: any) => s.status === 'selesai').reduce((acc: number, curr: any) => acc + curr.qty, 0) : 0;
+        const countProses = salesData ? salesData.filter((s: any) => s.status === 'diproses' || s.status === 'menuju_lokasi' || s.status === 'dikonfirmasi').reduce((acc: number, curr: any) => acc + curr.qty, 0) : 0;
+
         return (
           <div className="px-4 mb-5">
             <button
@@ -2596,7 +2643,11 @@ export default function ProfilePage() {
                     <TrendingUp size={11} /> Total Penjualan
                   </p>
                   <p className="text-white font-black text-2xl leading-none">{formatPrice(salesTotal)}</p>
-                  <p className="text-white/60 text-[10px] mt-1">Belum ada data</p>
+                  {salesData && salesData.length > 0 ? (
+                    <p className="text-white/60 text-[10px] mt-1">Dari {salesData.length} transaksi</p>
+                  ) : (
+                    <p className="text-white/60 text-[10px] mt-1">Belum ada data</p>
+                  )}
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="bg-white/20 rounded-xl px-2.5 py-1 flex items-center gap-1">
@@ -2605,11 +2656,11 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex gap-3 text-center mt-1">
                     <div>
-                      <p className="text-white font-black text-base leading-none">0</p>
+                      <p className="text-white font-black text-base leading-none">{countTerjual}</p>
                       <p className="text-white/60 text-[9px]">Terjual</p>
                     </div>
                     <div>
-                      <p className="text-white font-black text-base leading-none">0</p>
+                      <p className="text-white font-black text-base leading-none">{countProses}</p>
                       <p className="text-white/60 text-[9px]">Proses</p>
                     </div>
                   </div>
