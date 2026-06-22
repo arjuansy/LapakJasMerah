@@ -133,7 +133,7 @@ export default function App() {
           seller:profiles!products_seller_id_fkey(full_name, avatar_url),
           category:categories(name)
         `)
-        .gte('expires_at', new Date().toISOString())
+        .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
         .order('is_premium', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -207,7 +207,7 @@ export default function App() {
           *,
           user:profiles!requests_user_id_fkey(full_name, avatar_url)
         `)
-        .gte('expires_at', new Date().toISOString())
+        .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
         .order('created_at', { ascending: false });
         
       if (error) {
