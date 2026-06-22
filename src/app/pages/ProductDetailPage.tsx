@@ -589,76 +589,74 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={async () => { 
-                if (!user) {
-                  toast.error("Anda harus login terlebih dahulu untuk chat.");
-                  navigate("/auth");
-                  return;
-                }
-                if (user.id === product.seller_id) {
-                  toast.error("Anda tidak bisa chat diri sendiri!");
-                  return;
-                }
-                
-                try {
-                  // ⬇️ Cek chat HANYA berdasarkan (buyer, seller) — TANPA product_id.
-                  // Ini memastikan satu pasangan buyer-seller cuma punya SATU chat,
-                  // terlepas dari produk mana yang membuka chat itu.
-                  const { data: existingChat, error: checkError } = await supabase.from('chats')
-                    .select('id')
-                    .eq('buyer_id', user.id)
-                    .eq('seller_id', product.seller_id)
-                    .maybeSingle();
-
-                  if (checkError) throw checkError;
-
-                  if (existingChat) {
-                    // Chat sudah ada -> opsional, update product_id supaya kartu produk
-                    // yang tampil di chat itu adalah produk yang baru dibahas (paling relevan).
-                    await supabase.from('chats')
-                      .update({ product_id: product.id })
-                      .eq('id', existingChat.id);
-
-                    navigate(`/chat/${existingChat.id}`);
-                  } else {
-                    // Belum ada chat sama sekali -> coba buat baru
-                    const { data: newChat, error } = await supabase.from('chats').insert({
-                      buyer_id: user.id,
-                      seller_id: product.seller_id,
-                      product_id: product.id
-                    }).select().single();
-                    
-                    if (error) {
-                      // Kode 23505 = unique constraint violation.
-                      // Ini bisa terjadi kalau user klik dobel dengan sangat cepat (race condition),
-                      // sehingga insert lain sudah lebih dulu membuat chat untuk pasangan ini.
-                      // Solusinya: ambil ulang chat yang sudah terbentuk itu.
-                      if (error.code === '23505') {
-                        const { data: retryChat } = await supabase.from('chats')
-                          .select('id')
-                          .eq('buyer_id', user.id)
-                          .eq('seller_id', product.seller_id)
-                          .maybeSingle();
-                        if (retryChat) {
-                          navigate(`/chat/${retryChat.id}`);
-                          return;
-                        }
-                      }
-                      throw error;
-                    }
-                    if (newChat) navigate(`/chat/${newChat.id}`);
+            {user?.id !== product.seller_id && (
+              <button
+                onClick={async () => { 
+                  if (!user) {
+                    toast.error("Anda harus login terlebih dahulu untuk chat.");
+                    navigate("/auth");
+                    return;
                   }
-                } catch (err) {
-                  console.error(err);
-                  toast.error("Gagal membuka chat");
-                }
-              }}
-              className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
-            >
-              <MessageSquare size={15} />
-              Chat
-            </button>
+                  
+                  try {
+                    // ⬇️ Cek chat HANYA berdasarkan (buyer, seller) — TANPA product_id.
+                    // Ini memastikan satu pasangan buyer-seller cuma punya SATU chat,
+                    // terlepas dari produk mana yang membuka chat itu.
+                    const { data: existingChat, error: checkError } = await supabase.from('chats')
+                      .select('id')
+                      .eq('buyer_id', user.id)
+                      .eq('seller_id', product.seller_id)
+                      .maybeSingle();
+
+                    if (checkError) throw checkError;
+
+                    if (existingChat) {
+                      // Chat sudah ada -> opsional, update product_id supaya kartu produk
+                      // yang tampil di chat itu adalah produk yang baru dibahas (paling relevan).
+                      await supabase.from('chats')
+                        .update({ product_id: product.id })
+                        .eq('id', existingChat.id);
+
+                      navigate(`/chat/${existingChat.id}`);
+                    } else {
+                      // Belum ada chat sama sekali -> coba buat baru
+                      const { data: newChat, error } = await supabase.from('chats').insert({
+                        buyer_id: user.id,
+                        seller_id: product.seller_id,
+                        product_id: product.id
+                      }).select().single();
+                      
+                      if (error) {
+                        // Kode 23505 = unique constraint violation.
+                        // Ini bisa terjadi kalau user klik dobel dengan sangat cepat (race condition),
+                        // sehingga insert lain sudah lebih dulu membuat chat untuk pasangan ini.
+                        // Solusinya: ambil ulang chat yang sudah terbentuk itu.
+                        if (error.code === '23505') {
+                          const { data: retryChat } = await supabase.from('chats')
+                            .select('id')
+                            .eq('buyer_id', user.id)
+                            .eq('seller_id', product.seller_id)
+                            .maybeSingle();
+                          if (retryChat) {
+                            navigate(`/chat/${retryChat.id}`);
+                            return;
+                          }
+                        }
+                        throw error;
+                      }
+                      if (newChat) navigate(`/chat/${newChat.id}`);
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("Gagal membuka chat");
+                  }
+                }}
+                className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
+              >
+                <MessageSquare size={15} />
+                Chat
+              </button>
+            )}
             <button
               onClick={() => {
                 if (isOutOfStock) return;

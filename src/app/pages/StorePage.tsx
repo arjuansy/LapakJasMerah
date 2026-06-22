@@ -7,10 +7,12 @@ import {
 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../../config/supabaseClient";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function StorePage() {
   const { sellerId } = useParams<{ sellerId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { products, triggerToast, setShowReportModal } = useApp();
   
   if (!sellerId) return null;
@@ -112,12 +114,14 @@ export default function StorePage() {
               </div>
             </div>
             <div className="flex gap-2 mt-3">
-              <button
-                onClick={() => { navigate("/chat"); }}
-                className="flex-1 bg-primary text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-              >
-                <MessageSquare size={14} /> Chat Penjual
-              </button>
+              {user?.id !== sellerId && (
+                <button
+                  onClick={() => { navigate("/chat"); }}
+                  className="flex-1 bg-primary text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
+                >
+                  <MessageSquare size={14} /> Chat Penjual
+                </button>
+              )}
               <button
                 onClick={() => { setShowReportModal({ type: "penjual", name: sellerName }); }}
                 className="w-10 h-10 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center shrink-0"
