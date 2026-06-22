@@ -133,10 +133,10 @@ export default function App() {
           seller:profiles!products_seller_id_fkey(full_name, avatar_url),
           category:categories(name)
         `)
-        .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
+        .gte('expires_at', new Date().toISOString())
         .order('is_premium', { ascending: false })
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         console.error("Gagal memuat produk dari Supabase:", error);
         return;
@@ -207,7 +207,7 @@ export default function App() {
           *,
           user:profiles!requests_user_id_fkey(full_name, avatar_url)
         `)
-        .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
+        .gte('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
         
       if (error) {
