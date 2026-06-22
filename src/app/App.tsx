@@ -170,9 +170,11 @@ export default function App() {
 
         const fetchedProducts: Product[] = productsData.map((p: any) => {
           let avgRating = 0;
+          let rCount = 0;
           if (ratingsMap.has(p.id)) {
             const stat = ratingsMap.get(p.id);
             avgRating = Math.round((stat.sum / stat.count) * 10) / 10;
+            rCount = stat.count;
           }
           const totalSold = salesMap.get(p.id) || 0;
 
@@ -188,6 +190,7 @@ export default function App() {
             sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
             image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
             rating: avgRating,
+            ratingCount: rCount,
             sold: totalSold,
             description: p.description || "",
             stock: p.stock || 1,

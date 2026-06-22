@@ -199,6 +199,7 @@ export interface Product {
   sellerAvatar?: string;
   image: string;
   rating: number;
+  ratingCount?: number;
   sold: number;
   description?: string;
   stock?: number;

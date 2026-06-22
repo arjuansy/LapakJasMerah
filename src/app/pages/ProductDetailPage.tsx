@@ -26,6 +26,7 @@ export default function ProductDetailPage() {
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [showQrisCode, setShowQrisCode] = useState(false);
   const [showReportModal, setShowReportModal] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     setLoading(true);
@@ -49,10 +50,14 @@ export default function ProductDetailPage() {
       // Fetch total sold and average rating manually
       let totalSold = 0;
       let avgRating = 0;
+      let rCount = 0;
 
       const [{ data: soldData }, { data: reviewData }] = await Promise.all([
         supabase.from('order_items').select('quantity, order:orders!inner(status)').eq('product_id', p.id),
-        supabase.from('reviews').select('rating').eq('product_id', p.id)
+        supabase.from('reviews').select(`
+          id, rating, comment, created_at,
+          reviewer:profiles!reviews_reviewer_id_fkey(full_name, avatar_url)
+        `).eq('product_id', p.id)
       ]);
 
       if (soldData) {
@@ -60,8 +65,12 @@ export default function ProductDetailPage() {
       }
 
       if (reviewData && reviewData.length > 0) {
+        setReviews(reviewData);
+        rCount = reviewData.length;
         const sum = reviewData.reduce((acc: number, curr: any) => acc + curr.rating, 0);
         avgRating = Math.round((sum / reviewData.length) * 10) / 10;
+      } else {
+        setReviews([]);
       }
 
       setProduct({
@@ -76,6 +85,7 @@ export default function ProductDetailPage() {
         sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
         image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
         rating: avgRating,
+        ratingCount: rCount,
         sold: totalSold,
         description: p.description || "",
         stock: p.stock ?? 0,
@@ -372,7 +382,9 @@ export default function ProductDetailPage() {
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center gap-1">
               <Star size={13} className="text-accent fill-accent" />
-              <span className="text-sm font-bold text-foreground">{product.rating}</span>
+              <span className="text-sm font-bold text-foreground">
+                {product.rating} {product.ratingCount ? `(${product.ratingCount})` : ''}
+              </span>
             </div>
             <div className="w-px h-4 bg-border" />
             <span className="text-sm text-muted-foreground">{product.sold} terjual</span>
@@ -465,6 +477,52 @@ export default function ProductDetailPage() {
               </div>
             ))}
           </div>
+        </div>
+
+
+
+        {/* ── ULASAN PRODUK ── */}
+        <div className="px-4 py-4 bg-background">
+          <h3 className="text-foreground font-bold text-sm mb-3 flex items-center gap-2">
+            Ulasan
+            <span className="text-muted-foreground text-xs font-normal">({reviews.length})</span>
+          </h3>
+          
+          {reviews.length === 0 ? (
+            <p className="text-muted-foreground text-xs">Belum ada ulasan untuk produk ini.</p>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((rev) => (
+                <div key={rev.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <img 
+                      src={rev.reviewer?.avatar_url || "/default-avatar.png"} 
+                      alt="avatar" 
+                      className="w-6 h-6 rounded-full object-cover" 
+                    />
+                    <div className="flex-1">
+                      <p className="text-foreground font-bold text-xs">{rev.reviewer?.full_name || "Pengguna"}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {[1,2,3,4,5].map((s) => (
+                          <Star 
+                            key={s} 
+                            size={9} 
+                            className={s <= rev.rating ? "text-accent fill-accent" : "text-muted"} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-muted-foreground text-[10px]">
+                      {new Date(rev.created_at).toLocaleDateString('id-ID')}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground text-xs leading-relaxed mt-1">
+                    {rev.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
 
