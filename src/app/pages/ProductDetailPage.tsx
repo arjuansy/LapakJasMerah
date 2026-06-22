@@ -861,9 +861,9 @@ export default function ProductDetailPage() {
                           setShowOrder(false);
                           setShowQrisCode(true);
                         }
-                      } catch (err) {
+                      } catch (err: any) {
                         console.error("Order error:", err);
-                        toast.error("Gagal memproses pesanan.");
+                        toast.error(`Gagal memproses pesanan: ${err.message || err.toString()}`);
                       }
                     }}
                     className="w-full text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform"
