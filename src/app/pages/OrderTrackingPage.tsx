@@ -9,6 +9,7 @@ import { useApp } from "../context";
 import { formatPrice } from "../data";
 import { orderService } from "../../services/orderService";
 import { authService } from "../../services/authService";
+import { useAuth } from "../../hooks/useAuth";
 
 const STEPS = [
   {
@@ -45,6 +46,7 @@ type Status = "dikonfirmasi" | "diproses" | "menuju_lokasi" | "selesai" | "dibat
 
 export default function OrderTrackingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const {
     trackingOrder,

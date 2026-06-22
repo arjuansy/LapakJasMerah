@@ -2112,9 +2112,6 @@ export default function ProfilePage() {
   const [activeProfileTab, setActiveProfileTab] = useState<"iklan" | "terjual" | "disukai">("iklan");
 
   const [showKtm, setShowKtm] = useState(false);
-  const [showBadgePay, setShowBadgePay] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [badgePaid, setBadgePaid] = useState(false);
 
   useEffect(() => {
     if (user && products) {
