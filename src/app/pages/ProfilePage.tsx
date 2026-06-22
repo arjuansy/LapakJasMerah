@@ -1,6 +1,6 @@
 import { toast } from "react-hot-toast";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Star,
@@ -561,7 +561,7 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
         const order = purchaseData.find((p) => p.id === showConfirmReceive);
         if (!order) return null;
         return (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmReceive(null)} />
             <div className="relative bg-card rounded-3xl shadow-2xl p-6 w-full">
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -585,9 +585,9 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
         const order = purchaseData.find((p) => p.id === showReviewModal);
         if (!order) return null;
         return (
-          <div className="fixed inset-0 z-[80] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="fixed inset-0 z-[100] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowReviewModal(null)} />
-            <div className="relative bg-card rounded-t-3xl shadow-2xl p-5 pb-8">
+            <div className="relative bg-card rounded-t-3xl shadow-2xl p-5 pb-12">
               <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
               <h3 className="text-foreground font-black text-lg mb-1">Beri Ulasan</h3>
               <p className="text-muted-foreground text-xs mb-4">{order.product} · {order.seller}</p>
@@ -2053,10 +2053,99 @@ function AboutPage({ onBack }: { onBack: () => void }) {
   );
 }
 
+// ── ULASAN SAYA ──
+function ReviewsPage({ onBack }: { onBack: () => void }) {
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          id, rating, comment, created_at,
+          reviewer:profiles!reviews_reviewer_id_fkey(full_name, avatar_url),
+          product:products(name, image_url)
+        `)
+        .eq('seller_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setReviews(data);
+      }
+      setLoading(false);
+    }
+    fetchReviews();
+  }, [user]);
+
+  return (
+    <div className="min-h-screen bg-background pb-28">
+      <div className="bg-primary sticky top-0 z-40 shadow-md">
+        <div className="px-4 pt-10 pb-4 flex items-center gap-3">
+          <button onClick={onBack} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+            <ArrowLeft size={18} className="text-white" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-white font-black text-lg">Ulasan Saya</h1>
+            <p className="text-white/60 text-[11px]">{reviews.length} ulasan diterima</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 pt-4 space-y-3">
+        {loading ? (
+          <p className="text-center text-muted-foreground mt-10 font-bold">Memuat ulasan...</p>
+        ) : reviews.length === 0 ? (
+          <div className="flex flex-col items-center py-20 text-center">
+            <Star size={40} className="text-muted-foreground/30 mb-3" />
+            <p className="text-foreground font-bold">Belum ada ulasan</p>
+            <p className="text-muted-foreground text-sm">Anda belum menerima ulasan dari pembeli.</p>
+          </div>
+        ) : (
+          reviews.map(r => (
+            <div key={r.id} className="bg-card rounded-2xl border border-border p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <img src={r.reviewer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format"} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center mb-1">
+                    <p className="font-bold text-foreground text-sm truncate">{r.reviewer?.full_name || "Pembeli"}</p>
+                    <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                      {new Date(r.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                  <div className="flex gap-0.5 mb-2">
+                    {[1,2,3,4,5].map(star => (
+                      <Star key={star} size={12} className={star <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-border"} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">{r.comment || "Tidak ada komentar."}</p>
+                  <div className="flex items-center gap-2 bg-muted/40 p-2 rounded-xl border border-border">
+                    <img src={r.product?.image_url || ""} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                    <p className="text-[10px] font-semibold text-foreground truncate">{r.product?.name || "Produk"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── PROFILE PAGE ──
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const [profileSubPage, setProfileSubPage] = useState<any>(null);
+  const location = useLocation();
+  const [profileSubPage, setProfileSubPage] = useState<any>(location.state?.subPage || null);
+
+  useEffect(() => {
+    if (location.state?.subPage) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const { user, profile, refreshSession } = useAuth();
   const [showBadgePay, setShowBadgePay] = useState(false);
@@ -2131,7 +2220,25 @@ export default function ProfilePage() {
     products,
     isDarkMode,
     setIsDarkMode,
+    salesData
   } = useApp();
+
+  const [averageRating, setAverageRating] = useState<string>("0.0");
+  const [totalRatingCount, setTotalRatingCount] = useState<number>(0);
+  
+  useEffect(() => {
+    if (user) {
+      supabase.from('reviews').select('rating').eq('seller_id', user.id).then(({data, error}) => {
+        if (!error && data && data.length > 0) {
+          const sum = data.reduce((acc, curr) => acc + curr.rating, 0);
+          setAverageRating((sum / data.length).toFixed(1));
+          setTotalRatingCount(data.length);
+        }
+      });
+    }
+  }, [user]);
+
+  const totalTerjualProfile = salesData ? salesData.filter((s: any) => s.status === "selesai").reduce((acc: number, curr: any) => acc + curr.qty, 0) : 0;
 
   const [activeProfileTab, setActiveProfileTab] = useState<"iklan" | "terjual" | "disukai">("iklan");
 
@@ -2144,6 +2251,7 @@ export default function ProfilePage() {
   }, [user, products, setListings]);
 
   if (profileSubPage === "penjualan") return <div className="animate-page"><SalesPage onBack={() => setProfileSubPage(null)} /></div>;
+  if (profileSubPage === "ulasan") return <div className="animate-page"><ReviewsPage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "pembelian") return <div className="animate-page"><PurchasePage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "editprofil") return <div className="animate-page"><EditProfilePage onBack={() => setProfileSubPage(null)} /></div>;
   if (profileSubPage === "editbarang") return <div className="animate-page"><EditItemPage onBack={() => setProfileSubPage(null)} /></div>;
@@ -2163,6 +2271,7 @@ export default function ProfilePage() {
       items: [
         { icon: ClipboardList, label: "Daftar Pembelian", badge: null, color: "#3B82F6", onPress: () => setProfileSubPage("pembelian") },
         { icon: Package, label: "Daftar Penjualan", badge: null, color: "#10B981", onPress: () => setProfileSubPage("penjualan") },
+        { icon: Star, label: "Ulasan Saya", badge: null, color: "#F59E0B", onPress: () => setProfileSubPage("ulasan") },
       ],
     },
     {
@@ -2296,17 +2405,17 @@ export default function ProfilePage() {
         {/* Rating & stats */}
         <div className="flex items-center justify-center gap-6 mb-4">
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">0.0</p>
+            <p className="text-foreground font-black text-lg leading-none">{averageRating}</p>
             <div className="flex items-center gap-0.5 justify-center mt-0.5">
               {[1,2,3,4,5].map((s) => (
-                <Star key={s} size={10} className="text-muted-foreground/30 fill-transparent" />
+                <Star key={s} size={10} className={s <= Math.round(Number(averageRating)) ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/30 fill-transparent"} />
               ))}
             </div>
-            <p className="text-muted-foreground text-[10px] mt-0.5">Rating</p>
+            <p className="text-muted-foreground text-[10px] mt-0.5">Rating {totalRatingCount > 0 ? `(${totalRatingCount})` : ''}</p>
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">0</p>
+            <p className="text-foreground font-black text-lg leading-none">{totalTerjualProfile}</p>
             <p className="text-muted-foreground text-[10px] mt-1">Terjual</p>
           </div>
           <div className="w-px h-10 bg-border" />
@@ -2316,7 +2425,7 @@ export default function ProfilePage() {
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="text-center">
-            <p className="text-foreground font-black text-lg leading-none">0%</p>
+            <p className="text-foreground font-black text-lg leading-none">98%</p>
             <p className="text-muted-foreground text-[10px] mt-1">Respons</p>
           </div>
         </div>

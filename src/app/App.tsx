@@ -279,38 +279,31 @@ export default function App() {
 
       // Fetch Sales Data (user as seller via products)
       const { data: sales, error: saleErr } = await supabase
-        .from('orders')
+        .from('order_items')
         .select(`
-          id, created_at, status,
-          buyer:profiles!orders_buyer_id_fkey(full_name, avatar_url),
-          order_items!inner(
-            quantity, price_at_purchase,
-            product:products!inner(id, name, image_url, seller_id)
-          )
+          quantity, price_at_purchase,
+          order:orders!inner(id, created_at, status, buyer:profiles!orders_buyer_id_fkey(full_name, avatar_url)),
+          product:products!inner(id, name, image_url, seller_id)
         `)
-        .eq('order_items.product.seller_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('product.seller_id', user.id);
 
       if (saleErr) {
         console.error("Gagal memuat data penjualan:", saleErr);
       }
 
       if (sales && !saleErr) {
-        const formattedSales: SalesOrder[] = sales.flatMap((o: any) => {
-          return o.order_items
-            .filter((item: any) => item.product?.seller_id === user.id)
-            .map((item: any) => ({
-              id: o.id,
-              product: item.product?.name || "Unknown Product",
-              price: item.price_at_purchase,
-              buyer: o.buyer?.full_name || "Unknown Buyer",
-              buyerAvatar: o.buyer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
-              date: o.created_at ? new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "",
-              status: (o.status === "PENDING" ? "diproses" : o.status === "PAID" ? "menuju_lokasi" : o.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
-              image: item.product?.image_url || "",
-              qty: item.quantity
-            }));
-        });
+        const formattedSales: SalesOrder[] = sales.map((item: any) => ({
+          id: item.order?.id,
+          product: item.product?.name || "Unknown Product",
+          price: item.price_at_purchase,
+          buyer: item.order?.buyer?.full_name || "Unknown Buyer",
+          buyerAvatar: item.order?.buyer?.avatar_url || "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop&auto=format",
+          date: item.order?.created_at ? new Date(item.order.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "",
+          status: (item.order?.status === "PENDING" ? "diproses" : item.order?.status === "PAID" ? "menuju_lokasi" : item.order?.status === "COMPLETED" ? "selesai" : "dibatalkan") as any,
+          image: item.product?.image_url || "",
+          qty: item.quantity
+        }));
+        
         formattedSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setSalesData(formattedSales);
       }

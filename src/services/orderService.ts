@@ -80,8 +80,8 @@ export const orderService = {
         rating,
         comment,
         created_at,
-        product:product_id(name),
-        reviewer:reviewer_id(full_name, username, avatar_url)
+        product:products(name),
+        reviewer:profiles!reviews_reviewer_id_fkey(full_name, username, avatar_url)
       `)
       .eq('seller_id', sellerId)
       .order('created_at', { ascending: false });

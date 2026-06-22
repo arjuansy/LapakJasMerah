@@ -108,7 +108,7 @@ export default function SalesStatsPage() {
 
           {/* Lihat daftar penjualan */}
           <button
-            onClick={() => { navigate("/profile"); }}
+            onClick={() => { navigate("/profile", { state: { subPage: "penjualan" } }); }}
             className="w-full bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
           >
             <ClipboardList size={15} /> Lihat Daftar Penjualan Lengkap
