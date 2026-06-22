@@ -114,7 +114,7 @@ export default function MarketplaceFeed() {
 
         {/* ── BANNER CAROUSEL ── */}
         <div className="px-4 pt-4">
-          <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ height: 160 }}>
+          <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
             {displayBanners.map((b, i) => (
               <div
                 key={b.id}
