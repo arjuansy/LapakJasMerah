@@ -41,6 +41,7 @@ import {
   Clock,
   ArrowLeft,
   ChevronUp,
+  Image as ImageIcon,
 } from "lucide-react";
 
 // Mock Data Types
@@ -159,7 +160,8 @@ export default function AdminDashboard({
     | "subscriptions"
     | "settings"
     | "admins"
-    | "whitelisted_users";
+    | "whitelisted_users"
+    | "banners";
 }) {
   const { user, profile } = useAuth();
 
@@ -186,6 +188,7 @@ export default function AdminDashboard({
     | "settings"
     | "admins"
     | "whitelisted_users"
+    | "banners"
   >(defaultTab);
 
   // Synchronize activeTab when defaultTab prop changes from hash router
@@ -214,6 +217,7 @@ export default function AdminDashboard({
   const [admins, setAdmins] = useState<AdminType[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>([]);
   const [whitelistedEmails, setWhitelistedEmails] = useState<{id: string, email: string, added_at: string}[]>([]);
+  const [bannersData, setBannersData] = useState<any[]>([]);
 
   // Fetch Data from Supabase
   const fetchAllData = async () => {
@@ -397,6 +401,11 @@ export default function AdminDashboard({
           added_at: new Date(w.created_at).toISOString().split('T')[0]
         })));
       }
+      // 10. Fetch Banners
+      const { data: bData } = await supabase.from('banners').select('*').order('created_at', { ascending: false });
+      if (bData) {
+        setBannersData(bData);
+      }
     } catch (error) {
       console.error("Error fetching admin data:", error);
     }
@@ -477,6 +486,9 @@ export default function AdminDashboard({
     | "deletePackage"
     | "addWhitelistEmail"
     | "deleteWhitelistEmail"
+    | "addBanner"
+    | "editBanner"
+    | "deleteBanner"
   >(null);
 
   // Selected Item references for modals
@@ -490,6 +502,7 @@ export default function AdminDashboard({
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminType | null>(null);
   const [selectedWhitelistEmail, setSelectedWhitelistEmail] = useState<{id: string, email: string} | null>(null);
+  const [selectedBanner, setSelectedBanner] = useState<any | null>(null);
 
   // Dynamic Premium Packages configuration state
   const [premiumPackages, setPremiumPackages] = useState([
@@ -515,6 +528,7 @@ export default function AdminDashboard({
   const [listingForm, setListingForm] = useState({ title: "", category: "", price: 0 });
   const [packageForm, setPackageForm] = useState({ name: "", price: 300, desc: "", durationDays: 3 });
   const [whitelistEmailForm, setWhitelistEmailForm] = useState({ email: "" });
+  const [bannerForm, setBannerForm] = useState({ title: "", sub: "", badge: "", bg: "", img: "", is_active: true });
   
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
@@ -765,6 +779,7 @@ export default function AdminDashboard({
             { id: "suggestions", label: "Kotak Saran", icon: MessageCircle, badge: suggestions.filter((s) => s.status === "Terbuka").length },
             { id: "transactions", label: "Riwayat Transaksi", icon: ArrowRightLeft },
             { id: "subscriptions", label: "Paket Premium", icon: Zap, badge: subscriptions.filter((s) => s.status === "Pending").length },
+            { id: "banners", label: "Kelola Banner", icon: ImageIcon },
             { id: "admins", label: "Manajemen Admin", icon: Shield, roleRestricted: "Super Admin" as AdminRole },
             { id: "whitelisted_users", label: "Pengguna Khusus", icon: ShieldAlert, roleRestricted: "Super Admin" as AdminRole },
             { id: "settings", label: "Pengaturan Profil", icon: Settings },
@@ -944,6 +959,7 @@ export default function AdminDashboard({
                 {activeTab === "settings" && "Pengaturan Akun Admin"}
                 {activeTab === "admins" && "Daftar Administrator Portal"}
                 {activeTab === "whitelisted_users" && "Daftar Email Non-UMM yang Diizinkan"}
+                {activeTab === "banners" && "Kelola Banner Promosi"}
               </h2>
               <p className="text-xs text-gray-500 mt-1 font-semibold">
                 {activeTab === "dashboard" && "Pantau aktivitas, statistik, dan performa Lapak Jas Merah."}
@@ -958,6 +974,7 @@ export default function AdminDashboard({
                 {activeTab === "settings" && "Konfigurasi informasi pribadi Anda, ubah sandi, dan preferensi laporan notifikasi."}
                 {activeTab === "admins" && "Kelola tingkat akses dan kelayakan administrator lainnya."}
                 {activeTab === "whitelisted_users" && "Kelola daftar alamat email eksternal yang diizinkan untuk mendaftar dan menggunakan aplikasi."}
+                {activeTab === "banners" && "Tambah, ubah, atau hapus banner promosi pada halaman beranda."}
               </p>
             </div>
 
@@ -2820,6 +2837,93 @@ export default function AdminDashboard({
                         <tr>
                           <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                             Tidak ada email khusus yang ditambahkan.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "banners" && (
+            <div className="space-y-6">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    setBannerForm({ title: "", sub: "", badge: "", bg: "from-blue-600 to-indigo-600", img: "", is_active: true });
+                    setModalType("addBanner");
+                  }}
+                  className="bg-red-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2"
+                >
+                  <Plus className="w-4.5 h-4.5" /> Tambah Banner Baru
+                </button>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-[9px] font-black">
+                        <th className="px-6 py-4 w-16">Banner</th>
+                        <th className="px-6 py-4">Informasi</th>
+                        <th className="px-6 py-4 text-center">Status</th>
+                        <th className="px-6 py-4 text-right">Tindakan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {bannersData.map((b) => (
+                        <tr key={b.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className={`w-16 h-10 rounded-lg bg-gradient-to-r ${b.bg} relative overflow-hidden flex items-center justify-center`}>
+                              {b.img && <img src={b.img} alt={b.title} className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-50" />}
+                              <ImageIcon className="w-4 h-4 text-white relative z-10" />
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-extrabold text-gray-800 text-xs">{b.title}</span>
+                              <span className="text-[10px] text-gray-500 font-semibold">{b.sub}</span>
+                              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 w-fit">{b.badge}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className={`inline-flex px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider ${b.is_active ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}>
+                              {b.is_active ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setSelectedBanner(b);
+                                  setBannerForm({ title: b.title, sub: b.sub, badge: b.badge, bg: b.bg, img: b.img, is_active: b.is_active });
+                                  setModalType("editBanner");
+                                }}
+                                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"
+                                title="Ubah Banner"
+                              >
+                                <Edit2 className="w-4.5 h-4.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedBanner(b);
+                                  setModalType("deleteBanner");
+                                }}
+                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                                title="Hapus Banner"
+                              >
+                                <Trash2 className="w-4.5 h-4.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {bannersData.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                            Belum ada banner promosi.
                           </td>
                         </tr>
                       )}
@@ -4725,6 +4829,141 @@ export default function AdminDashboard({
                 >
                   Hapus
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Banner */}
+      {modalType === "addBanner" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-left">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-gray-900">Tambah Banner Baru</h3>
+              <button onClick={() => setModalType(null)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Judul Banner</label>
+                <input type="text" value={bannerForm.title} onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: Promo Semester Ganjil" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Sub Judul (Opsional)</label>
+                <input type="text" value={bannerForm.sub} onChange={(e) => setBannerForm({ ...bannerForm, sub: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: Diskon 50% Buku Kuliah" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Badge/Label</label>
+                <input type="text" value={bannerForm.badge} onChange={(e) => setBannerForm({ ...bannerForm, badge: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: Promo Spesial" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Warna Latar (Gradient Tailwind)</label>
+                <input type="text" value={bannerForm.bg} onChange={(e) => setBannerForm({ ...bannerForm, bg: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: from-blue-600 to-indigo-600" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">URL Gambar Background</label>
+                <input type="text" value={bannerForm.img} onChange={(e) => setBannerForm({ ...bannerForm, img: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="https://..." />
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={bannerForm.is_active} onChange={(e) => setBannerForm({ ...bannerForm, is_active: e.target.checked })} className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                <label className="text-xs font-bold text-gray-700">Banner Aktif</label>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5">
+              <button onClick={() => setModalType(null)} className="bg-white border border-gray-200 text-gray-700 font-bold text-xs px-4 py-2 rounded-lg">Batal</button>
+              <button onClick={async () => {
+                if (!bannerForm.title.trim()) return showToast("Judul wajib diisi!", "error");
+                const { data, error } = await supabase.from('banners').insert({ title: bannerForm.title, sub: bannerForm.sub, badge: bannerForm.badge, bg: bannerForm.bg, img: bannerForm.img, is_active: bannerForm.is_active }).select().single();
+                if (error) return showToast("Gagal menambahkan banner", "error");
+                setBannersData([data, ...bannersData]);
+                showToast("Banner berhasil ditambahkan!", "success");
+                setModalType(null);
+              }} className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700">Simpan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Banner */}
+      {modalType === "editBanner" && selectedBanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-left">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-gray-900">Edit Banner Promosi</h3>
+              <button onClick={() => setModalType(null)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Judul Banner</label>
+                <input type="text" value={bannerForm.title} onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: Promo Semester Ganjil" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Sub Judul (Opsional)</label>
+                <input type="text" value={bannerForm.sub} onChange={(e) => setBannerForm({ ...bannerForm, sub: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: Diskon 50% Buku Kuliah" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Badge/Label</label>
+                <input type="text" value={bannerForm.badge} onChange={(e) => setBannerForm({ ...bannerForm, badge: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: Promo Spesial" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Warna Latar (Gradient Tailwind)</label>
+                <input type="text" value={bannerForm.bg} onChange={(e) => setBannerForm({ ...bannerForm, bg: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="Misal: from-blue-600 to-indigo-600" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">URL Gambar Background</label>
+                <input type="text" value={bannerForm.img} onChange={(e) => setBannerForm({ ...bannerForm, img: e.target.value })} className="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white outline-none focus:border-red-500" placeholder="https://..." />
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={bannerForm.is_active} onChange={(e) => setBannerForm({ ...bannerForm, is_active: e.target.checked })} className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                <label className="text-xs font-bold text-gray-700">Banner Aktif</label>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5">
+              <button onClick={() => setModalType(null)} className="bg-white border border-gray-200 text-gray-700 font-bold text-xs px-4 py-2 rounded-lg">Batal</button>
+              <button onClick={async () => {
+                if (!bannerForm.title.trim()) return showToast("Judul wajib diisi!", "error");
+                const { error } = await supabase.from('banners').update({ title: bannerForm.title, sub: bannerForm.sub, badge: bannerForm.badge, bg: bannerForm.bg, img: bannerForm.img, is_active: bannerForm.is_active }).eq('id', selectedBanner.id);
+                if (error) return showToast("Gagal memperbarui banner", "error");
+                setBannersData(prev => prev.map(b => b.id === selectedBanner.id ? { ...b, ...bannerForm } : b));
+                showToast("Banner berhasil diperbarui!", "success");
+                setModalType(null);
+              }} className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700">Simpan Perubahan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Delete Banner */}
+      {modalType === "deleteBanner" && selectedBanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-center transform duration-300">
+            <div className="p-6 space-y-4">
+              <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-200 shadow-sm">
+                <Trash2 className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-gray-900">Hapus Banner?</h3>
+                <p className="text-[11px] text-gray-500 font-semibold mt-1.5 px-4 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus banner <span className="font-black text-gray-800">"{selectedBanner.title}"</span>? Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+              <div className="flex justify-center gap-3 pt-4">
+                <button onClick={() => setModalType(null)} className="px-6 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</button>
+                <button onClick={async () => {
+                  try {
+                    const { error } = await supabase.from('banners').delete().eq('id', selectedBanner.id);
+                    if (error) throw error;
+                    setBannersData(prev => prev.filter(b => b.id !== selectedBanner.id));
+                    showToast("Banner berhasil dihapus", "success");
+                    setModalType(null);
+                  } catch (err: any) {
+                    showToast(err.message || "Gagal menghapus banner", "error");
+                  }
+                }} className="px-6 py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl shadow-[0_4px_12px_-4px_rgba(220,38,38,0.4)]">Hapus Banner</button>
               </div>
             </div>
           </div>

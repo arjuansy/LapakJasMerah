@@ -73,6 +73,7 @@ export default function App() {
   const [trackingOrder, setTrackingOrder] = useState<TrackingOrder | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
+  const [appBanners, setAppBanners] = useState<any[]>(banners);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("darkMode");
     return saved ? JSON.parse(saved) : false;
@@ -240,8 +241,21 @@ export default function App() {
       }
     };
 
+    const fetchBanners = async () => {
+      const { data, error } = await supabase
+        .from('banners')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: true });
+        
+      if (data && !error && data.length > 0) {
+        setAppBanners(data);
+      }
+    };
+
     fetchProducts();
     fetchRequests();
+    fetchBanners();
   }, []);
 
   useEffect(() => {
@@ -441,6 +455,7 @@ export default function App() {
     trackingOrder, setTrackingOrder,
     selectedProduct, setSelectedProduct,
     selectedRequest, setSelectedRequest,
+    appBanners, setAppBanners,
     isDarkMode, setIsDarkMode
   };
 

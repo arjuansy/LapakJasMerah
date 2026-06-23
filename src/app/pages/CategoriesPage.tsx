@@ -52,8 +52,8 @@ export default function CategoriesPage() {
             <input
               value={searchQuery}
               onFocus={() => navigate('/search')}
-              onChange={(e) => { 
-                setSearchQuery(e.target.value); 
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
                 /* Note: We don't set global search here unless we want to, but navigating away is enough */
               }}
               placeholder="Cari produk..."
@@ -68,11 +68,10 @@ export default function CategoriesPage() {
           <button
             key={cat}
             onClick={() => { setActiveCategory(cat); setActiveCategoryFilter(cat); }}
-            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold flex-shrink-0 ${
-              activeCategory === cat
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold flex-shrink-0 ${activeCategory === cat
                 ? "bg-primary text-white"
                 : "bg-card text-muted-foreground border border-border"
-            }`}
+              }`}
           >
             {cat}
           </button>
@@ -85,11 +84,10 @@ export default function CategoriesPage() {
             <button
               key={s.key}
               onClick={() => setSortBy(s.key)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                sortBy === s.key
+              className={`px-2.5 py-1 rounded-full text-xs font-medium ${sortBy === s.key
                   ? "bg-primary text-white"
                   : "bg-card text-muted-foreground border border-border"
-              }`}
+                }`}
             >
               {s.label}
             </button>

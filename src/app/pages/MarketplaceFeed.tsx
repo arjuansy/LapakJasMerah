@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useApp } from "../context";
 import { useAuth } from "../../hooks/useAuth";
-import { categories, banners, requestBoard, formatPrice } from "../data";
+import { categories, requestBoard, formatPrice } from "../data";
 import logo from "../../assets/logo.png";
 import {
   Search, Bell, Heart, MapPin, Star, Zap, ShoppingCart, MessageSquare, ChevronRight, CheckCircle2, AlertCircle, ShoppingBag, Package, Shield, TrendingUp, ChevronLeft,
@@ -17,7 +17,7 @@ export default function MarketplaceFeed() {
     searchFocused, setSearchFocused, globalSearch, setGlobalSearch, setShowSearchResults,
     activeBanner, setActiveBanner, wishlist, toggleWishlist, notifications, setShowNotif, setShowWishlist, setActiveCategoryFilter, setShowPostRequestModal,
     products, requests, setRequests, setEditingRequest,
-    setSelectedProduct, setSelectedRequest, triggerToast
+    setSelectedProduct, setSelectedRequest, triggerToast, appBanners
   } = useApp();
 
   const { profile, user } = useAuth();
@@ -33,7 +33,7 @@ export default function MarketplaceFeed() {
     productUrl: `/product/${p.id}`,
   }));
 
-  const displayBanners = [...banners, ...premiumBanners];
+  const displayBanners = [...appBanners, ...premiumBanners];
 
   return (
     <>

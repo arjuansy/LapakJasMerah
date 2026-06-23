@@ -125,6 +125,7 @@ export default function SellPage() {
     if (form.location === "Lainnya (Isi Sendiri)" && (!form.customLocation || !form.customLocation.trim())) {
       e.location = "Isi lokasi COD Anda";
     }
+    if (!form.stock || parseInt(form.stock) < 1 || isNaN(parseInt(form.stock))) e.stock = "Stok minimal 1";
     if (photos.length === 0) e.photos = "Tambahkan minimal 1 foto";
     
     const maxPhotos = adPackage === "gratis" ? 3 : 5;
@@ -521,6 +522,21 @@ export default function SellPage() {
                     : <ToggleLeft size={32} className="text-muted-foreground" />}
                 </button>
               </div>
+            </div>
+
+            <div className={`px-4 py-3.5 transition-all duration-300 ${errors.stock ? "bg-red-50/20" : ""} ${errors.stock && shake ? "animate-shake" : ""}`}>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
+                Stok Barang <span className="text-primary">*</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={form.stock}
+                onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
+                placeholder="1"
+                className="w-full text-foreground font-bold text-base bg-transparent outline-none placeholder:text-muted-foreground"
+              />
+              {errors.stock && <p className="text-primary text-[11px] flex items-center gap-1 mt-1"><AlertCircle size={11} />{errors.stock}</p>}
             </div>
 
           </div>

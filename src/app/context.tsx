@@ -114,6 +114,8 @@ export type AppContextType = {
   setSelectedProduct: (p: Product | null) => void;
   selectedRequest: RequestItem | null;
   setSelectedRequest: (r: RequestItem | null) => void;
+  appBanners: any[];
+  setAppBanners: React.Dispatch<React.SetStateAction<any[]>>;
   isDarkMode: boolean;
   setIsDarkMode: (v: boolean) => void;
 };
