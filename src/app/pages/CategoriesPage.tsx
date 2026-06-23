@@ -59,11 +59,11 @@ export default function CategoriesPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
-        <div className="px-4 pt-4 pb-3">
+        <div className="px-4 lg:px-8 pt-4 pb-3 lg:max-w-7xl lg:mx-auto">
           <div className="flex items-center justify-between mb-3">
             <span className="text-lg font-black">Kategori</span>
           </div>
-          <div className="relative">
+          <div className="relative lg:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               value={searchQuery}
@@ -79,7 +79,7 @@ export default function CategoriesPage() {
         </div>
       </header>
 
-      <div className="px-4 pt-3 overflow-x-auto flex gap-2 no-scrollbar">
+      <div className="px-4 lg:px-8 lg:max-w-7xl lg:mx-auto pt-3 flex gap-2 overflow-x-auto lg:overflow-x-visible lg:flex-wrap no-scrollbar">
         {categories.map((cat) => (
           <button
             key={cat}
@@ -95,7 +95,7 @@ export default function CategoriesPage() {
         ))}
       </div>
 
-      <div className="px-4 pt-3 flex items-center justify-between">
+      <div className="px-4 lg:px-8 lg:max-w-7xl lg:mx-auto pt-3 flex items-center justify-between">
         <div className="flex gap-2">
           {sorts.map((s) => (
             <button
@@ -115,13 +115,13 @@ export default function CategoriesPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-8">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-8 lg:max-w-7xl lg:mx-auto">
           <Package className="w-14 h-14 text-muted-foreground/40" />
           <p className="font-bold text-base text-foreground">Produk tidak ditemukan</p>
           <p className="text-sm text-muted-foreground">Coba kategori atau kata kunci lain</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-4 pt-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-4 lg:px-8 lg:max-w-7xl lg:mx-auto pt-3">
           {filtered.map((p) => (
             <div
               key={p.id}

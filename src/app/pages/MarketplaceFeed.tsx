@@ -41,9 +41,10 @@ export default function MarketplaceFeed() {
         <title>Beranda | Lapak Jas Merah</title>
         <meta name="description" content="Temukan barang bekas, buku, kos, dan jasa dengan harga mahasiswa di Universitas Muhammadiyah Malang." />
       </Helmet>
-      {/* ── HEADER ── */}
-      <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
-        <div className="px-4 pt-4 pb-3">
+      <div className="lg:max-w-7xl lg:mx-auto">
+        {/* ── HEADER ── */}
+        <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
+          <div className="px-4 lg:px-8 pt-4 pb-3">
           {/* Top row */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -85,7 +86,7 @@ export default function MarketplaceFeed() {
 
           {/* Search bar */}
           <div
-            className="flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 shadow-sm"
+            className="flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 shadow-sm lg:max-w-xl"
             style={{ border: searchFocused ? "2px solid #f59e0b" : "2px solid transparent", transition: "border 0.2s" }}
           >
             <Search size={16} className="text-muted-foreground shrink-0" />
@@ -109,8 +110,39 @@ export default function MarketplaceFeed() {
         </div>
       </header>
 
-      {/* ── MAIN SCROLL ── */}
-      <main className="pb-24 overflow-y-auto">
+      <div className="lg:flex lg:gap-6 lg:px-8 lg:pt-4">
+        {/* SIDEBAR — hanya tampil di desktop */}
+        <aside className="hidden lg:block w-48 shrink-0">
+          <p className="text-foreground font-bold text-sm mb-3">Kategori</p>
+          <div className="flex flex-col gap-1">
+            {categories.map(({ icon: Icon, label, color }) => {
+              const filterMap: Record<string, string> = {
+                "Buku & Modul": "Buku & Modul",
+                "Elektronik": "Elektronik",
+                "Fashion": "Fashion",
+                "Makanan": "Makanan",
+                "Jasa": "Jasa",
+                "Kendaraan": "Kendaraan",
+                "Kost & Kontrakan": "Kost",
+                "Lainnya": "Lainnya",
+              };
+              const filterLabel = filterMap[label] ?? "Semua";
+              return (
+                <button
+                  key={label}
+                  onClick={() => { setActiveCategoryFilter(filterLabel); navigate("/categories"); }}
+                  className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors text-left"
+                >
+                  <Icon size={16} style={{ color }} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* ── MAIN SCROLL ── */}
+        <main className="flex-1 pb-24 overflow-y-auto">
 
         {/* ── BANNER CAROUSEL ── */}
         <div className="px-4 pt-4">
@@ -205,7 +237,7 @@ export default function MarketplaceFeed() {
         </div>
 
         {/* ── CATEGORIES ── */}
-        <div className="pt-5">
+        <div className="pt-5 lg:hidden">
           <div className="px-4 flex items-center justify-between mb-3">
             <h3 className="text-foreground font-bold text-base">Kategori</h3>
             <button
@@ -525,6 +557,8 @@ export default function MarketplaceFeed() {
         </div>
 
       </main>
+      </div>
+      </div>
     </>
   );
 }

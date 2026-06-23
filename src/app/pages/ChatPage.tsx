@@ -578,376 +578,382 @@ function ChatPageInner() {
     return true;
   });
 
-  // ==== TAMPILAN DETAIL CHAT ====
-  if (chatId && activeChat) {
-    const opponent = getOpponent(activeChat);
-    const prod = activeChat.product;
-    const req = activeChat.request;
+  // ==== TAMPILAN GABUNGAN (LIST & DETAIL) ====
+  
+  // Ambil data opponent, dll, jika ada activeChat
+  const opponent = activeChat ? getOpponent(activeChat) : null;
+  const prod = activeChat?.product;
+  const req = activeChat?.request;
 
-    return (
-      <div className="flex flex-col h-screen bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
-        {/* Hidden file input untuk galeri saja (kamera sekarang pakai modal live getUserMedia) */}
-        <input
-          ref={galleryInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleFileSelected(e.target.files?.[0] || null)}
-        />
-
-        {/* Canvas tersembunyi, dipakai untuk capture frame dari video kamera */}
-        <canvas ref={canvasRef} className="hidden" />
-
-        {/* Chat Header */}
-        <div className="bg-primary text-white px-4 pt-10 pb-3 flex items-center gap-3 shadow-md sticky top-0 z-40">
-          <button onClick={() => navigate("/chat")} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
-            <ArrowLeft size={20} className="text-white" />
-          </button>
-          <div className="relative">
-            <img src={opponent?.avatar_url || "/default-avatar.png"} alt={String(opponent?.name || "Pengguna")} className="w-9 h-9 rounded-full object-cover border-2 border-white/30" />
+  return (
+    <div className="lg:flex lg:h-screen lg:max-w-6xl lg:mx-auto lg:border-x lg:border-border">
+      
+      {/* PANE KIRI: daftar chat — selalu tampil di lg+, tampil di mobile hanya kalau !chatId */}
+      <div className={`${chatId ? "hidden lg:flex" : "flex"} flex-col lg:w-[380px] lg:shrink-0 lg:border-r lg:border-border h-full bg-background`}>
+        <div className="bg-primary text-white px-4 pt-10 lg:pt-6 pb-4 z-40 shadow-md shrink-0">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => navigate("/")} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                <ArrowLeft size={20} className="text-white" />
+              </button>
+              <h1 className="text-xl font-black tracking-tight">Pesan</h1>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm leading-tight truncate">
-              {typeof opponent?.name === 'object' ? JSON.stringify(opponent.name) : String(opponent?.name || "Pengguna")}
-            </p>
+
+          {/* Filter Chips */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {[
+              { id: "semua", label: "Semua" },
+              { id: "belum_dibaca", label: "Belum Dibaca" },
+              { id: "sudah_dibaca", label: "Sudah Dibaca" }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id as any)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filter === f.id ? "bg-white text-primary" : "bg-white/20 text-white hover:bg-white/30"
+                  }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Product context card */}
-        {prod && (
-          <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm">
-            <div className="flex items-center gap-3 bg-secondary/80 rounded-xl p-2.5">
-              <img src={prod?.image_url || "/default-banner.jpg"} alt={String(prod?.name)} className="w-11 h-11 rounded-lg object-cover bg-muted shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-muted-foreground font-medium leading-none mb-0.5">Kamu bertanya tentang produk ini</p>
-                <p className="text-foreground font-bold text-xs truncate">
-                  {typeof prod?.name === 'object' ? JSON.stringify(prod.name) : String(prod?.name || "")}
-                </p>
-                <p className="text-primary font-black text-xs">
-                  Rp {typeof prod?.price === 'object' ? JSON.stringify(prod.price) : String(prod?.price || 0)}
-                </p>
-              </div>
-              <button
-                onClick={() => navigate(`/product/${prod.id}`)}
-                className="bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shrink-0 active:scale-95 transition-transform"
-              >
-                Lihat
-              </button>
+        <div className="flex-1 overflow-y-auto">
+          {filteredChats.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full px-4 text-center">
+              <p className="text-muted-foreground text-sm font-medium mt-4">Belum ada percakapan</p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredChats.map((chat) => {
+                const opp = getOpponent(chat);
 
-        {/* Request context card */}
-        {req && (
-          <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm">
-            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl p-2.5">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center shrink-0">
-                <span className="text-xl">📋</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-blue-900 dark:text-blue-100 font-bold text-xs truncate">Permintaan: {req.title}</p>
-                <p className="text-blue-700 dark:text-blue-300 font-black text-xs">
-                  Budget: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(req.budget_min)}
-                </p>
-              </div>
-              <button
-                onClick={() => navigate(`/`)}
-                className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shrink-0 active:scale-95 transition-transform"
-              >
-                Lihat
-              </button>
-            </div>
-          </div>
-        )}
+                const msgsArray = Array.isArray(chat.messages) ? chat.messages : [];
+                const sortedMessages = [...msgsArray].sort((a, b) => {
+                  const timeA = a.sent_at ? new Date(a.sent_at).getTime() : 0;
+                  const timeB = b.sent_at ? new Date(b.sent_at).getTime() : 0;
+                  return timeB - timeA;
+                });
 
-        {/* MESSAGES LIST */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(196,18,48,0.04) 1px, transparent 0)", backgroundSize: "20px 20px" }}>
-          {messages.map((msg) => {
-            const isMe = msg.sender_id === myId;
-            const isImage = msg.message_type === "image" && msg.image_url;
-            const isOrderNotif = msg.message_type === "order_notification";
+                const lastMsgObj = sortedMessages[0];
+                const lastMsg = lastMsgObj?.message_type === "image"
+                  ? "📷 Foto"
+                  : (lastMsgObj?.content || "Mulai percakapan");
+                const isUnread = hasUnread(chat);
 
-            return (
-              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                {isOrderNotif ? (
-                  <div
-                    onClick={() => navigate("/profile")}
-                    className="max-w-[85%] rounded-2xl p-3 bg-amber-50 border border-amber-200 cursor-pointer shadow-sm hover:shadow active:scale-95 transition-all text-center"
-                  >
-                    <div className="text-amber-500 font-bold mb-1">🛒 Notifikasi Pesanan Baru</div>
-                    <p className="text-amber-800 text-sm font-semibold">{String(msg.content)}</p>
-                    <div className="flex justify-center gap-1 mt-2 text-amber-500">
-                      <span className="text-[10px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
-                    </div>
+                return (
+                  <div key={chat.id} className={`border-b-4 border-secondary/60 last:border-b-0 ${chatId === chat.id ? "bg-primary/5" : ""}`}>
+                    <button
+                      onClick={() => navigate(`/chat/${chat.id}`)}
+                      className={`w-full px-4 py-3.5 flex items-start gap-3 hover:bg-secondary/50 transition-colors text-left ${isUnread ? "bg-primary/5" : ""}`}
+                    >
+                      <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp?.name || "Pengguna"}</p>
+                          {lastMsgObj && (
+                            <span className={`text-[10px] whitespace-nowrap ${isUnread ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                              {lastMsgObj.sent_at ? formatTime(lastMsgObj.sent_at) : ""}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`text-xs truncate pr-4 ${isUnread ? "text-foreground font-bold" : "text-muted-foreground"}`}>{lastMsg}</p>
+                          {isUnread && (
+                            <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0"></span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded-md font-medium border border-border truncate max-w-[150px]">
+                            {chat?.product?.name || chat?.request?.title || "Diskusi"}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
                   </div>
-                ) : (
-                  <div className={`max-w-[75%] rounded-2xl shadow-sm relative ${isImage ? "p-1.5" : "px-4 py-2.5"} ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
-                    {isImage ? (
-                      <div>
-                        <img
-                          src={msg.image_url!}
-                          alt="Lampiran gambar"
-                          className="rounded-xl max-h-72 w-full object-cover cursor-pointer"
-                          onClick={() => window.open(msg.image_url!, '_blank')}
-                        />
-                        {msg.content && (
-                          <p className="text-sm leading-relaxed mt-2 px-1.5">
-                            {String(msg.content)}
-                          </p>
-                        )}
-                        <div className={`flex items-center justify-end gap-1 mt-1 px-1.5 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
-                          <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* PANE KANAN: detail chat — di mobile hanya tampil kalau ada chatId, di desktop selalu ada (placeholder kalau kosong) */}
+      <div className={`${chatId ? "flex" : "hidden lg:flex"} flex-col flex-1 h-full bg-background relative`}>
+        {chatId && !activeChat ? (
+          <div className="flex flex-1 items-center justify-center h-full bg-background">
+            <p className="text-muted-foreground text-sm flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Memuat percakapan...</p>
+          </div>
+        ) : chatId && activeChat ? (
+          <>
+            {/* Hidden file input untuk galeri saja */}
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFileSelected(e.target.files?.[0] || null)}
+            />
+
+            {/* Canvas tersembunyi, dipakai untuk capture frame dari video kamera */}
+            <canvas ref={canvasRef} className="hidden" />
+
+            {/* Chat Header */}
+            <div className="bg-primary text-white px-4 pt-10 lg:pt-6 pb-3 flex items-center gap-3 shadow-md sticky top-0 z-40 shrink-0">
+              <button onClick={() => navigate("/chat")} className="p-1.5 rounded-full hover:bg-white/10 transition-colors lg:hidden">
+                <ArrowLeft size={20} className="text-white" />
+              </button>
+              <div className="relative">
+                <img src={opponent?.avatar_url || "/default-avatar.png"} alt={String(opponent?.name || "Pengguna")} className="w-9 h-9 rounded-full object-cover border-2 border-white/30" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm leading-tight truncate">
+                  {typeof opponent?.name === 'object' ? JSON.stringify(opponent.name) : String(opponent?.name || "Pengguna")}
+                </p>
+              </div>
+            </div>
+
+            {/* Product context card */}
+            {prod && (
+              <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm shrink-0">
+                <div className="flex items-center gap-3 bg-secondary/80 rounded-xl p-2.5">
+                  <img src={prod?.image_url || "/default-banner.jpg"} alt={String(prod?.name)} className="w-11 h-11 rounded-lg object-cover bg-muted shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-muted-foreground font-medium leading-none mb-0.5">Kamu bertanya tentang produk ini</p>
+                    <p className="text-foreground font-bold text-xs truncate">
+                      {typeof prod?.name === 'object' ? JSON.stringify(prod.name) : String(prod?.name || "")}
+                    </p>
+                    <p className="text-primary font-black text-xs">
+                      Rp {typeof prod?.price === 'object' ? JSON.stringify(prod.price) : String(prod?.price || 0)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate(`/product/${prod.id}`)}
+                    className="bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shrink-0 active:scale-95 transition-transform"
+                  >
+                    Lihat
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Request context card */}
+            {req && (
+              <div className="px-4 py-2.5 bg-card border-b border-border shadow-sm shrink-0">
+                <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl p-2.5">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center shrink-0">
+                    <span className="text-xl">📋</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-blue-900 dark:text-blue-100 font-bold text-xs truncate">Permintaan: {req.title}</p>
+                    <p className="text-blue-700 dark:text-blue-300 font-black text-xs">
+                      Budget: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(req.budget_min)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate(`/`)}
+                    className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shrink-0 active:scale-95 transition-transform"
+                  >
+                    Lihat
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* MESSAGES LIST */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(196,18,48,0.04) 1px, transparent 0)", backgroundSize: "20px 20px" }}>
+              {messages.map((msg) => {
+                const isMe = msg.sender_id === myId;
+                const isImage = msg.message_type === "image" && msg.image_url;
+                const isOrderNotif = msg.message_type === "order_notification";
+
+                return (
+                  <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                    {isOrderNotif ? (
+                      <div
+                        onClick={() => navigate("/profile")}
+                        className="max-w-[85%] rounded-2xl p-3 bg-amber-50 border border-amber-200 cursor-pointer shadow-sm hover:shadow active:scale-95 transition-all text-center"
+                      >
+                        <div className="text-amber-500 font-bold mb-1">🛒 Notifikasi Pesanan Baru</div>
+                        <p className="text-amber-800 text-sm font-semibold">{String(msg.content)}</p>
+                        <div className="flex justify-center gap-1 mt-2 text-amber-500">
+                          <span className="text-[10px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
                         </div>
                       </div>
                     ) : (
-                      <>
-                        <p className="text-sm leading-relaxed">
-                          {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
-                        </p>
-                        <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
-                          <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
-                        </div>
-                      </>
+                      <div className={`max-w-[75%] rounded-2xl shadow-sm relative ${isImage ? "p-1.5" : "px-4 py-2.5"} ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}>
+                        {isImage ? (
+                          <div>
+                            <img
+                              src={msg.image_url!}
+                              alt="Lampiran gambar"
+                              className="rounded-xl max-h-72 w-full object-cover cursor-pointer"
+                              onClick={() => window.open(msg.image_url!, '_blank')}
+                            />
+                            {msg.content && (
+                              <p className="text-sm leading-relaxed mt-2 px-1.5">
+                                {String(msg.content)}
+                              </p>
+                            )}
+                            <div className={`flex items-center justify-end gap-1 mt-1 px-1.5 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
+                              <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-sm leading-relaxed">
+                              {typeof msg?.content === 'object' ? JSON.stringify(msg.content) : String(msg?.content || "")}
+                            </p>
+                            <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>
+                              <span className="text-[9px] font-medium">{String(formatTime(msg?.sent_at || ""))}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     )}
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Preview gambar sebelum kirim */}
+            {previewUrl && (
+              <div className="px-4 pt-3 bg-card border-t border-border shrink-0">
+                <div className="relative inline-block">
+                  <img src={previewUrl} alt="Preview" className="h-24 rounded-xl object-cover border border-border" />
+                  <button
+                    onClick={cancelPreview}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-neutral-900 text-white rounded-full flex items-center justify-center shadow-md"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Attach menu popup (pilih kamera / galeri) */}
+            {showAttachMenu && (
+              <div className="px-4 pt-2 bg-card border-t border-border flex gap-3 shrink-0">
+                <button
+                  onClick={() => { setShowAttachMenu(false); setShowCameraModal(true); }}
+                  className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
+                >
+                  <Camera size={20} />
+                  Kamera
+                </button>
+                <button
+                  onClick={() => { setShowAttachMenu(false); galleryInputRef.current?.click(); }}
+                  className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
+                >
+                  <ImageIcon size={20} />
+                  Galeri
+                </button>
+              </div>
+            )}
+
+            {/* Input Bar */}
+            <div className="bg-card border-t border-border px-4 py-3 flex gap-2 items-end z-40 shrink-0">
+              <button
+                onClick={() => setShowAttachMenu(prev => !prev)}
+                disabled={uploading}
+                className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center shrink-0 text-primary disabled:opacity-50"
+              >
+                <Camera size={18} />
+              </button>
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder={previewFile ? "Tambahkan keterangan (opsional)..." : "Tulis Pesan..."}
+                className="flex-1 bg-secondary text-sm rounded-2xl px-4 py-3 outline-none resize-none max-h-32 text-foreground"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={(!inputText.trim() && !previewFile) || uploading}
+                className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shrink-0 disabled:opacity-50 disabled:bg-muted"
+              >
+                {uploading ? (
+                  <Loader2 size={18} className="text-white animate-spin" />
+                ) : (
+                  <Send size={18} className="text-white ml-1" />
+                )}
+              </button>
+            </div>
+
+            {/* ===== MODAL KAMERA LIVE ===== */}
+            {showCameraModal && (
+              <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+                <div className="flex items-center justify-between px-4 pt-10 pb-3">
+                  <button
+                    onClick={() => setShowCameraModal(false)}
+                    className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center"
+                  >
+                    <X size={18} className="text-white" />
+                  </button>
+                  <p className="text-white font-bold text-sm">Ambil Foto</p>
+                  <button
+                    onClick={() => setCameraFacing(prev => prev === "user" ? "environment" : "user")}
+                    className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center"
+                    title="Ganti kamera"
+                  >
+                    <RefreshCw size={16} className="text-white" />
+                  </button>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+                  {cameraError ? (
+                    <div className="px-6 text-center">
+                      <p className="text-white text-sm leading-relaxed">{cameraError}</p>
+                      <button
+                        onClick={() => { setCameraError(null); setShowCameraModal(false); galleryInputRef.current?.click(); }}
+                        className="mt-4 bg-white text-black font-bold text-sm px-4 py-2.5 rounded-xl"
+                      >
+                        Pilih dari Galeri Saja
+                      </button>
+                    </div>
+                  ) : (
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+
+                {!cameraError && (
+                  <div className="px-4 py-8 flex items-center justify-center bg-black">
+                    <button
+                      onClick={capturePhoto}
+                      className="w-16 h-16 rounded-full bg-white border-4 border-white/30 active:scale-90 transition-transform"
+                      aria-label="Ambil foto"
+                    />
                   </div>
                 )}
               </div>
-            );
-          })}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Preview gambar sebelum kirim */}
-        {previewUrl && (
-          <div className="px-4 pt-3 bg-card border-t border-border">
-            <div className="relative inline-block">
-              <img src={previewUrl} alt="Preview" className="h-24 rounded-xl object-cover border border-border" />
-              <button
-                onClick={cancelPreview}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-neutral-900 text-white rounded-full flex items-center justify-center shadow-md"
-              >
-                <X size={13} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Attach menu popup (pilih kamera / galeri) */}
-        {showAttachMenu && (
-          <div className="px-4 pt-2 bg-card border-t border-border flex gap-3">
-            <button
-              onClick={() => { setShowAttachMenu(false); setShowCameraModal(true); }}
-              className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
-            >
-              <Camera size={20} />
-              Kamera
-            </button>
-            <button
-              onClick={() => { setShowAttachMenu(false); galleryInputRef.current?.click(); }}
-              className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl bg-secondary text-primary font-bold text-xs active:scale-95 transition-transform"
-            >
-              <ImageIcon size={20} />
-              Galeri
-            </button>
-          </div>
-        )}
-
-        {/* Input Bar */}
-        <div className="bg-card border-t border-border px-4 py-3 flex gap-2 items-end z-40">
-          <button
-            onClick={() => setShowAttachMenu(prev => !prev)}
-            disabled={uploading}
-            className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center shrink-0 text-primary disabled:opacity-50"
-          >
-            <Camera size={18} />
-          </button>
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder={previewFile ? "Tambahkan keterangan (opsional)..." : "Tulis Pesan..."}
-            className="flex-1 bg-secondary text-sm rounded-2xl px-4 py-3 outline-none resize-none max-h-32 text-foreground"
-            rows={1}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={(!inputText.trim() && !previewFile) || uploading}
-            className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shrink-0 disabled:opacity-50 disabled:bg-muted"
-          >
-            {uploading ? (
-              <Loader2 size={18} className="text-white animate-spin" />
-            ) : (
-              <Send size={18} className="text-white ml-1" />
             )}
-          </button>
-        </div>
-
-        {/* ===== MODAL KAMERA LIVE (getUserMedia) ===== */}
-        {/* Bekerja di laptop (webcam) maupun HP (kamera depan/belakang),
-            karena pakai live video stream, bukan <input capture> yang
-            cuma didukung browser mobile. */}
-        {showCameraModal && (
-          <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-            <div className="flex items-center justify-between px-4 pt-10 pb-3">
-              <button
-                onClick={() => setShowCameraModal(false)}
-                className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center"
-              >
-                <X size={18} className="text-white" />
-              </button>
-              <p className="text-white font-bold text-sm">Ambil Foto</p>
-              <button
-                onClick={() => setCameraFacing(prev => prev === "user" ? "environment" : "user")}
-                className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center"
-                title="Ganti kamera"
-              >
-                <RefreshCw size={16} className="text-white" />
-              </button>
-            </div>
-
-            <div className="flex-1 flex items-center justify-center relative overflow-hidden">
-              {cameraError ? (
-                <div className="px-6 text-center">
-                  <p className="text-white text-sm leading-relaxed">{cameraError}</p>
-                  <button
-                    onClick={() => { setCameraError(null); setShowCameraModal(false); galleryInputRef.current?.click(); }}
-                    className="mt-4 bg-white text-black font-bold text-sm px-4 py-2.5 rounded-xl"
-                  >
-                    Pilih dari Galeri Saja
-                  </button>
-                </div>
-              ) : (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-
-            {!cameraError && (
-              <div className="px-4 py-8 flex items-center justify-center bg-black">
-                <button
-                  onClick={capturePhoto}
-                  className="w-16 h-16 rounded-full bg-white border-4 border-white/30 active:scale-90 transition-transform"
-                  aria-label="Ambil foto"
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ==== LOADING STATE: chatId ada tapi activeChat belum siap ====
-  if (chatId && !activeChat) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <p className="text-muted-foreground text-sm">Memuat percakapan...</p>
-      </div>
-    );
-  }
-
-  // ==== TAMPILAN DAFTAR CHAT ====
-  return (
-    <div className="flex flex-col h-full bg-background" style={{ maxWidth: 430, margin: "0 auto" }}>
-      <div className="bg-primary text-white px-4 pt-10 pb-4 z-40 shadow-md">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate("/")} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
-              <ArrowLeft size={20} className="text-white" />
-            </button>
-            <h1 className="text-xl font-black tracking-tight">Pesan</h1>
-          </div>
-        </div>
-
-        {/* Filter Chips */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {[
-            { id: "semua", label: "Semua" },
-            { id: "belum_dibaca", label: "Belum Dibaca" },
-            { id: "sudah_dibaca", label: "Sudah Dibaca" }
-          ].map(f => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id as any)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filter === f.id ? "bg-white text-primary" : "bg-white/20 text-white hover:bg-white/30"
-                }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto">
-        {filteredChats.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full px-4 text-center">
-            <p className="text-muted-foreground text-sm font-medium mt-4">Belum ada percakapan</p>
-          </div>
+          </>
         ) : (
-          <div className="divide-y divide-border">
-            {filteredChats.map((chat) => {
-              const opp = getOpponent(chat);
-
-              const msgsArray = Array.isArray(chat.messages) ? chat.messages : [];
-              const sortedMessages = [...msgsArray].sort((a, b) => {
-                const timeA = a.sent_at ? new Date(a.sent_at).getTime() : 0;
-                const timeB = b.sent_at ? new Date(b.sent_at).getTime() : 0;
-                return timeB - timeA;
-              });
-
-              const lastMsgObj = sortedMessages[0];
-              const lastMsg = lastMsgObj?.message_type === "image"
-                ? "📷 Foto"
-                : (lastMsgObj?.content || "Mulai percakapan");
-              const isUnread = hasUnread(chat);
-
-              return (
-                <div key={chat.id} className="border-b-4 border-secondary/60 last:border-b-0">
-                  <button
-                    onClick={() => navigate(`/chat/${chat.id}`)}
-                    className={`w-full px-4 py-3.5 flex items-start gap-3 hover:bg-secondary/50 transition-colors text-left ${isUnread ? "bg-primary/5" : ""}`}
-                  >
-                    <img src={opp.avatar_url || "/default-avatar.png"} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-muted" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <p className={`text-sm truncate pr-2 ${isUnread ? "font-black text-foreground" : "font-bold text-foreground/80"}`}>{opp?.name || "Pengguna"}</p>
-                        {lastMsgObj && (
-                          <span className={`text-[10px] whitespace-nowrap ${isUnread ? "text-primary font-bold" : "text-muted-foreground"}`}>
-                            {lastMsgObj.sent_at ? formatTime(lastMsgObj.sent_at) : ""}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <p className={`text-xs truncate pr-4 ${isUnread ? "text-foreground font-bold" : "text-muted-foreground"}`}>{lastMsg}</p>
-                        {isUnread && (
-                          <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0"></span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded-md font-medium border border-border truncate max-w-[150px]">
-                          {chat?.product?.name || chat?.request?.title || "Diskusi"}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              );
-            })}
+          <div className="hidden lg:flex flex-1 items-center justify-center text-muted-foreground text-sm">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center">
+                <Send size={24} className="text-primary/50" />
+              </div>
+              <p>Pilih percakapan untuk mulai chat</p>
+            </div>
           </div>
         )}
       </div>
     </div>
-  );
 }
 
 export default function ChatPage() {

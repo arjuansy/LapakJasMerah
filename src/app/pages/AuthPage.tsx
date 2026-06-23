@@ -233,8 +233,19 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
   if (step === "otp" || step === "forgot_otp") {
     const maskedEmail = form.email.replace(/(.{2}).+(@.+)/, "$1****$2");
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
+      <div className="min-h-screen bg-background flex flex-col lg:flex-row" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        {/* PANEL KIRI — hanya tampil desktop, brand/gradient */}
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)" }}>
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-amber-400" />
+          <div className="relative z-10 px-12 text-white max-w-md">
+            <h1 className="font-black text-4xl leading-tight mb-3">Mulai Jual Beli<br/>di Kampus!</h1>
+            <p className="text-white/80 text-sm">Marketplace khusus mahasiswa UMM, aman dan terpercaya.</p>
+          </div>
+        </div>
+
+        {/* PANEL KANAN — header gradient (mobile only) + form, lebar form dibatasi di desktop */}
+        <div className="flex-1 flex flex-col lg:justify-center lg:items-center w-full">
+          <div className="relative overflow-hidden w-full lg:hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
             <button onClick={() => { setStep(step === "forgot_otp" ? "forgot" : "form"); setOtp(["","","","","",""]); setOtpError(""); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -255,7 +266,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </div>
         </div>
 
-        <div className="flex-1 px-5 pt-8 pb-10">
+          <div className="flex-1 px-5 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
           <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
@@ -312,8 +323,19 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
   // ── RESET PASSWORD SCREEN ──
   if (step === "reset_password") {
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
+      <div className="min-h-screen bg-background flex flex-col lg:flex-row" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        {/* PANEL KIRI */}
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)" }}>
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-amber-400" />
+          <div className="relative z-10 px-12 text-white max-w-md">
+            <h1 className="font-black text-4xl leading-tight mb-3">Mulai Jual Beli<br/>di Kampus!</h1>
+            <p className="text-white/80 text-sm">Marketplace khusus mahasiswa UMM, aman dan terpercaya.</p>
+          </div>
+        </div>
+
+        {/* PANEL KANAN */}
+        <div className="flex-1 flex flex-col lg:justify-center lg:items-center w-full">
+          <div className="relative overflow-hidden w-full lg:hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -329,7 +351,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </div>
         </div>
 
-        <div className="flex-1 px-6 pt-8 pb-10">
+          <div className="flex-1 px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
           <div className="space-y-4">
             {errors.form && (
               <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -368,6 +390,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
               {loading ? <svg className="animate-spin w-5 h-5 text-white" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : <><CheckCircle2 size={18} /> Simpan Sandi Baru</>}
             </button>
           </div>
+          </div>
         </div>
       </div>
     );
@@ -376,8 +399,19 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
   // ── FORGOT PASSWORD REQUEST SCREEN ──
   if (step === "forgot") {
     return (
-      <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div className="relative overflow-hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
+      <div className="min-h-screen bg-background flex flex-col lg:flex-row" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        {/* PANEL KIRI */}
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)" }}>
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-amber-400" />
+          <div className="relative z-10 px-12 text-white max-w-md">
+            <h1 className="font-black text-4xl leading-tight mb-3">Mulai Jual Beli<br/>di Kampus!</h1>
+            <p className="text-white/80 text-sm">Marketplace khusus mahasiswa UMM, aman dan terpercaya.</p>
+          </div>
+        </div>
+
+        {/* PANEL KANAN */}
+        <div className="flex-1 flex flex-col lg:justify-center lg:items-center w-full">
+          <div className="relative overflow-hidden w-full lg:hidden" style={{ background: "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 200 }}>
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
           <div className="relative z-10 px-6 pt-12 flex items-center gap-3">
             <button onClick={() => { setStep("form"); setErrors({}); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -396,7 +430,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </div>
         </div>
 
-        <div className="flex-1 px-6 pt-8 pb-10">
+          <div className="flex-1 px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
           <div className="space-y-4">
             {errors.form && (
               <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -428,6 +462,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
               {loading ? <svg className="animate-spin w-6 h-6" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : "Kirim Kode Pemulihan"}
             </button>
           </div>
+          </div>
         </div>
       </div>
     );
@@ -435,8 +470,19 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
 
   // ── FORM SCREEN (Login/Register) ──
   return (
-    <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      <div className="relative overflow-hidden" style={{ background: isAdminLogin ? "linear-gradient(150deg, #111827 0%, #000000 100%)" : "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 220 }}>
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      {/* PANEL KIRI */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center" style={{ background: isAdminLogin ? "linear-gradient(150deg, #111827 0%, #000000 100%)" : "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)" }}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-amber-400" />
+        <div className="relative z-10 px-12 text-white max-w-md">
+          <h1 className="font-black text-4xl leading-tight mb-3">Mulai Jual Beli<br/>di Kampus!</h1>
+          <p className="text-white/80 text-sm">Marketplace khusus mahasiswa UMM, aman dan terpercaya.</p>
+        </div>
+      </div>
+
+      {/* PANEL KANAN */}
+      <div className="flex-1 flex flex-col lg:justify-center lg:items-center w-full">
+        <div className="relative overflow-hidden w-full lg:hidden" style={{ background: isAdminLogin ? "linear-gradient(150deg, #111827 0%, #000000 100%)" : "linear-gradient(150deg, #c41230 0%, #8b0d22 100%)", height: 220 }}>
         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 bg-amber-400" />
         <div className="relative z-10 px-6 pt-12 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -455,7 +501,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
         </div>
       </div>
 
-      <div className="flex-1 px-6 pt-8 pb-10">
+        <div className="flex-1 px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
         <div className="space-y-4">
           {errors.form && (
             <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -568,6 +614,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
               Lewati untuk lihat-lihat
             </button>
           )}
+        </div>
         </div>
       </div>
     </div>
