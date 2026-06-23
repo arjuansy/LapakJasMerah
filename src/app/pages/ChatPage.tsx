@@ -586,7 +586,7 @@ function ChatPageInner() {
   const req = activeChat?.request;
 
   return (
-    <div className="lg:flex lg:h-screen lg:max-w-6xl lg:mx-auto lg:border-x lg:border-border">
+    <div className="h-[100dvh] flex flex-col lg:flex-row lg:max-w-6xl lg:mx-auto lg:border-x lg:border-border">
       
       {/* PANE KIRI: daftar chat — selalu tampil di lg+, tampil di mobile hanya kalau !chatId */}
       <div className={`${chatId ? "hidden lg:flex" : "flex"} flex-col lg:w-[380px] lg:shrink-0 lg:border-r lg:border-border h-full bg-background`}>
