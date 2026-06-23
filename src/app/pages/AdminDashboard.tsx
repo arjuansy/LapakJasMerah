@@ -3557,7 +3557,12 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doApproveListingModal = async () => {
-                    await supabase.from('products').update({ is_active: true }).eq('id', selectedListing.id);
+                    const { error } = await supabase.from('products').update({ status: 'AVAILABLE' }).eq('id', selectedListing.id);
+                    if (error) {
+                      console.error("Approve Error:", error);
+                      showToast(`Gagal menyetujui iklan: ${error.message}`, "error");
+                      return;
+                    }
                     fetchAllData();
                     showToast(`Iklan '${selectedListing.title}' berhasil disetujui!`, "success");
                     setModalType(null);
@@ -3598,7 +3603,12 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doRejectListingModal = async () => {
-                    await supabase.from('products').update({ is_active: false }).eq('id', selectedListing.id);
+                    const { error } = await supabase.from('products').update({ status: 'SUSPENDED' }).eq('id', selectedListing.id);
+                    if (error) {
+                      console.error("Reject Error:", error);
+                      showToast(`Gagal menolak iklan: ${error.message}`, "error");
+                      return;
+                    }
                     fetchAllData();
                     showToast(`Iklan '${selectedListing.title}' ditolak!`, "error");
                     setModalType(null);
@@ -3639,7 +3649,12 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doDeleteListing = async () => {
-                    await supabase.from('products').delete().eq('id', selectedListing.id);
+                    const { error } = await supabase.from('products').delete().eq('id', selectedListing.id);
+                    if (error) {
+                      console.error("Delete Error:", error);
+                      showToast(`Gagal menghapus iklan: ${error.message}`, "error");
+                      return;
+                    }
                     fetchAllData();
                     showToast(`Iklan '${selectedListing.title}' berhasil dihapus selamanya!`, "success");
                     setModalType(null);
