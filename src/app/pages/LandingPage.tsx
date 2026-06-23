@@ -238,6 +238,19 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* ── FOOTER / TEAM ── */}
+      <div className="px-5 pb-12 text-center">
+        <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-4">Dikembangkan Oleh</p>
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-sm inline-block w-full">
+          <p className="text-primary font-black text-sm mb-3">Informatika 2024 UMM</p>
+          <div className="flex flex-col gap-2 text-foreground font-semibold text-[13px]">
+            <p>Akhmad Arjuan Syuhada</p>
+            <p>Jingga Maulidhina</p>
+            <p>Umi Fadilah</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
