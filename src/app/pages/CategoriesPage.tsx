@@ -22,31 +22,15 @@ export default function CategoriesPage() {
     { key: "terlaris", label: "Terlaris" },
   ];
 
-  const categoryKeywords: Record<string, string[]> = {
-    "Buku & Modul": ["buku", "modul", "metode", "kalkulus"],
-    "Elektronik":   ["laptop", "earphone", "powerbank", "asus", "casio", "bluetooth"],
-    "Fashion":      ["jaket", "almamater", "baju", "kaos", "celana"],
-    "Makanan":      ["nasi", "makan", "kotak", "makanan", "minuman"],
-    "Jasa":         ["jasa", "desain", "poster", "ppt"],
-    "Kendaraan":    ["motor", "honda", "yamaha", "sepeda"],
-    "Kost":         ["kos", "kost", "kontrakan", "furnished"],
-    "Alat Tulis":   ["alat", "tulis", "pulpen", "pensil"],
-    "Olahraga":     ["olahraga", "sepatu", "jersey"],
-    "Lainnya":      [],
-  };
-
   const filtered = products
     .filter((p) => {
-      const keywords = categoryKeywords[activeCategory] ?? [];
-      const nameLower = p.name.toLowerCase();
+      const dbCat = p.category || "Lainnya";
       const matchCat =
         activeCategory === "Semua" ||
-        (activeCategory === "Lainnya"
-          ? !Object.entries(categoryKeywords)
-              .filter(([k]) => k !== "Lainnya")
-              .some(([, kws]) => kws.some((kw) => nameLower.includes(kw)))
-          : keywords.some((kw) => nameLower.includes(kw)));
-      const matchSearch = searchQuery === "" || nameLower.includes(searchQuery.toLowerCase());
+        dbCat.toLowerCase().includes(activeCategory.toLowerCase()) ||
+        (activeCategory === "Lainnya" && dbCat === "Lainnya");
+
+      const matchSearch = searchQuery === "" || p.name.toLowerCase().includes(searchQuery.toLowerCase());
       return matchCat && matchSearch;
     })
     .sort((a, b) => {
