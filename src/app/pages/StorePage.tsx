@@ -144,7 +144,7 @@ export default function StorePage() {
         </div>
 
         {activeTab === "produk" && (
-          <div className="grid grid-cols-2 gap-3 px-4 pb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-4 pb-8">
             {storeProducts.length === 0 ? (
               <div className="col-span-2 flex flex-col items-center py-16 text-center">
                 <Package size={36} className="text-muted-foreground/30 mb-3" />

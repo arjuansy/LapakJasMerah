@@ -23,7 +23,7 @@ export default function Layout() {
   else if (location.pathname.startsWith("/profile")) activeTab = "profile";
 
   return (
-    <div className="relative w-full h-full mx-auto shadow-2xl overflow-hidden flex flex-col bg-background" style={{ maxWidth: 430 }}>
+    <div className="relative w-full h-full mx-auto shadow-2xl overflow-hidden flex flex-col bg-background max-w-[430px] md:max-w-3xl lg:max-w-5xl">
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
         <Outlet />
@@ -32,7 +32,7 @@ export default function Layout() {
       {/* ── BOTTOM NAVIGATION ── */}
       {/* Sembunyikan bottom nav di chat room detail, sell page, atau halaman tertentu jika perlu */}
       {!location.pathname.match(/^\/chat\/\d+/) && activeTab !== "sell" && (
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border shadow-2xl z-50" style={{ maxWidth: 430 }}>
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border shadow-2xl z-50 max-w-[430px] md:max-w-3xl lg:max-w-5xl">
         <div className="flex items-center justify-around px-2 py-2">
           {[
             { id: "home", path: "/marketplace", icon: Home, label: "Beranda" },

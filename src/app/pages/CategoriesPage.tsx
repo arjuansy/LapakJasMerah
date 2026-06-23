@@ -121,7 +121,7 @@ export default function CategoriesPage() {
           <p className="text-sm text-muted-foreground">Coba kategori atau kata kunci lain</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 px-4 pt-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-4 pt-3">
           {filtered.map((p) => (
             <div
               key={p.id}

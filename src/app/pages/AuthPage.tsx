@@ -560,12 +560,14 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
             </div>
           )}
 
-          <button
-            onClick={() => navigate("/marketplace")}
-            className="text-muted-foreground font-bold text-xs hover:text-foreground transition-colors py-2 px-6 rounded-full border-2 border-border/50 hover:border-border active:scale-95"
-          >
-            Lewati untuk lihat-lihat
-          </button>
+          {false && (
+            <button
+              onClick={() => navigate("/marketplace")}
+              className="text-muted-foreground font-bold text-xs hover:text-foreground transition-colors py-2 px-6 rounded-full border-2 border-border/50 hover:border-border active:scale-95"
+            >
+              Lewati untuk lihat-lihat
+            </button>
+          )}
         </div>
       </div>
     </div>

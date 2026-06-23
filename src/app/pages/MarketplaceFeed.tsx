@@ -174,7 +174,7 @@ export default function MarketplaceFeed() {
         </div>
 
         {/* ── QUICK STATS ── */}
-        <div className="px-4 pt-4 grid grid-cols-3 gap-2">
+        <div className="px-4 pt-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
           {(() => {
             const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0 });
             React.useEffect(() => {
@@ -215,7 +215,7 @@ export default function MarketplaceFeed() {
               Semua <ChevronRight size={12} />
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-3 px-4">
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 px-4">
             {categories.map(({ icon: Icon, label, color }) => {
               // Map home category labels to CategoriesPage filter labels
               const filterMap: Record<string, string> = {
@@ -451,7 +451,7 @@ export default function MarketplaceFeed() {
               Lihat Semua <ChevronRight size={12} />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3 px-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-4">
             {products.slice(0, 6).map((p) => (
               <div
                 key={p.id}
@@ -506,7 +506,7 @@ export default function MarketplaceFeed() {
         <div className="px-4 pt-2 pb-2">
           <div className="bg-secondary rounded-2xl p-4">
             <p className="text-primary font-bold text-sm mb-3 text-center">Kenapa Lapak Jas Merah?</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {[
                 { icon: Shield, label: "Transaksi Aman", desc: "Escrow & verifikasi" },
                 { icon: User, label: "Khusus UMM", desc: "Terverifikasi NIM" },
