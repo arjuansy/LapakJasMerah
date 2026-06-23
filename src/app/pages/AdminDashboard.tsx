@@ -3711,24 +3711,32 @@ export default function AdminDashboard({
               </button>
               <button
                 onClick={() => {
-                  if (!listingForm.title.trim() || !listingForm.category.trim() || listingForm.price <= 0) {
-                    showToast("Harap isi semua kolom dengan valid!", "error");
-                    return;
-                  }
-                  setListings((prev) =>
-                    prev.map((l) =>
-                      l.id === selectedListing.id
-                        ? {
-                            ...l,
-                            title: listingForm.title.trim(),
-                            category: listingForm.category,
-                            price: listingForm.price,
-                          }
-                        : l
-                    )
-                  );
-                  showToast("Iklan berhasil diperbarui!", "success");
-                  setModalType(null);
+                  const doEditListing = async () => {
+                    if (!listingForm.title.trim() || !listingForm.category.trim() || listingForm.price <= 0) {
+                      showToast("Harap isi semua kolom dengan valid!", "error");
+                      return;
+                    }
+
+                    const catObj = categories.find(c => c.name === listingForm.category);
+                    if (catObj) {
+                      const { error } = await supabase.from('products').update({
+                        name: listingForm.title.trim(),
+                        category_id: catObj.id,
+                        price: listingForm.price
+                      }).eq('id', selectedListing.id);
+                      
+                      if (error) {
+                        console.error("Gagal update produk:", error);
+                        showToast("Gagal memperbarui iklan di database", "error");
+                        return;
+                      }
+                    }
+                    
+                    fetchAllData();
+                    showToast("Iklan berhasil diperbarui!", "success");
+                    setModalType(null);
+                  };
+                  doEditListing();
                 }}
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
