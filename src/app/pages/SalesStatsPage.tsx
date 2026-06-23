@@ -24,7 +24,7 @@ export default function SalesStatsPage() {
     const maxVal = Math.max(...chartBars.map((b) => b.value));
 
     return (
-      <div className="fixed inset-0 z-[65] bg-background overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto" }}>
+      <div className="fixed inset-0 z-[65] bg-background overflow-y-auto max-w-[430px] lg:max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-primary sticky top-0 z-10 shadow-md">
           <div className="px-4 pt-10 pb-4 flex items-center gap-3">

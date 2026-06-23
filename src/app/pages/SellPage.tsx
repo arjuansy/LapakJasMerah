@@ -268,7 +268,7 @@ export default function SellPage() {
   }
 
   return (
-    <div className="relative flex flex-col h-full bg-background overflow-hidden">
+    <div className="relative flex flex-col h-full bg-background overflow-hidden max-w-[430px] lg:max-w-2xl mx-auto">
       {/* Header */}
       <div className="bg-primary text-white px-4 pt-10 pb-4 z-40 shadow-md">
         <div className="flex items-center gap-3">

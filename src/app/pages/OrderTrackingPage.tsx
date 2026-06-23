@@ -121,7 +121,7 @@ export default function OrderTrackingPage() {
 
   if (showReview) {
     return (
-      <div className="fixed inset-0 z-[60] bg-background flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
+      <div className="fixed inset-0 z-[60] bg-background flex flex-col max-w-[430px] lg:max-w-2xl mx-auto">
         <div className="bg-primary px-4 pt-10 pb-4 flex items-center gap-3 shadow-md">
           <button onClick={() => setShowReview(false)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
             <ArrowLeft size={18} className="text-white" />
@@ -227,7 +227,7 @@ export default function OrderTrackingPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-background flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
+    <div className="fixed inset-0 z-[60] bg-background flex flex-col max-w-[430px] lg:max-w-2xl mx-auto">
 
       {/* Header */}
       <div className="bg-primary shrink-0 shadow-md">
@@ -419,7 +419,7 @@ export default function OrderTrackingPage() {
       </div>
 
       {/* Bottom actions */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 shadow-2xl z-10" style={{ maxWidth: 430 }}>
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 shadow-2xl z-10 max-w-[430px] lg:max-w-2xl">
         {currentStatus === "selesai" ? (
           <div className="space-y-2">
             <button

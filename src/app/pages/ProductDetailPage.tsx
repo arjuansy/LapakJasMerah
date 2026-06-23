@@ -149,7 +149,7 @@ export default function ProductDetailPage() {
 
   if (showQrisCode) {
       return (
-        <div className="fixed inset-0 z-[60] bg-background flex flex-col text-foreground" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-[60] bg-background flex flex-col text-foreground max-w-[430px] lg:max-w-2xl mx-auto">
           {/* Header */}
           <div className="bg-primary px-4 pt-10 pb-4 flex items-center gap-3 shadow-md shrink-0">
             <button onClick={() => { setShowQrisCode(false); setShowOrder(true); }} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -237,7 +237,7 @@ export default function ProductDetailPage() {
 
     if (ordered) {
       return (
-        <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center px-8" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center px-8 max-w-[430px] lg:max-w-2xl mx-auto">
           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
             <CheckCircle2 size={48} className="text-green-500" />
           </div>
@@ -278,18 +278,22 @@ export default function ProductDetailPage() {
     }
 
     return (
-      <div className="fixed inset-0 z-[60] bg-background overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto" }}>
+      
+<div className="fixed inset-0 z-[60] bg-background overflow-y-auto max-w-[430px] lg:max-w-6xl mx-auto">
+    <div className="lg:flex lg:gap-10 lg:px-8 lg:pt-6 lg:items-start">
 
+      {/* ══ KOLOM KIRI: galeri foto ══ */}
+      <div className="lg:flex-1 lg:min-w-0">
         {/* ── IMAGE SECTION ── */}
-        <div className="relative bg-muted" style={{ height: 320 }}>
+        <div className="relative bg-muted lg:rounded-2xl lg:overflow-hidden" style={{ height: 320 }}>
           <img
             src={imgs[activeImg]}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover lg:h-[460px]"
           />
 
           {/* Top bar */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-10 pb-4"
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-10 lg:pt-4 pb-4"
             style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)" }}>
             <button
               onClick={() => navigate(-1)}
@@ -318,7 +322,7 @@ export default function ProductDetailPage() {
 
           {/* Discount badge */}
           {product.discount && (
-            <div className="absolute top-14 left-4 bg-primary text-white text-xs font-black px-2.5 py-1 rounded-lg">
+            <div className="absolute top-14 lg:top-4 left-4 bg-primary text-white text-xs font-black px-2.5 py-1 rounded-lg">
               -{product.discount}%
             </div>
           )}
@@ -344,7 +348,7 @@ export default function ProductDetailPage() {
 
         {/* Thumbnail strip */}
         {imgs.length > 1 && (
-          <div className="flex gap-2 px-4 pt-3 pb-1">
+          <div className="flex gap-2 px-4 lg:px-0 pt-3 pb-1">
             {imgs.map((src, i) => (
               <button
                 key={i}
@@ -357,10 +361,12 @@ export default function ProductDetailPage() {
             ))}
           </div>
         )}
+      </div>
 
+      {/* ══ KOLOM KANAN: info + penjual , kotak beli (sticky) ══ */}
+      <div className="lg:w-[400px] lg:shrink-0">
         {/* ── PRODUCT INFO ── */}
-        <div className="px-4 pt-3 pb-2">
-          {/* Name & price */}
+        <div className="px-4 lg:px-0 pt-3 pb-2">
           <h1 className="text-foreground font-black text-xl leading-snug mb-2">{product.name}</h1>
 
           <div className="flex items-end gap-3 mb-3">
@@ -378,8 +384,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Stats row */}
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-4 flex-wrap">
             <div className="flex items-center gap-1">
               <Star size={13} className="text-accent fill-accent" />
               <span className="text-sm font-bold text-foreground">
@@ -399,7 +404,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Nego badge */}
           {product.id % 2 === 0 && (
             <div className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/30 px-3 py-1.5 rounded-full mb-4">
               <Tag size={11} className="text-accent" />
@@ -407,7 +411,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Laporkan penjual */}
           <button
             onClick={() => setShowReportModal({ type: "penjual", name: product.seller })}
             className="flex items-center gap-1.5 text-muted-foreground text-xs font-semibold mt-1"
@@ -416,11 +419,10 @@ export default function ProductDetailPage() {
           </button>
         </div>
 
-        {/* Divider */}
-        <div className="h-2 bg-muted" />
+        <div className="h-2 bg-muted lg:hidden" />
 
         {/* ── SELLER INFO ── */}
-        <div className="px-4 py-4">
+        <div className="px-4 lg:px-0 py-4 lg:border lg:border-border lg:rounded-2xl lg:mt-2 lg:p-4">
           <div className="flex items-center gap-3">
             <div className="relative">
               <img src={sellerAvatar} alt={product.seller} className="w-12 h-12 rounded-full object-cover border-2 border-border" />
@@ -436,7 +438,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <BadgeCheck size={11} className="text-blue-500" />
-                <span className="text-[10px] text-muted-foreground">Mahasiswa Terverifikasi · Online sekarang</span>
+                <span className="text-[10px] text-muted-foreground">Mahasiswa Terverifikasi &#183; Online sekarang</span>
               </div>
             </div>
             <button
@@ -446,125 +448,14 @@ export default function ProductDetailPage() {
               Lihat Toko
             </button>
           </div>
-
-
         </div>
 
-        <div className="h-2 bg-muted" />
-
-        {/* ── DESKRIPSI ── */}
-        <div className="px-4 py-4">
-          <h3 className="text-foreground font-bold text-sm mb-2">Deskripsi Produk</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
-        </div>
-
-        <div className="h-2 bg-muted" />
-
-        {/* ── KEAMANAN TRANSAKSI ── */}
-        <div className="px-4 py-4">
-          <h3 className="text-foreground font-bold text-sm mb-3">Keamanan Transaksi</h3>
-          <div className="space-y-2.5">
-            {[
-              { icon: Shield, label: "Pembayaran dijamin aman", sub: "Uang ditahan hingga barang diterima", color: "#10B981" },
-              { icon: RefreshCw, label: "Proteksi pembeli", sub: "Kembalikan barang jika tidak sesuai", color: "#3B82F6" },
-              { icon: BadgeCheck, label: "Penjual terverifikasi", sub: "NIM dan identitas sudah dicek UMM", color: "#8B5CF6" },
-            ].map(({ icon: Icon, label, sub, color }) => (
-              <div key={label} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: color + "18" }}>
-                  <Icon size={16} style={{ color }} />
-                </div>
-                <div>
-                  <p className="text-foreground font-semibold text-xs">{label}</p>
-                  <p className="text-muted-foreground text-[10px]">{sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-
-
-        {/* ── ULASAN PRODUK ── */}
-        <div className="px-4 py-4 bg-background">
-          <h3 className="text-foreground font-bold text-sm mb-3 flex items-center gap-2">
-            Ulasan
-            <span className="text-muted-foreground text-xs font-normal">({reviews.length})</span>
-          </h3>
-          
-          {reviews.length === 0 ? (
-            <p className="text-muted-foreground text-xs">Belum ada ulasan untuk produk ini.</p>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((rev) => (
-                <div key={rev.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <img 
-                      src={rev.reviewer?.avatar_url || "/default-avatar.png"} 
-                      alt="avatar" 
-                      className="w-6 h-6 rounded-full object-cover" 
-                    />
-                    <div className="flex-1">
-                      <p className="text-foreground font-bold text-xs">{rev.reviewer?.full_name || "Pengguna"}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        {[1,2,3,4,5].map((s) => (
-                          <Star 
-                            key={s} 
-                            size={9} 
-                            className={s <= rev.rating ? "text-accent fill-accent" : "text-muted"} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <span className="text-muted-foreground text-[10px]">
-                      {new Date(rev.created_at).toLocaleDateString('id-ID')}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground text-xs leading-relaxed mt-1">
-                    {rev.comment}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-
-
-        {/* ── PRODUK LAINNYA ── */}
-        <div className="px-4 py-4 pb-36">
-          <h3 className="text-foreground font-bold text-sm mb-3">Produk Lainnya</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {related.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => navigate(`/product/${p.id}`)}
-                className="bg-card rounded-2xl border border-border overflow-hidden text-left shadow-sm active:scale-95 transition-transform"
-              >
-                <div className="relative">
-                  <img src={p.image} alt={p.name} className="w-full h-28 object-cover bg-muted" />
-                  {p.stock === 0 && (
-                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
-                      <span className="bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-sm">
-                        Stok Habis
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-2.5">
-                  <p className="text-foreground font-semibold text-xs truncate">{p.name}</p>
-                  <p className="text-primary font-black text-sm mt-0.5">{formatPrice(p.price)}</p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <Star size={9} className="text-accent fill-accent" />
-                    <span className="text-[10px] text-muted-foreground">{p.rating}</span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── BOTTOM ACTION BAR ── */}
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-10 shadow-2xl" style={{ maxWidth: 430 }}>
+        {/* ── KOTAK BELI: fixed footer di mobile, sticky card di desktop ── */}
+        <div
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-card border-t border-border px-4 py-3 z-10 shadow-2xl
+                     lg:static lg:left-0 lg:translate-x-0 lg:max-w-none lg:w-full lg:mt-4 lg:rounded-2xl lg:border lg:border-border
+                     lg:shadow-sm lg:sticky lg:top-6 lg:bg-card lg:p-4"
+        >
           {/* Qty selector */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-muted-foreground">Jumlah:</span>
@@ -574,7 +465,7 @@ export default function ProductDetailPage() {
                 disabled={isOutOfStock}
                 className="w-8 h-8 rounded-full border-2 border-border flex items-center justify-center text-foreground font-bold text-lg disabled:opacity-40"
               >
-                −
+                &minus;
               </button>
               <span className="text-foreground font-black text-base w-6 text-center">{qty}</span>
               <button
@@ -599,9 +490,6 @@ export default function ProductDetailPage() {
                   }
                   
                   try {
-                    // ⬇️ Cek chat HANYA berdasarkan (buyer, seller) — TANPA product_id.
-                    // Ini memastikan satu pasangan buyer-seller cuma punya SATU chat,
-                    // terlepas dari produk mana yang membuka chat itu.
                     const { data: existingChat, error: checkError } = await supabase.from('chats')
                       .select('id')
                       .eq('buyer_id', user.id)
@@ -611,15 +499,12 @@ export default function ProductDetailPage() {
                     if (checkError) throw checkError;
 
                     if (existingChat) {
-                      // Chat sudah ada -> opsional, update product_id supaya kartu produk
-                      // yang tampil di chat itu adalah produk yang baru dibahas (paling relevan).
                       await supabase.from('chats')
                         .update({ product_id: product.id })
                         .eq('id', existingChat.id);
 
                       navigate(`/chat/${existingChat.id}`);
                     } else {
-                      // Belum ada chat sama sekali -> coba buat baru
                       const { data: newChat, error } = await supabase.from('chats').insert({
                         buyer_id: user.id,
                         seller_id: product.seller_id,
@@ -627,10 +512,6 @@ export default function ProductDetailPage() {
                       }).select().single();
                       
                       if (error) {
-                        // Kode 23505 = unique constraint violation.
-                        // Ini bisa terjadi kalau user klik dobel dengan sangat cepat (race condition),
-                        // sehingga insert lain sudah lebih dulu membuat chat untuk pasangan ini.
-                        // Solusinya: ambil ulang chat yang sudah terbentuk itu.
                         if (error.code === '23505') {
                           const { data: retryChat } = await supabase.from('chats')
                             .select('id')
@@ -679,6 +560,120 @@ export default function ProductDetailPage() {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    {/* ══ FULL WIDTH DI BAWAH: deskripsi, keamanan, ulasan, produk lainnya ══ */}
+    <div className="lg:px-8">
+      <div className="h-2 bg-muted lg:hidden" />
+
+      {/* ── DESKRIPSI ── */}
+      <div className="px-4 lg:px-0 py-4 lg:pt-8 lg:max-w-3xl">
+        <h3 className="text-foreground font-bold text-sm mb-2">Deskripsi Produk</h3>
+        <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
+      </div>
+
+      <div className="h-2 bg-muted lg:hidden" />
+
+      {/* ── KEAMANAN TRANSAKSI ── */}
+      <div className="px-4 lg:px-0 py-4 lg:max-w-3xl">
+        <h3 className="text-foreground font-bold text-sm mb-3">Keamanan Transaksi</h3>
+        <div className="space-y-2.5">
+          {[
+            { icon: Shield, label: "Pembayaran dijamin aman", sub: "Uang ditahan hingga barang diterima", color: "#10B981" },
+            { icon: RefreshCw, label: "Proteksi pembeli", sub: "Kembalikan barang jika tidak sesuai", color: "#3B82F6" },
+            { icon: BadgeCheck, label: "Penjual terverifikasi", sub: "NIM dan identitas sudah dicek UMM", color: "#8B5CF6" },
+          ].map(({ icon: Icon, label, sub, color }) => (
+            <div key={label} className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: color + "18" }}>
+                <Icon size={16} style={{ color }} />
+              </div>
+              <div>
+                <p className="text-foreground font-semibold text-xs">{label}</p>
+                <p className="text-muted-foreground text-[10px]">{sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── ULASAN PRODUK ── */}
+      <div className="px-4 lg:px-0 py-4 bg-background lg:max-w-3xl">
+        <h3 className="text-foreground font-bold text-sm mb-3 flex items-center gap-2">
+          Ulasan
+          <span className="text-muted-foreground text-xs font-normal">({reviews.length})</span>
+        </h3>
+
+        {reviews.length === 0 ? (
+          <p className="text-muted-foreground text-xs">Belum ada ulasan untuk produk ini.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((rev) => (
+              <div key={rev.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <img
+                    src={rev.reviewer?.avatar_url || "/default-avatar.png"}
+                    alt="avatar"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <p className="text-foreground font-bold text-xs">{rev.reviewer?.full_name || "Pengguna"}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {[1,2,3,4,5].map((s) => (
+                        <Star
+                          key={s}
+                          size={9}
+                          className={s <= rev.rating ? "text-accent fill-accent" : "text-muted"}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground text-[10px]">
+                    {new Date(rev.created_at).toLocaleDateString('id-ID')}
+                  </span>
+                </div>
+                <p className="text-muted-foreground text-xs leading-relaxed mt-1">
+                  {rev.comment}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── PRODUK LAINNYA ── */}
+      <div className="px-4 lg:px-0 py-4 pb-36 lg:pb-12">
+        <h3 className="text-foreground font-bold text-sm mb-3">Produk Lainnya</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {related.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => navigate(`/product/${p.id}`)}
+              className="bg-card rounded-2xl border border-border overflow-hidden text-left shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="relative">
+                <img src={p.image} alt={p.name} className="w-full h-28 object-cover bg-muted" />
+                {p.stock === 0 && (
+                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                    <span className="bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-sm">
+                      Stok Habis
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="p-2.5">
+                <p className="text-foreground font-semibold text-xs truncate">{p.name}</p>
+                <p className="text-primary font-black text-sm mt-0.5">{formatPrice(p.price)}</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Star size={9} className="text-accent fill-accent" />
+                  <span className="text-[10px] text-muted-foreground">{p.rating}</span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
 
         {/* ── ORDER CONFIRMATION SHEET ── */}
         {showOrder && (() => {
@@ -692,7 +687,7 @@ export default function ProductDetailPage() {
             <>
               {/* Payment Picker Sheet */}
               {showPaymentPicker && (
-                <div className="fixed inset-0 z-30 flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+                <div className="fixed inset-0 z-30 flex flex-col items-center justify-center px-4">
                   <div className="absolute inset-0 bg-black/60" onClick={() => setShowPaymentPicker(false)} />
                   <div className="relative bg-card rounded-3xl shadow-2xl pb-6 max-h-[80vh] flex flex-col w-full max-w-[380px] z-10">
                     <div className="p-5 border-b border-border shrink-0 text-center">
@@ -745,7 +740,7 @@ export default function ProductDetailPage() {
               )}
 
               {/* Confirmation sheet */}
-              <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+              <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-4">
                 <div className="absolute inset-0 bg-black/50" onClick={() => setShowOrder(false)} />
                 <div className="relative bg-card rounded-3xl shadow-2xl p-5 pb-6 w-full max-w-[380px] z-10">
                   <h3 className="text-foreground font-black text-lg mb-4 text-center">Konfirmasi Pembelian</h3>
@@ -969,9 +964,9 @@ export default function ProductDetailPage() {
     }
 
     return (
-      <div className="fixed inset-0 z-[90] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
+      <div className="fixed inset-0 z-[90] flex flex-col justify-end items-center">
         <div className="absolute inset-0 bg-black/50" onClick={() => setShowReportModal(null)} />
-        <div className="relative bg-card rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="relative bg-card rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col w-full max-w-[430px] lg:max-w-md">
           {/* Handle */}
           <div className="pt-4 pb-2 px-5 shrink-0">
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />

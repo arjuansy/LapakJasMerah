@@ -290,9 +290,9 @@ function SalesPage({ onBack }: { onBack: () => void }) {
         const sale = salesData.find((s) => s.id === showConfirmModal);
         if (!sale) return null;
         return (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="fixed inset-0 z-[80] flex items-center justify-center px-6">
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmModal(null)} />
-            <div className="relative bg-card rounded-3xl shadow-2xl p-6 w-full">
+            <div className="relative bg-card rounded-3xl shadow-2xl p-6 w-full max-w-sm">
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 size={28} className="text-green-500" />
               </div>
@@ -594,9 +594,9 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
         const order = purchaseData.find((p) => p.id === showConfirmReceive);
         if (!order) return null;
         return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmReceive(null)} />
-            <div className="relative bg-card rounded-3xl shadow-2xl p-6 w-full">
+            <div className="relative bg-card rounded-3xl shadow-2xl p-6 w-full max-w-sm">
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Package size={28} className="text-blue-500" />
               </div>
@@ -618,9 +618,9 @@ function PurchasePage({ onBack }: { onBack: () => void }) {
         const order = purchaseData.find((p) => p.id === showReviewModal);
         if (!order) return null;
         return (
-          <div className="fixed inset-0 z-[100] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
+          <div className="fixed inset-0 z-[100] flex flex-col justify-end items-center">
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowReviewModal(null)} />
-            <div className="relative bg-card rounded-t-3xl shadow-2xl p-5 pb-12">
+            <div className="relative bg-card rounded-t-3xl shadow-2xl p-5 pb-12 w-full max-w-[430px] lg:max-w-md">
               <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
               <h3 className="text-foreground font-black text-lg mb-1">Beri Ulasan</h3>
               <p className="text-muted-foreground text-xs mb-4">{order.product} · {order.seller}</p>
@@ -951,7 +951,7 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Save button fixed */}
-      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl" style={{ maxWidth: 430 }}>
+      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl max-w-[430px] lg:max-w-2xl">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -1321,9 +1321,9 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
 
       {/* Delete confirmation */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(false)} />
-          <div className="relative bg-card rounded-3xl p-6 shadow-2xl w-full">
+          <div className="relative bg-card rounded-3xl p-6 shadow-2xl w-full max-w-sm">
             <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <X size={28} className="text-red-500" />
             </div>
@@ -1346,7 +1346,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
       )}
 
       {/* Save button fixed */}
-      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl" style={{ maxWidth: 430 }}>
+      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl max-w-[430px] lg:max-w-2xl">
         {Object.keys(errors).length > 0 && (
           <p className="text-primary text-[11px] font-semibold text-center mb-2 flex items-center justify-center gap-1">
             <AlertCircle size={11} /> Mohon lengkapi data yang masih kosong
@@ -2519,10 +2519,10 @@ export default function ProfilePage() {
 
       {/* Payment Sheet */}
       {showBadgePay && (
-        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-4" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isProcessingPayment && setShowBadgePay(false)} />
           
-          <div className="bg-background w-full rounded-3xl p-6 relative z-10 shadow-2xl animate-in slide-in-from-bottom-8">
+          <div className="bg-background w-full max-w-sm rounded-3xl p-6 relative z-10 shadow-2xl animate-in slide-in-from-bottom-8">
             <button 
               onClick={() => !isProcessingPayment && setShowBadgePay(false)}
               className="absolute top-4 right-4 w-8 h-8 bg-secondary rounded-full flex items-center justify-center"
@@ -2865,7 +2865,7 @@ export default function ProfilePage() {
       </div>
 
       {showKtm && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6">
           <div className="absolute inset-0 bg-black/60" onClick={() => setShowKtm(false)} />
           <div className="relative bg-gradient-to-br from-red-700 via-red-800 to-slate-900 rounded-3xl shadow-2xl p-6 w-full max-w-[360px] text-white border border-white/10 z-10">
             {/* Header UMM */}

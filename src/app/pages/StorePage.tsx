@@ -54,7 +54,7 @@ export default function StorePage() {
   const isVerified = storeProfile?.is_verified_seller || false;
 
     return (
-      <div className="fixed inset-0 z-[60] bg-background overflow-y-auto" style={{ maxWidth: 430, margin: "0 auto" }}>
+      <div className="fixed inset-0 z-[60] bg-background overflow-y-auto max-w-[430px] lg:max-w-3xl mx-auto">
         {/* Hero */}
         <div className="relative" style={{ background: "linear-gradient(160deg,#c41230 0%,#8b0d22 100%)", paddingBottom: 60 }}>
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-10 bg-amber-400" />

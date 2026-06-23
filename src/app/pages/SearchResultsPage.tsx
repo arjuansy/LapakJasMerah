@@ -103,7 +103,7 @@ export default function SearchResultsPage() {
     : [];
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col max-w-[430px] lg:max-w-3xl mx-auto">
 
       {/* Search header */}
       <div className="bg-primary px-4 pt-10 pb-3 shadow-md shrink-0">
@@ -357,7 +357,7 @@ export default function SearchResultsPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 p-4 pb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 pb-8">
             {results.map((p: Product) => (
               <div
                 key={p.id}

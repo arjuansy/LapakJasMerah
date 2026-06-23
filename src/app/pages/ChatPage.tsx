@@ -954,6 +954,7 @@ function ChatPageInner() {
         )}
       </div>
     </div>
+  );
 }
 
 export default function ChatPage() {

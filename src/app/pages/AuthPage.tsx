@@ -317,6 +317,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </button>
         </div>
       </div>
+      </div>
     );
   }
 
@@ -614,7 +615,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
               Lewati untuk lihat-lihat
             </button>
           )}
-        </div>
+          </div>
         </div>
       </div>
     </div>
