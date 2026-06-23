@@ -593,7 +593,7 @@ function ChatPageInner() {
         <div className="bg-primary text-white px-4 pt-10 lg:pt-6 pb-4 z-40 shadow-md shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => navigate("/")} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+              <button onClick={() => navigate(-1)} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
                 <ArrowLeft size={20} className="text-white" />
               </button>
               <h1 className="text-xl font-black tracking-tight">Pesan</h1>

@@ -266,7 +266,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </div>
         </div>
 
-          <div className="flex-1 px-5 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
+          <div className="flex-1 lg:flex-none px-5 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
           <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
@@ -352,7 +352,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </div>
         </div>
 
-          <div className="flex-1 px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
+          <div className="flex-1 lg:flex-none px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
           <div className="space-y-4">
             {errors.form && (
               <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -431,7 +431,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           </div>
         </div>
 
-          <div className="flex-1 px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
+          <div className="flex-1 lg:flex-none px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
           <div className="space-y-4">
             {errors.form && (
               <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -502,7 +502,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
         </div>
       </div>
 
-        <div className="flex-1 px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
+        <div className="flex-1 lg:flex-none px-6 pt-8 pb-10 w-full lg:max-w-md lg:px-0 lg:pt-0">
         <div className="space-y-4">
           {errors.form && (
             <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2">
