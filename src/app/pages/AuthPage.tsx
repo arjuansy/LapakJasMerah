@@ -96,7 +96,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
   async function validate() {
     const e: Record<string, string> = {};
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email tidak valid";
-    if (!form.password.trim() || form.password.length < 6) e.password = "Kata sandi minimal 6 karakter";
+    if (isLogin && (!form.password.trim() || form.password.length < 6)) e.password = "Kata sandi minimal 6 karakter";
     // Check webmail requirement
     if (!form.email.toLowerCase().endsWith("@webmail.umm.ac.id") && form.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
       const isWhitelisted = await authService.isEmailWhitelisted(form.email.toLowerCase());
@@ -139,9 +139,9 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
           navigate('/marketplace');
         }
       } else {
-        // Register (Sends confirmation email OTP)
-        await authService.registerWithPassword(form.email, form.password, form.name, form.nim);
-        toast.success("Pendaftaran berhasil! Silakan periksa email Anda.");
+        // Register (Sends confirmation email OTP without password)
+        await authService.sendOTP(form.email);
+        toast.success("Kode OTP telah dikirim! Silakan periksa email Anda.");
         setStep("otp");
         setResendCooldown(60);
       }
@@ -192,7 +192,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
         setStep("reset_password");
         setOtp(["","","","","",""]);
       } else {
-        await authService.verifySignupOTP(form.email, entered);
+        await authService.verifyOTP(form.email, entered);
         toast.success("Verifikasi berhasil! Anda sekarang masuk.");
       }
     } catch (err: any) {
@@ -597,28 +597,6 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
                   />
                 </div>
                 {errors.email && <p className="text-primary text-[10px] mt-1.5 font-bold flex items-center gap-1"><AlertCircle size={10} />{errors.email}</p>}
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Kata Sandi</label>
-                <div className={`flex items-center gap-2.5 bg-card rounded-2xl px-4 py-3.5 border-2 transition-colors ${errors.password ? "border-primary" : "border-border focus-within:border-primary/50"}`}>
-                  <Lock size={18} className="text-muted-foreground" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={form.password}
-                    onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: "" }); }}
-                    placeholder="Minimal 6 karakter"
-                    className="flex-1 text-sm font-semibold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/50 placeholder:font-medium"
-                  />
-                  <button 
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    type="button"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {errors.password && <p className="text-primary text-[10px] mt-1.5 font-bold flex items-center gap-1"><AlertCircle size={10} />{errors.password}</p>}
               </div>
 
               <button
