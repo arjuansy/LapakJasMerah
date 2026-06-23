@@ -138,6 +138,7 @@ export default function SellPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit() {
+    if (isSubmitting) return;
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length === 0) {
@@ -728,9 +729,10 @@ export default function SellPage() {
         </div>
         <button
           onClick={handleSubmit}
-          className="w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform cursor-pointer"
+          disabled={isSubmitting}
+          className={`w-full bg-primary text-white font-black py-4 rounded-2xl text-base shadow-lg active:scale-95 transition-transform ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
         >
-          {adPackage === "gratis" ? "Pasang Iklan Gratis" : "Bayar Rp 5.000 & Pasang Iklan"}
+          {isSubmitting ? "Memproses..." : (adPackage === "gratis" ? "Pasang Iklan Gratis" : "Bayar Rp 5.000 & Pasang Iklan")}
         </button>
         <p className="text-center text-muted-foreground text-[10px] mt-2">
           Dengan memasang iklan, kamu menyetujui <span className="text-primary font-semibold">Syarat & Ketentuan</span> Lapak Jas Merah
