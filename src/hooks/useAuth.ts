@@ -21,11 +21,14 @@ export function useAuth() {
         
         if (session && session.user) {
           if (session.user.email && !session.user.email.toLowerCase().endsWith("@webmail.umm.ac.id") && session.user.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
-            await authService.logout();
-            if (mounted) {
-              setAuthState({ user: null, profile: null, session: null, loading: false });
+            const isWhitelisted = await authService.isEmailWhitelisted(session.user.email.toLowerCase());
+            if (!isWhitelisted) {
+              await authService.logout();
+              if (mounted) {
+                setAuthState({ user: null, profile: null, session: null, loading: false });
+              }
+              return;
             }
-            return;
           }
 
           const profile = await authService.getProfile(session.user.id);

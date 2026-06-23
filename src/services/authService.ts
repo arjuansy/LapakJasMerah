@@ -186,5 +186,25 @@ export const authService = {
 
     if (error) throw error;
     return data;
+  },
+
+  /**
+   * Check if an email is whitelisted in the public.whitelisted_emails table
+   */
+  async isEmailWhitelisted(email: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('whitelisted_emails')
+        .select('email')
+        .eq('email', email)
+        .single();
+      
+      if (error) {
+        return false;
+      }
+      return !!data;
+    } catch (err) {
+      return false;
+    }
   }
 };

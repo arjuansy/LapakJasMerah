@@ -56,10 +56,14 @@ export default function OnboardingPage() {
     if (!authLoading && !user) {
       navigate('/login');
     } else if (user && user.email && !user.email.toLowerCase().endsWith("@webmail.umm.ac.id") && user.email.toLowerCase() !== "arjuansyuhada@gmail.com") {
-      // Force logout if non-webmail Google account
-      authService.logout().then(() => {
-        toast.error("Akses ditolak: Hanya email @webmail.umm.ac.id yang diizinkan.", { duration: 5000 });
-        navigate('/login');
+      // Check whitelist before forcing logout
+      authService.isEmailWhitelisted(user.email.toLowerCase()).then(isWhitelisted => {
+        if (!isWhitelisted) {
+          authService.logout().then(() => {
+            toast.error("Akses ditolak: Hanya email @webmail.umm.ac.id atau yang terdaftar secara khusus yang diizinkan.", { duration: 5000 });
+            navigate('/login');
+          });
+        }
       });
     } else if (!authLoading && user && profile && profile.nim) {
       if (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN') {

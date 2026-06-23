@@ -158,7 +158,8 @@ export default function AdminDashboard({
     | "transactions"
     | "subscriptions"
     | "settings"
-    | "admins";
+    | "admins"
+    | "whitelisted_users";
 }) {
   const { user, profile } = useAuth();
 
@@ -184,6 +185,7 @@ export default function AdminDashboard({
     | "subscriptions"
     | "settings"
     | "admins"
+    | "whitelisted_users"
   >(defaultTab);
 
   // Synchronize activeTab when defaultTab prop changes from hash router
@@ -211,6 +213,7 @@ export default function AdminDashboard({
   const [subscriptions, setSubscriptions] = useState<SubscriptionType[]>([]);
   const [admins, setAdmins] = useState<AdminType[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>([]);
+  const [whitelistedEmails, setWhitelistedEmails] = useState<{id: string, email: string, added_at: string}[]>([]);
 
   // Fetch Data from Supabase
   const fetchAllData = async () => {
@@ -384,6 +387,16 @@ export default function AdminDashboard({
           permissions: ['manage_users', 'manage_sellers', 'manage_listings']
         })));
       }
+
+      // 9. Fetch Whitelisted Emails
+      const { data: whitelistedData } = await supabase.from('whitelisted_emails').select('*');
+      if (whitelistedData) {
+        setWhitelistedEmails(whitelistedData.map((w: any) => ({
+          id: w.id,
+          email: w.email,
+          added_at: new Date(w.created_at).toISOString().split('T')[0]
+        })));
+      }
     } catch (error) {
       console.error("Error fetching admin data:", error);
     }
@@ -462,6 +475,8 @@ export default function AdminDashboard({
     | "addPackage"
     | "editPackage"
     | "deletePackage"
+    | "addWhitelistEmail"
+    | "deleteWhitelistEmail"
   >(null);
 
   // Selected Item references for modals
@@ -474,6 +489,7 @@ export default function AdminDashboard({
   const [selectedAdminToDelete, setSelectedAdminToDelete] = useState<AdminType | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminType | null>(null);
+  const [selectedWhitelistEmail, setSelectedWhitelistEmail] = useState<{id: string, email: string} | null>(null);
 
   // Dynamic Premium Packages configuration state
   const [premiumPackages, setPremiumPackages] = useState([
@@ -498,6 +514,7 @@ export default function AdminDashboard({
   const [userForm, setUserForm] = useState({ name: "", nim: "", email: "", major: "", status: "Aktif" as "Aktif" | "Ditangguhkan" });
   const [listingForm, setListingForm] = useState({ title: "", category: "", price: 0 });
   const [packageForm, setPackageForm] = useState({ name: "", price: 300, desc: "", durationDays: 3 });
+  const [whitelistEmailForm, setWhitelistEmailForm] = useState({ email: "" });
   
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
@@ -749,6 +766,7 @@ export default function AdminDashboard({
             { id: "transactions", label: "Riwayat Transaksi", icon: ArrowRightLeft },
             { id: "subscriptions", label: "Paket Premium", icon: Zap, badge: subscriptions.filter((s) => s.status === "Pending").length },
             { id: "admins", label: "Manajemen Admin", icon: Shield, roleRestricted: "Super Admin" as AdminRole },
+            { id: "whitelisted_users", label: "Pengguna Khusus", icon: ShieldAlert, roleRestricted: "Super Admin" as AdminRole },
             { id: "settings", label: "Pengaturan Profil", icon: Settings },
           ].map((item) => {
             const Icon = item.icon;
@@ -822,7 +840,7 @@ export default function AdminDashboard({
             <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-gray-400">
               <span>Admin Portal</span>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-gray-800 capitalize">{activeTab === "admins" ? "Manajemen Admin" : activeTab}</span>
+              <span className="text-gray-800 capitalize">{activeTab === "admins" ? "Manajemen Admin" : activeTab === "whitelisted_users" ? "Pengguna Khusus" : activeTab}</span>
             </div>
           </div>
 
@@ -925,6 +943,7 @@ export default function AdminDashboard({
                 {activeTab === "subscriptions" && "Pengajuan Iklan Premium"}
                 {activeTab === "settings" && "Pengaturan Akun Admin"}
                 {activeTab === "admins" && "Daftar Administrator Portal"}
+                {activeTab === "whitelisted_users" && "Daftar Email Non-UMM yang Diizinkan"}
               </h2>
               <p className="text-xs text-gray-500 mt-1 font-semibold">
                 {activeTab === "dashboard" && "Pantau aktivitas, statistik, dan performa Lapak Jas Merah."}
@@ -938,6 +957,7 @@ export default function AdminDashboard({
                 {activeTab === "subscriptions" && "Approve/Reject pembayaran highlight pencarian berbayar untuk iklan penjual."}
                 {activeTab === "settings" && "Konfigurasi informasi pribadi Anda, ubah sandi, dan preferensi laporan notifikasi."}
                 {activeTab === "admins" && "Kelola tingkat akses dan kelayakan administrator lainnya."}
+                {activeTab === "whitelisted_users" && "Kelola daftar alamat email eksternal yang diizinkan untuk mendaftar dan menggunakan aplikasi."}
               </p>
             </div>
 
@@ -2748,6 +2768,67 @@ export default function AdminDashboard({
               </div>
             </div>
           )}
+
+          {activeTab === "whitelisted_users" && (
+            <div className="space-y-6">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    setWhitelistEmailForm({ email: "" });
+                    setModalType("addWhitelistEmail");
+                  }}
+                  className="bg-red-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2"
+                >
+                  <Plus className="w-4.5 h-4.5" /> Tambah Email Khusus
+                </button>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-[9px] font-black">
+                        <th className="px-6 py-4">ID</th>
+                        <th className="px-6 py-4">Alamat Email</th>
+                        <th className="px-6 py-4">Ditambahkan Pada</th>
+                        <th className="px-6 py-4 text-right">Tindakan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {whitelistedEmails.map((wEmail) => (
+                        <tr key={wEmail.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-gray-500 text-[10px]">{wEmail.id}</td>
+                          <td className="px-6 py-4 font-extrabold text-gray-800">{wEmail.email}</td>
+                          <td className="px-6 py-4 text-gray-500 font-semibold">{wEmail.added_at}</td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setSelectedWhitelistEmail(wEmail);
+                                  setModalType("deleteWhitelistEmail");
+                                }}
+                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                                title="Hapus Email"
+                              >
+                                <Trash2 className="w-4.5 h-4.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {whitelistedEmails.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                            Tidak ada email khusus yang ditambahkan.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -4542,6 +4623,114 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+
+      {/* Modal: Add Whitelisted Email */}
+      {modalType === "addWhitelistEmail" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden text-left transform duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-gray-900">Tambah Email Khusus</h3>
+              <button onClick={() => setModalType(null)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!whitelistEmailForm.email.trim()) {
+                  showToast("Email harus diisi", "error");
+                  return;
+                }
+                const email = whitelistEmailForm.email.trim().toLowerCase();
+                try {
+                  const { error } = await supabase.from('whitelisted_emails').insert({
+                    email,
+                    added_by: currentAdmin.email
+                  });
+                  if (error) throw error;
+                  setWhitelistedEmails(prev => [...prev, { id: Date.now().toString(), email, added_at: new Date().toISOString().split('T')[0] }]);
+                  showToast("Email berhasil ditambahkan ke whitelist", "success");
+                  setModalType(null);
+                  fetchAllData();
+                } catch (err: any) {
+                  showToast(err.message || "Gagal menambahkan email", "error");
+                }
+              }}
+              className="p-6 space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Alamat Email Eksternal</label>
+                <input
+                  type="email"
+                  value={whitelistEmailForm.email}
+                  onChange={(e) => setWhitelistEmailForm({ ...whitelistEmailForm, email: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-500 focus:bg-white transition-all font-semibold text-gray-900"
+                  placeholder="contoh@gmail.com"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setModalType(null)}
+                  className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-bold bg-red-600 text-white rounded-xl shadow-[0_4px_12px_-4px_rgba(220,38,38,0.4)]"
+                >
+                  Tambah Email
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Delete Whitelisted Email */}
+      {modalType === "deleteWhitelistEmail" && selectedWhitelistEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-center transform duration-300">
+            <div className="p-6 space-y-4">
+              <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-200 shadow-sm">
+                <Trash2 className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-gray-900">Hapus Email Khusus?</h3>
+                <p className="text-[11px] text-gray-500 font-semibold mt-1.5 px-4 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus <span className="font-black text-gray-800">{selectedWhitelistEmail.email}</span> dari whitelist?
+                </p>
+              </div>
+              <div className="flex justify-center gap-3 pt-4">
+                <button
+                  onClick={() => setModalType(null)}
+                  className="px-6 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { error } = await supabase.from('whitelisted_emails').delete().eq('id', selectedWhitelistEmail.id);
+                      if (error) throw error;
+                      setWhitelistedEmails(prev => prev.filter(w => w.id !== selectedWhitelistEmail.id));
+                      showToast("Email berhasil dihapus dari whitelist", "success");
+                      setModalType(null);
+                    } catch (err: any) {
+                      showToast(err.message || "Gagal menghapus email", "error");
+                    }
+                  }}
+                  className="px-6 py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl shadow-[0_4px_12px_-4px_rgba(220,38,38,0.4)]"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
