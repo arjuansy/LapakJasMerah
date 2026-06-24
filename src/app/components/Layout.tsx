@@ -12,6 +12,7 @@ import {
 import { useApp } from "../context";
 import logoImg from "../../assets/logo.png";
 import NotifPanel from "../pages/NotifPanel";
+import WishlistPage from "../pages/WishlistPage";
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function Layout() {
   const {
     unreadChatCount, toastMessage,
     globalSearch, setGlobalSearch, searchFocused, setSearchFocused,
-    notifications, setShowNotif, showNotif, wishlist,
+    notifications, setShowNotif, showNotif, wishlist, showWishlist, setShowWishlist
   } = useApp();
 
   const totalUnread = unreadChatCount;
@@ -109,14 +110,17 @@ export default function Layout() {
               </button>
               {showNotif && <NotifPanel variant="dropdown" />}
             </div>
-            <button className="relative p-1.5" onClick={() => navigate('/wishlist')}>
-              <Heart size={19} className="text-muted-foreground" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center border border-card">
-                  <span className="text-[9px] font-black text-white">{wishlist.length}</span>
-                </span>
-              )}
-            </button>
+            <div className="relative">
+              <button className="relative p-1.5" onClick={() => setShowWishlist(!showWishlist)}>
+                <Heart size={19} className="text-muted-foreground" />
+                {wishlist.length > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center border border-card">
+                    <span className="text-[9px] font-black text-white">{wishlist.length}</span>
+                  </span>
+                )}
+              </button>
+              {showWishlist && <WishlistPage variant="dropdown" />}
+            </div>
 
             <button
               onClick={() => navigate("/sell")}
