@@ -486,7 +486,7 @@ export default function MarketplaceFeed() {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 px-4 lg:px-0">
-            {products.slice(0, 6).map((p) => (
+            {products.slice(0, 5).map((p) => (
               <div
                 key={p.id}
                 onClick={() => navigate(`/product/${p.id}`)}
