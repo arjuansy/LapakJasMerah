@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../../config/supabaseClient";
 import { useAuth } from "../../hooks/useAuth";
+import { parseImageUrls } from "../../utils/imageParser";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +68,7 @@ export default function ProductDetailPage() {
       if (reviewData && reviewData.length > 0) {
         setReviews(reviewData);
         rCount = reviewData.length;
-        const sum = reviewData.reduce((acc: number, curr: any) => acc + curr.rating, 0);
+        const sum = reviewData.reduce((acc, curr) => acc + curr.rating, 0);
         avgRating = Math.round((sum / reviewData.length) * 10) / 10;
       } else {
         setReviews([]);
@@ -83,7 +84,8 @@ export default function ProductDetailPage() {
         seller: p.seller?.full_name || "Penjual",
         seller_id: p.seller_id,
         sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
-        image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+        image: p.image_url ? parseImageUrls(p.image_url)[0] : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+        images_raw: p.image_url,
         rating: avgRating,
         ratingCount: rCount,
         sold: totalSold,
@@ -104,7 +106,7 @@ export default function ProductDetailPage() {
   const desc = product.description || "";
   const isOutOfStock = product.stock <= 0 || product.status === "OUT_OF_STOCK";
 
-  const imgs = product.image ? [product.image] : [];
+  const imgs = parseImageUrls(product.images_raw || product.image || "");
 
   const related = products.filter((p) => p.id !== product.id).slice(0, 4);
 

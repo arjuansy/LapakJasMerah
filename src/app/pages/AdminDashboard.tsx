@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../data";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../config/supabaseClient";
+import { parseImageUrls } from "../../utils/imageParser";
 import {
   LayoutDashboard,
   Users,
@@ -302,7 +303,7 @@ export default function AdminDashboard({
           price: p.price,
           status: p.status === 'AVAILABLE' ? 'Disetujui' : (p.status === 'SUSPENDED' ? 'Ditolak' : 'Pending'),
           createdAt: new Date(p.created_at).toISOString().split('T')[0],
-          image: p.image_url || 'https://via.placeholder.com/100'
+          image: p.image_url ? parseImageUrls(p.image_url)[0] : 'https://via.placeholder.com/100'
         })));
       }
 

@@ -147,7 +147,16 @@ export default function SellPage() {
         let imageUrl = "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&h=300&fit=crop&auto=format";
 
         if (files.length > 0) {
-          imageUrl = await storageService.uploadProductImage(files[0]);
+          const uploadPromises = files.map(file => storageService.uploadProductImage(file));
+          const uploadedUrls = await Promise.all(uploadPromises);
+          
+          // Filter out any potential failed uploads (null/undefined)
+          const validUrls = uploadedUrls.filter(url => url);
+          
+          if (validUrls.length > 0) {
+            // Save as JSON string array
+            imageUrl = JSON.stringify(validUrls);
+          }
         }
 
         const numericPrice = Number(form.price.replace(/\./g, ""));

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import api from "./api";
+import { parseImageUrls } from "../utils/imageParser";
 
 import {
   categories, banners, recentProducts, notifData,
@@ -189,7 +190,8 @@ export default function App() {
             seller: p.seller?.full_name || "Penjual",
             seller_id: p.seller_id,
             sellerAvatar: p.seller?.avatar_url || "/default-avatar.png",
-            image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+            image: p.image_url ? parseImageUrls(p.image_url)[0] : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+            images_raw: p.image_url,
             rating: avgRating,
             ratingCount: rCount,
             sold: totalSold,

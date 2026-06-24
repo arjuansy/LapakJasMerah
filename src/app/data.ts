@@ -207,6 +207,7 @@ export interface Product {
   discount?: number;
   isNew?: boolean;
   is_premium?: boolean;
+  images_raw?: string;
 }
 
 export const extraProducts: Product[] = [
