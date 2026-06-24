@@ -41,10 +41,10 @@ export default function MarketplaceFeed() {
         <title>Beranda | Lapak Jas Merah</title>
         <meta name="description" content="Temukan barang bekas, buku, kos, dan jasa dengan harga mahasiswa di Universitas Muhammadiyah Malang." />
       </Helmet>
-      <div className="lg:max-w-7xl lg:mx-auto">
+      <div className="lg:max-w-[1600px] lg:mx-auto">
         {/* ── HEADER ── */}
         <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
-          <div className="px-4 lg:px-8 pt-4 pb-3">
+          <div className="px-4 lg:px-12 pt-4 pb-3">
           {/* Top row */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -110,11 +110,12 @@ export default function MarketplaceFeed() {
         </div>
       </header>
 
-      <div className="lg:flex lg:gap-6 lg:px-8 lg:pt-4">
+      <div className="lg:flex lg:gap-8 lg:px-12 lg:pt-6">
         {/* SIDEBAR — hanya tampil di desktop */}
-        <aside className="hidden lg:block w-48 shrink-0">
-          <p className="text-foreground font-bold text-sm mb-3">Kategori</p>
-          <div className="flex flex-col gap-1">
+        <aside className="hidden lg:block w-56 shrink-0">
+          <div className="bg-card border border-border rounded-2xl p-4 sticky top-24">
+            <p className="text-foreground font-bold text-sm mb-3">Kategori</p>
+            <div className="flex flex-col gap-1">
             {categories.map(({ icon: Icon, label, color }) => {
               const filterMap: Record<string, string> = {
                 "Buku & Modul": "Buku & Modul",
@@ -139,14 +140,15 @@ export default function MarketplaceFeed() {
               );
             })}
           </div>
+          </div>
         </aside>
 
         {/* ── MAIN SCROLL ── */}
         <main className="flex-1 pb-24 overflow-y-auto">
 
         {/* ── BANNER CAROUSEL ── */}
-        <div className="px-4 pt-4">
-          <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ height: 220 }}>
+        <div className="px-4 lg:px-0 pt-4">
+          <div className="relative rounded-2xl overflow-hidden shadow-md h-[220px] lg:h-[300px]">
             {displayBanners.map((b, i) => (
               <div
                 key={b.id}
@@ -206,7 +208,7 @@ export default function MarketplaceFeed() {
         </div>
 
         {/* ── QUICK STATS ── */}
-        <div className="px-4 pt-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+        <div className="px-4 lg:px-0 pt-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 lg:gap-3">
           {(() => {
             const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0 });
             React.useEffect(() => {
@@ -285,7 +287,7 @@ export default function MarketplaceFeed() {
 
         {/* ── PAPAN PERMINTAAN ── */}
         <div className="pt-6">
-          <div className="px-4 flex items-center justify-between mb-3">
+          <div className="px-4 lg:px-0 flex items-center justify-between mb-3">
             <div>
               <h3 className="text-foreground font-bold text-base">📋 Papan Permintaan</h3>
               <p className="text-muted-foreground text-[11px]">Barang & jasa yang sedang dicari</p>
@@ -299,7 +301,7 @@ export default function MarketplaceFeed() {
             </button>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2" style={{ scrollbarWidth: "none" }}>
             {requests.map((req) => {
               const urgencyConfig = {
                 normal: { label: "Normal", bg: "#6B728018", text: "#6B7280", dot: "#6B7280" },
@@ -456,8 +458,8 @@ export default function MarketplaceFeed() {
         </div>
 
         {/* ── JUAL SEKARANG BANNER ── */}
-        <div className="px-4 pt-6">
-          <div className="bg-gradient-to-r from-[#f59e0b] to-[#f97316] rounded-2xl p-4 flex items-center justify-between">
+        <div className="px-4 lg:px-0 pt-6">
+          <div className="bg-gradient-to-r from-[#f59e0b] to-[#f97316] rounded-2xl p-4 lg:p-6 flex items-center justify-between">
             <div>
               <p className="text-white/80 text-xs font-semibold">Punya barang nganggur?</p>
               <p className="text-white font-black text-base leading-tight">Jual Sekarang,<br />Gratis Ongkir!</p>
@@ -474,7 +476,7 @@ export default function MarketplaceFeed() {
 
         {/* ── PRODUK TERBARU ── */}
         <div className="pt-6 pb-4">
-          <div className="px-4 flex items-center justify-between mb-3">
+          <div className="px-4 lg:px-0 flex items-center justify-between mb-3">
             <h3 className="text-foreground font-bold text-base">Produk Terbaru</h3>
             <button
               onClick={() => { setActiveCategoryFilter("Semua"); navigate("/categories"); }}
@@ -483,7 +485,7 @@ export default function MarketplaceFeed() {
               Lihat Semua <ChevronRight size={12} />
             </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 px-4 lg:px-0">
             {products.slice(0, 6).map((p) => (
               <div
                 key={p.id}
@@ -535,8 +537,8 @@ export default function MarketplaceFeed() {
         </div>
 
         {/* ── TRUST SECTION ── */}
-        <div className="px-4 pt-2 pb-2">
-          <div className="bg-secondary rounded-2xl p-4">
+        <div className="px-4 lg:px-0 pt-2 pb-2">
+          <div className="bg-secondary rounded-2xl p-4 lg:p-6">
             <p className="text-primary font-bold text-sm mb-3 text-center">Kenapa Lapak Jas Merah?</p>
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {[
