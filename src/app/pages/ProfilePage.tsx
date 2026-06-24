@@ -51,6 +51,7 @@ import { authService } from "../../services/authService";
 import { storageService } from "../../services/storageService";
 import { formatPrice, productDescriptions } from "../data";
 import { supabase } from "../../config/supabaseClient";
+import { parseImageUrls } from "../../utils/imageParser";
 
 // ── DAFTAR PENJUALAN ──
 function SalesPage({ onBack }: { onBack: () => void }) {
@@ -969,7 +970,10 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
   const { editingItem,  setListings, setProducts, triggerToast } = useApp();
   const item = editingItem!;
 
-  const [photos, setPhotos] = useState<string[]>([item.image]);
+  const [photos, setPhotos] = useState<string[]>(parseImageUrls(item.images_raw || item.image));
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: item.name,
@@ -995,12 +999,6 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
   const conditionOptions = ["Baru","Seperti Baru","Bekas - Baik","Bekas - Cukup"];
   const locationOptions = ["Kampus 1 (GKB)","Kampus 2","Kampus 3","Dinoyo","Sengkaling","Lowokwaru","Dau","Online / Kirim"];
 
-  const mockPhotos = [
-    item.image,
-    "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=200&h=200&fit=crop&auto=format",
-  ];
-
   function formatRupiah(val: string) {
     return val.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
@@ -1017,6 +1015,36 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     return e;
   }
 
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    
+    // Check limit
+    if (photos.length + files.length > 5) {
+      triggerToast("Maksimal total 5 foto yang diizinkan.", "error");
+      return;
+    }
+
+    setUploadingPhotos(true);
+    try {
+      const uploadPromises = files.map(file => storageService.uploadProductImage(file));
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const validUrls = uploadedUrls.filter(url => url) as string[];
+      
+      if (validUrls.length > 0) {
+        setPhotos(prev => [...prev, ...validUrls]);
+        triggerToast("Berhasil mengunggah foto.", "success");
+      }
+    } catch (error) {
+      console.error(error);
+      triggerToast("Gagal mengunggah beberapa foto.", "error");
+    } finally {
+      setUploadingPhotos(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function handleSave() {
     const e = validate();
     setErrors(e);
@@ -1025,7 +1053,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     setSaving(true);
     const numericPrice = Number(form.price.replace(/\./g, ""));
     const numericStock = parseInt(form.stock) || 0;
-    const updatedImage = photos[0] || item.image;
+    const updatedImage = photos.length > 1 ? JSON.stringify(photos) : (photos[0] || item.image);
     const newStatus = numericStock === 0 ? "OUT_OF_STOCK" : "AVAILABLE";
 
     try {
@@ -1170,13 +1198,29 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
               </div>
             ))}
             {photos.length < 5 && (
-              <button onClick={() => photos.length < mockPhotos.length && setPhotos((p) => [...p, mockPhotos[p.length % mockPhotos.length]])}
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingPhotos}
                 className="flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-card"
                 style={{ width: 80, height: 80 }}>
-                <Camera size={20} className="text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground font-semibold">Tambah</span>
+                {uploadingPhotos ? (
+                  <span className="w-5 h-5 border-2 border-muted-foreground border-t-primary rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Camera size={20} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground font-semibold">Tambah</span>
+                  </>
+                )}
               </button>
             )}
+            <input 
+              type="file" 
+              accept="image/*" 
+              multiple 
+              className="hidden" 
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+            />
           </div>
         </section>
 
