@@ -149,10 +149,10 @@ export default function SellPage() {
         if (files.length > 0) {
           const uploadPromises = files.map(file => storageService.uploadProductImage(file));
           const uploadedUrls = await Promise.all(uploadPromises);
-          
+
           // Filter out any potential failed uploads (null/undefined)
           const validUrls = uploadedUrls.filter(url => url);
-          
+
           if (validUrls.length > 0) {
             // Save as JSON string array
             imageUrl = JSON.stringify(validUrls);
