@@ -24,7 +24,7 @@ export default function Layout() {
   else if (location.pathname.startsWith("/profile")) activeTab = "profile";
 
   const isChatDetail = location.pathname.match(/^\/chat\/\d+/);
-  const hideNav = isChatDetail || activeTab === "sell";
+  const hideNav = activeTab === "sell";
 
   const navItems = [
     { id: "home", path: "/marketplace", icon: Home, label: "Beranda" },
