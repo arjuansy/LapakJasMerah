@@ -951,7 +951,7 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Save button fixed */}
-      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl max-w-[430px] lg:max-w-2xl">
+      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl max-w-[430px] lg:max-w-4xl">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -1346,7 +1346,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
       )}
 
       {/* Save button fixed */}
-      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl max-w-[430px] lg:max-w-2xl">
+      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl max-w-[430px] lg:max-w-4xl">
         {Object.keys(errors).length > 0 && (
           <p className="text-primary text-[11px] font-semibold text-center mb-2 flex items-center justify-center gap-1">
             <AlertCircle size={11} /> Mohon lengkapi data yang masih kosong

@@ -103,7 +103,7 @@ export default function SearchResultsPage() {
     : [];
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col max-w-[430px] lg:max-w-3xl mx-auto">
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col max-w-[430px] lg:max-w-5xl mx-auto">
 
       {/* Search header */}
       <div className="bg-primary px-4 pt-10 pb-3 shadow-md shrink-0">
