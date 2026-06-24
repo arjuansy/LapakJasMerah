@@ -112,28 +112,21 @@ export default function WishlistPage({ variant = "drawer" }: { variant?: "drawer
     );
   }
 
-  // ══ VARIANT: DRAWER (mobile/tablet, slide dari kanan, full height) ══
+  // ══ VARIANT: PAGE (mobile/tablet & full page desktop) ══
   return (
-    <div className="lg:hidden contents">
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-[70]" onClick={() => navigate(-1)} />
-
-      {/* Panel */}
-      <div
-        className="fixed top-0 right-0 bottom-0 z-[80] bg-card shadow-2xl flex flex-col"
-        style={{ width: "min(360px, 100vw)", maxWidth: 430, borderLeft: "1px solid rgba(0,0,0,0.08)" }}
-      >
-        {/* Header */}
-        <div className="bg-primary px-4 pt-10 pb-4 shrink-0">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-white font-black text-xl">Wishlist</h2>
-            <button onClick={() => navigate(-1)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-              <X size={16} className="text-white" />
-            </button>
-          </div>
-          <p className="text-white/60 text-xs">{wishlisted.length} produk disimpan</p>
+    <div className="flex flex-col h-full bg-background w-full max-w-2xl mx-auto pb-20 lg:pb-0 lg:pt-6">
+      {/* Header */}
+      <div className="bg-primary px-4 pt-8 pb-4 shrink-0 lg:rounded-t-2xl">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-white font-black text-xl">Wishlist</h2>
+          <button onClick={() => navigate(-1)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+            <X size={16} className="text-white" />
+          </button>
         </div>
+        <p className="text-white/60 text-xs">{wishlisted.length} produk disimpan</p>
+      </div>
 
+      <div className="flex-1 bg-muted/20 lg:rounded-b-2xl lg:shadow-sm overflow-hidden flex flex-col">
         {renderList()}
       </div>
     </div>
