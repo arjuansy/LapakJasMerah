@@ -1,5 +1,5 @@
 import { toast } from "react-hot-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
@@ -972,7 +972,7 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
 
   const [photos, setPhotos] = useState<string[]>(parseImageUrls(item.images_raw || item.image));
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
