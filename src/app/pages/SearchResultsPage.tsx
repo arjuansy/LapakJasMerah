@@ -103,11 +103,11 @@ export default function SearchResultsPage() {
     : [];
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col max-w-[430px] lg:max-w-5xl mx-auto">
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col max-w-[430px] lg:static lg:z-auto lg:max-w-full lg:bg-transparent lg:mx-auto">
 
       {/* Search header */}
-      <div className="bg-primary px-4 pt-10 pb-3 shadow-md shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="bg-primary px-4 pt-10 pb-3 shadow-md shrink-0 lg:bg-transparent lg:shadow-none lg:pt-4 lg:pb-0 lg:px-8">
+        <div className="flex items-center gap-3 lg:hidden">
           <button
             onClick={() => { setShowSearchResults(false); setGlobalSearch(""); }}
             className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center shrink-0"
@@ -140,14 +140,24 @@ export default function SearchResultsPage() {
           </div>
         </div>
 
+        {/* Desktop title */}
+        {globalSearch && (
+          <div className="hidden lg:block mb-3">
+            <h1 className="text-xl font-black text-foreground">
+              Hasil pencarian untuk "{globalSearch}"
+            </h1>
+          </div>
+        )}
+
         {/* Sort row */}
-        <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+        <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1 lg:mt-0" style={{ scrollbarWidth: "none" }}>
           <button
             onClick={() => setShowFilter((v) => !v)}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors"
-            style={showFilter || activeFilters.length > 0
-              ? { background: "#fff", color: "#c41230", border: "1.5px solid #c41230" }
-              : { background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.2)" }}
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+              showFilter || activeFilters.length > 0
+                ? "bg-white text-primary border-primary lg:bg-primary lg:text-white"
+                : "bg-white/15 text-white border-white/20 lg:bg-card lg:text-muted-foreground lg:border-border lg:hover:border-primary/50"
+            }`}
           >
             <SlidersHorizontal size={11} />
             Filter {activeFilters.length > 0 && `(${activeFilters.length})`}
@@ -162,10 +172,11 @@ export default function SearchResultsPage() {
             <button
               key={s.key}
               onClick={() => setSortBy(s.key)}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors"
-              style={sortBy === s.key
-                ? { background: "#fff", color: "#c41230", border: "1.5px solid #c41230" }
-                : { background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.2)" }}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                sortBy === s.key
+                  ? "bg-white text-primary border-primary lg:bg-primary lg:text-white"
+                  : "bg-white/15 text-white border-white/20 lg:bg-card lg:text-muted-foreground lg:border-border lg:hover:border-primary/50"
+              }`}
             >
               {s.label}
             </button>

@@ -8,6 +8,7 @@ import {
   Search,
   Bell,
   Heart,
+  X,
 } from "lucide-react";
 import { useApp } from "../context";
 import logoImg from "../../assets/logo.png";
@@ -78,21 +79,44 @@ export default function Layout() {
 
           {/* Search bar — hanya muncul di Beranda & Kategori */}
           {showSearchInNavbar && (
-            <div
-              className="flex-1 max-w-xl flex items-center gap-2 bg-secondary rounded-xl px-3 py-2"
-              style={{ border: searchFocused ? "2px solid #f59e0b" : "2px solid transparent", transition: "border 0.2s" }}
-            >
-              <Search size={15} className="text-muted-foreground shrink-0" />
-              <input
-                type="text"
-                value={globalSearch}
-                placeholder="Cari buku, elektronik, kos..."
-                className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
-                onFocus={() => { setSearchFocused(true); navigate('/search'); }}
-                onBlur={() => setSearchFocused(false)}
-                onChange={(e) => { setGlobalSearch(e.target.value); navigate('/search'); }}
-                onKeyDown={(e) => { if (e.key === "Enter") navigate('/search'); }}
-              />
+            <div className="flex-1 max-w-xl relative">
+              <div
+                className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-2 relative z-[70]"
+                style={{ border: searchFocused ? "2px solid #f59e0b" : "2px solid transparent", transition: "border 0.2s" }}
+              >
+                <Search size={15} className="text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  value={globalSearch}
+                  placeholder="Cari produk, penjual..."
+                  className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
+                  onFocus={() => { setSearchFocused(true); navigate('/search'); }}
+                  onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+                  onChange={(e) => { setGlobalSearch(e.target.value); navigate('/search'); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") navigate('/search'); }}
+                />
+                {globalSearch && (
+                  <button onClick={() => setGlobalSearch("")} className="shrink-0">
+                    <X size={14} className="text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Dropdown Pencarian Desktop */}
+              {searchFocused && !globalSearch.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-card border border-border shadow-2xl rounded-2xl p-5 z-[60] flex gap-2 flex-wrap animate-in fade-in slide-in-from-top-4 duration-200">
+                  <p className="w-full text-xs font-bold text-muted-foreground uppercase mb-2 tracking-wide">Pencarian Populer 🔥</p>
+                  {["Jaket Almamater", "Buku Kalkulus", "Kost Putri", "Casio", "Sepeda"].map(item => (
+                    <button 
+                      key={item} 
+                      onMouseDown={(e) => { e.preventDefault(); setGlobalSearch(item); navigate('/search'); setSearchFocused(false); }} 
+                      className="px-3.5 py-1.5 bg-secondary text-foreground text-xs font-bold rounded-xl hover:border-primary/40 border border-transparent transition-all"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
