@@ -33,7 +33,8 @@ export default function Layout() {
   else if (location.pathname.startsWith("/chat")) activeTab = "chat";
   else if (location.pathname.startsWith("/profile")) activeTab = "profile";
 
-  const hideNav = activeTab === "sell";
+  const hideTopNav = false;
+  const hideBottomNav = activeTab === "sell";
   const showSearchInNavbar = activeTab === "home" || activeTab === "categories";
 
   const navItems = [
@@ -48,7 +49,7 @@ export default function Layout() {
     <div className="relative w-full h-full mx-auto flex flex-col bg-background shadow-2xl overflow-hidden max-w-[430px] md:max-w-3xl lg:max-w-none lg:shadow-none lg:overflow-visible">
 
       {/* ── NAVBAR ATAS (desktop, lg+) ── */}
-      {!hideNav && (
+      {!hideTopNav && (
         <header className="hidden lg:flex items-center gap-6 bg-card border-b border-border px-8 h-16 shrink-0 sticky top-0 z-50">
           <button onClick={() => navigate("/marketplace")} className="flex items-center gap-2.5 shrink-0">
             <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center overflow-hidden">
@@ -163,7 +164,7 @@ export default function Layout() {
       </div>
 
       {/* ── BOTTOM NAVIGATION (mobile/tablet, < lg) ── */}
-      {!hideNav && (
+      {!hideBottomNav && (
       <nav className="lg:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-card border-t border-border shadow-2xl z-50 max-w-[430px] md:max-w-3xl">
         <div className="flex items-center justify-around px-2 py-2">
           {navItems.map(({ id, path, icon: Icon, label, special }) =>
