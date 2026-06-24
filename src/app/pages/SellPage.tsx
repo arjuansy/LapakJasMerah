@@ -74,14 +74,14 @@ export default function SellPage() {
 
     const maxPhotos = adPackage === "gratis" ? 3 : 5;
     const remaining = maxPhotos - photos.length;
-    
+
     if (remaining <= 0) {
       toast.error(`Paket ${adPackage} maksimal ${maxPhotos} foto`);
       return;
     }
 
     const filesArray = Array.from(files).slice(0, remaining);
-    
+
     filesArray.forEach((file) => {
       if (!file.type.startsWith("image/")) {
         setErrors((prev) => ({ ...prev, photos: "File yang diunggah harus berupa gambar" }));
@@ -127,7 +127,7 @@ export default function SellPage() {
     }
     if (!form.stock || parseInt(form.stock) < 1 || isNaN(parseInt(form.stock))) e.stock = "Stok minimal 1";
     if (photos.length === 0) e.photos = "Tambahkan minimal 1 foto";
-    
+
     const maxPhotos = adPackage === "gratis" ? 3 : 5;
     if (photos.length > maxPhotos) {
       e.photos = `Paket gratis maksimal ${maxPhotos} foto (Anda memiliki ${photos.length} foto)`;
@@ -145,7 +145,7 @@ export default function SellPage() {
       setIsSubmitting(true);
       try {
         let imageUrl = "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&h=300&fit=crop&auto=format";
-        
+
         if (files.length > 0) {
           imageUrl = await storageService.uploadProductImage(files[0]);
         }
@@ -166,7 +166,7 @@ export default function SellPage() {
         // 2. Submit Product to Supabase
         const expireDays = adPackage === 'standard' ? 14 : 7;
         const expiresAt = new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString();
-        
+
         const { data: newProduct, error: insertError } = await supabase.from('products').insert({
           seller_id: user.id,
           category_id: categoryId,
@@ -254,13 +254,13 @@ export default function SellPage() {
         </div>
 
         <button
-          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,stock:"1",description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); navigate("/marketplace"); }}
+          onClick={() => { setStep("form"); setForm({ title: "", category: "", condition: "", price: "", negotiable: true, stock: "1", description: "", location: "", customLocation: "", meetup: "", phone: "" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); navigate("/marketplace"); }}
           className="w-full bg-primary text-white font-bold py-3.5 rounded-2xl text-sm mb-3"
         >
           Kembali ke Beranda
         </button>
         <button
-          onClick={() => { setStep("form"); setForm({ title:"",category:"",condition:"",price:"",negotiable:true,stock:"1",description:"",location:"",customLocation:"",meetup:"",phone:"" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
+          onClick={() => { setStep("form"); setForm({ title: "", category: "", condition: "", price: "", negotiable: true, stock: "1", description: "", location: "", customLocation: "", meetup: "", phone: "" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
           className="w-full bg-secondary text-primary font-bold py-3.5 rounded-2xl text-sm border border-primary/20"
         >
           Pasang Iklan Lagi
@@ -271,7 +271,7 @@ export default function SellPage() {
 
   return (
     <div className="lg:max-w-7xl lg:mx-auto lg:px-8 lg:py-6 lg:flex lg:gap-12 h-full items-start">
-      
+
       {/* ── KIRI: Form Pengisian ── */}
       <div className="relative flex flex-col h-full lg:h-[85vh] bg-background overflow-hidden w-full max-w-[430px] mx-auto lg:mx-0 lg:w-[450px] shrink-0 lg:rounded-3xl lg:border lg:border-border lg:shadow-xl">
         {/* Header */}
@@ -756,82 +756,83 @@ export default function SellPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto bg-background/30 p-8 flex justify-center items-start">
-           <div className="bg-card w-full max-w-[360px] rounded-[2rem] border-[6px] border-secondary shadow-xl overflow-hidden flex flex-col relative pb-6">
-             {/* Header Mock */}
-             <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10">
-               <div className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center">
-                 <ArrowLeft size={16} className="text-white" />
-               </div>
-               <div className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center">
-                 <MapPin size={14} className="text-white" />
-               </div>
-             </div>
+          <div className="bg-card w-full max-w-[360px] rounded-[2rem] border-[6px] border-secondary shadow-xl overflow-hidden flex flex-col relative pb-6">
+            {/* Header Mock */}
+            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10">
+              <div className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center">
+                <ArrowLeft size={16} className="text-white" />
+              </div>
+              <div className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center">
+                <MapPin size={14} className="text-white" />
+              </div>
+            </div>
 
-             {/* Image Area */}
-             <div className="aspect-square bg-secondary relative">
-                {photos.length > 0 ? (
-                  <img src={photos[0]} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40">
-                    <Camera size={48} className="mb-2 opacity-50" />
-                    <span className="text-[11px] font-bold uppercase tracking-widest">Belum ada foto</span>
+            {/* Image Area */}
+            <div className="aspect-square bg-secondary relative">
+              {photos.length > 0 ? (
+                <img src={photos[0]} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40">
+                  <Camera size={48} className="mb-2 opacity-50" />
+                  <span className="text-[11px] font-bold uppercase tracking-widest">Belum ada foto</span>
+                </div>
+              )}
+              {adPackage === "standard" && (
+                <span className="absolute bottom-4 right-4 bg-blue-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md">
+                  REKOMENDASI
+                </span>
+              )}
+            </div>
+
+            {/* Content Area */}
+            <div className="p-5 flex flex-col gap-3">
+              <div>
+                <h3 className="font-bold text-foreground text-lg leading-tight mb-1">
+                  {form.title || "Judul Iklan Anda"}
+                </h3>
+                <p className="font-black text-primary text-2xl">
+                  Rp {form.price || "0"}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-1">
+                <span className="bg-secondary text-foreground text-[10px] font-bold px-2.5 py-1 rounded-md border border-border">
+                  {form.category || "Kategori"}
+                </span>
+                <span className="bg-secondary text-foreground text-[10px] font-bold px-2.5 py-1 rounded-md border border-border flex items-center gap-1">
+                  <MapPin size={10} /> {form.location || "Lokasi"}
+                </span>
+                <span className="bg-secondary text-foreground text-[10px] font-bold px-2.5 py-1 rounded-md border border-border">
+                  {form.condition || "Kondisi"}
+                </span>
+              </div>
+
+              <div className="mt-3 pt-4 border-t border-dashed border-border">
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                  {form.description || "Deskripsi lengkap mengenai barang Anda akan ditampilkan di sini. Pembeli dapat membaca detail, spesifikasi, dan kelengkapan barang sebelum membeli."}
+                </p>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between bg-secondary/50 p-3 rounded-2xl border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-lg">
+                    {user?.user_metadata?.full_name?.charAt(0) || "U"}
                   </div>
-                )}
-                {adPackage === "standard" && (
-                   <span className="absolute bottom-4 right-4 bg-blue-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md">
-                     REKOMENDASI
-                   </span>
-                )}
-             </div>
-
-             {/* Content Area */}
-             <div className="p-5 flex flex-col gap-3">
-                <div>
-                   <h3 className="font-bold text-foreground text-lg leading-tight mb-1">
-                     {form.title || "Judul Iklan Anda"}
-                   </h3>
-                   <p className="font-black text-primary text-2xl">
-                     Rp {form.price || "0"}
-                   </p>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{user?.user_metadata?.full_name || "Nama Penjual"}</p>
+                    <p className="text-[10px] text-muted-foreground">Mahasiswa UMM</p>
+                  </div>
                 </div>
-
-                <div className="flex flex-wrap gap-2 mt-1">
-                  <span className="bg-secondary text-foreground text-[10px] font-bold px-2.5 py-1 rounded-md border border-border">
-                    {form.category || "Kategori"}
-                  </span>
-                  <span className="bg-secondary text-foreground text-[10px] font-bold px-2.5 py-1 rounded-md border border-border flex items-center gap-1">
-                    <MapPin size={10} /> {form.location || "Lokasi"}
-                  </span>
-                  <span className="bg-secondary text-foreground text-[10px] font-bold px-2.5 py-1 rounded-md border border-border">
-                    {form.condition || "Kondisi"}
-                  </span>
+                <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-xl text-[10px] font-bold">
+                  Chat
                 </div>
-
-                <div className="mt-3 pt-4 border-t border-dashed border-border">
-                   <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                     {form.description || "Deskripsi lengkap mengenai barang Anda akan ditampilkan di sini. Pembeli dapat membaca detail, spesifikasi, dan kelengkapan barang sebelum membeli."}
-                   </p>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between bg-secondary/50 p-3 rounded-2xl border border-border">
-                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-lg">
-                       {user?.user_metadata?.full_name?.charAt(0) || "U"}
-                     </div>
-                     <div>
-                       <p className="text-sm font-bold text-foreground">{user?.user_metadata?.full_name || "Nama Penjual"}</p>
-                       <p className="text-[10px] text-muted-foreground">Mahasiswa UMM</p>
-                     </div>
-                   </div>
-                   <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-xl text-[10px] font-bold">
-                     Chat
-                   </div>
-                </div>
-             </div>
-           </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
     </div>
   );
 }
+//tes
