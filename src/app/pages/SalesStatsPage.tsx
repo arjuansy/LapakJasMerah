@@ -24,10 +24,10 @@ export default function SalesStatsPage() {
     const maxVal = Math.max(...chartBars.map((b) => b.value));
 
     return (
-      <div className="fixed inset-0 z-[65] bg-background overflow-y-auto max-w-[430px] lg:max-w-2xl mx-auto">
+      <div className="fixed inset-0 z-[65] bg-background overflow-y-auto max-w-[430px] lg:max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-primary sticky top-0 z-10 shadow-md">
-          <div className="px-4 pt-10 pb-4 flex items-center gap-3">
+          <div className="px-4 lg:px-8 pt-10 lg:pt-6 pb-4 flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
               <ArrowLeft size={18} className="text-white" />
             </button>
@@ -38,48 +38,52 @@ export default function SalesStatsPage() {
           </div>
         </div>
 
-        <div className="px-4 pt-5 pb-10 space-y-5">
+        <div className="px-4 lg:px-8 pt-5 lg:pt-6 pb-10 space-y-5">
 
           {/* Revenue card */}
-          <div className="bg-gradient-to-br from-primary to-[#8b0d22] rounded-2xl p-5 shadow-lg">
+          <div className="bg-gradient-to-br from-primary to-[#8b0d22] rounded-2xl p-5 lg:p-6 shadow-lg">
             <p className="text-white/70 text-xs font-semibold mb-1">Total Pendapatan Bulan Ini</p>
-            <p className="text-white font-black text-3xl leading-none mb-1">{formatPrice(totalRevenue)}</p>
+            <p className="text-white font-black text-3xl lg:text-4xl leading-none mb-1">{formatPrice(totalRevenue)}</p>
             <p className="text-white/60 text-xs flex items-center gap-1">
               <TrendingUp size={11} /> Naik 24% dari bulan lalu
             </p>
           </div>
 
-          {/* KPI grid */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Terjual",     value: selesai.length, suffix: "item",   color: "#10B981", icon: Package },
-              { label: "Dibatalkan",  value: salesData.filter((s) => s.status === "dibatalkan").length, suffix: "item", color: "#EF4444", icon: X },
-              { label: "Avg. Harga",  value: "Rp " + Math.round(totalRevenue / (selesai.length || 1) / 1000) + "rb", suffix: "", color: "#3B82F6", icon: Banknote },
-            ].map(({ label, value, suffix, color, icon: Icon }) => (
-              <div key={label} className="bg-card rounded-2xl border border-border p-3.5 text-center shadow-sm">
-                <div className="w-8 h-8 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: color + "18" }}>
-                  <Icon size={15} style={{ color }} />
-                </div>
-                <p className="text-foreground font-black text-sm leading-none">{value} <span className="text-[10px] font-normal text-muted-foreground">{suffix}</span></p>
-                <p className="text-muted-foreground text-[10px] mt-1">{label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Bar chart */}
-          <div className="bg-card rounded-2xl border border-border p-4 shadow-sm">
-            <p className="text-foreground font-bold text-sm mb-4">Pendapatan 5 Bulan Terakhir</p>
-            <div className="flex items-end gap-2 h-32">
-              {chartBars.map((b) => (
-                <div key={b.label} className="flex-1 flex flex-col items-center gap-1">
-                  <p className="text-[9px] text-muted-foreground font-semibold">{formatPrice(b.value).replace("Rp ", "").replace(".000", "rb")}</p>
-                  <div className="w-full rounded-t-lg transition-all" style={{
-                    height: `${Math.max((b.value / maxVal) * 100, 8)}%`,
-                    background: b.label === "Jun" ? "#c41230" : "#e5e7eb",
-                  }} />
-                  <p className="text-[10px] font-bold" style={{ color: b.label === "Jun" ? "#c41230" : "#8a8a9a" }}>{b.label}</p>
+          <div className="lg:grid lg:grid-cols-[1fr_1.4fr] lg:gap-4 lg:space-y-0 space-y-5">
+            {/* KPI grid — jadi kolom vertikal di desktop, sejajar dengan chart */}
+            <div className="grid grid-cols-3 lg:grid-cols-1 gap-3 lg:gap-3">
+              {[
+                { label: "Terjual",     value: selesai.length, suffix: "item",   color: "#10B981", icon: Package },
+                { label: "Dibatalkan",  value: salesData.filter((s) => s.status === "dibatalkan").length, suffix: "item", color: "#EF4444", icon: X },
+                { label: "Avg. Harga",  value: "Rp " + Math.round(totalRevenue / (selesai.length || 1) / 1000) + "rb", suffix: "", color: "#3B82F6", icon: Banknote },
+              ].map(({ label, value, suffix, color, icon: Icon }) => (
+                <div key={label} className="bg-card rounded-2xl border border-border p-3.5 lg:p-4 text-center lg:text-left lg:flex lg:items-center lg:gap-3 shadow-sm">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl mx-auto lg:mx-0 mb-2 lg:mb-0 flex items-center justify-center shrink-0" style={{ background: color + "18" }}>
+                    <Icon size={15} style={{ color }} />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-black text-sm leading-none">{value} <span className="text-[10px] font-normal text-muted-foreground">{suffix}</span></p>
+                    <p className="text-muted-foreground text-[10px] mt-1 lg:mt-0.5">{label}</p>
+                  </div>
                 </div>
               ))}
+            </div>
+
+            {/* Bar chart */}
+            <div className="bg-card rounded-2xl border border-border p-4 lg:p-5 shadow-sm">
+              <p className="text-foreground font-bold text-sm mb-4">Pendapatan 5 Bulan Terakhir</p>
+              <div className="flex items-end gap-2 lg:gap-4 h-32 lg:h-44">
+                {chartBars.map((b) => (
+                  <div key={b.label} className="flex-1 flex flex-col items-center gap-1">
+                    <p className="text-[9px] text-muted-foreground font-semibold">{formatPrice(b.value).replace("Rp ", "").replace(".000", "rb")}</p>
+                    <div className="w-full rounded-t-lg transition-all" style={{
+                      height: `${Math.max((b.value / maxVal) * 100, 8)}%`,
+                      background: b.label === "Jun" ? "#c41230" : "#e5e7eb",
+                    }} />
+                    <p className="text-[10px] font-bold" style={{ color: b.label === "Jun" ? "#c41230" : "#8a8a9a" }}>{b.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
