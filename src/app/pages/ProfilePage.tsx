@@ -738,7 +738,12 @@ function EditProfilePage({ onBack }: { onBack: () => void }) {
       toast.success("Profil berhasil diperbarui!");
       setTimeout(() => setSaved(false), 2500);
     } catch (error: any) {
-      toast.error(error.message || "Gagal menyimpan profil");
+      if (error?.message?.includes("profiles_username_key") || error?.code === "23505") {
+        setErrors({ ...e, username: "Username ini sudah digunakan oleh pengguna lain" });
+        toast.error("Gagal menyimpan: Username sudah digunakan.");
+      } else {
+        toast.error(error.message || "Gagal menyimpan profil");
+      }
     } finally {
       setSaving(false);
     }
