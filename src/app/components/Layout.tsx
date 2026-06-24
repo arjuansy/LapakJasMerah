@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context";
 import logoImg from "../../assets/logo.png";
+import NotifPanel from "../pages/NotifPanel";
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function Layout() {
   const {
     unreadChatCount, toastMessage,
     globalSearch, setGlobalSearch, searchFocused, setSearchFocused,
-    notifications, setShowNotif, wishlist,
+    notifications, setShowNotif, showNotif, wishlist,
   } = useApp();
 
   const totalUnread = unreadChatCount;
@@ -95,16 +96,19 @@ export default function Layout() {
           )}
 
           <div className="flex items-center gap-3 shrink-0 ml-auto">
-            <button className="relative p-1.5" onClick={() => setShowNotif(true)}>
-              <Bell size={19} className="text-muted-foreground" />
-              {notifications.filter((n) => !n.is_read).length > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center border border-card">
-                  <span className="text-[9px] font-black text-white">
-                    {notifications.filter((n) => !n.is_read).length}
+            <div className="relative">
+              <button className="relative p-1.5" onClick={() => setShowNotif(!showNotif)}>
+                <Bell size={19} className="text-muted-foreground" />
+                {notifications.filter((n) => !n.is_read).length > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center border border-card">
+                    <span className="text-[9px] font-black text-white">
+                      {notifications.filter((n) => !n.is_read).length}
+                    </span>
                   </span>
-                </span>
-              )}
-            </button>
+                )}
+              </button>
+              {showNotif && <NotifPanel variant="dropdown" />}
+            </div>
             <button className="relative p-1.5" onClick={() => navigate('/wishlist')}>
               <Heart size={19} className="text-muted-foreground" />
               {wishlist.length > 0 && (

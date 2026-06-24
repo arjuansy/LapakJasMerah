@@ -8,7 +8,7 @@ import {
   Clock, Package, MessageSquare, Bell, X
 } from "lucide-react";
 
-export default function NotifPanel() {
+export default function NotifPanel({ variant = "drawer" }: { variant?: "drawer" | "dropdown" }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { notifications, setNotifications, setShowNotif } = useApp();
@@ -18,11 +18,7 @@ export default function NotifPanel() {
   const markAllRead = async () => {
     if (!user) return;
 
-    // Update locally first
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    // Update DB -> WAJIB filter by user_id, supaya tidak menyentuh
-    // notifikasi milik user lain (penting walau RLS sudah membatasi,
-    // ini best practice supaya query selalu eksplisit & jelas niatnya).
     await supabase
       .from('notifications')
       .update({ is_read: true })
@@ -31,20 +27,14 @@ export default function NotifPanel() {
   };
 
   const markRead = async (id: string, referenceId: string | null, type: string) => {
-    // Update locally
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    // Update DB
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
 
-    // Navigation berdasarkan tipe notifikasi
     setShowNotif(false);
 
     if (type === 'chat' && referenceId) {
       navigate(`/chat/${referenceId}`);
     } else if ((type === 'order_new' || type === 'order_status') && referenceId) {
-      // Arahkan ke halaman penjualan -> seller bisa cari order itu di sana.
-      // (OrderTrackingPage butuh `trackingOrder` di-set dari context,
-      // bukan dari URL param, jadi kita arahkan ke daftar penjualan dulu)
       navigate(`/profile`);
     }
   };
@@ -59,7 +49,6 @@ export default function NotifPanel() {
     return d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
   };
 
-  // Helper untuk mapping tipe notifikasi ke icon & warna yang sesuai
   const getNotifVisual = (type: string) => {
     if (type === 'order_new' || type === 'order_status') {
       return { Icon: Package, color: '#10B981' };
@@ -70,8 +59,77 @@ export default function NotifPanel() {
     return { Icon: Bell, color: '#F59E0B' };
   };
 
+  const renderList = () => (
+    <div className="flex-1 overflow-y-auto divide-y divide-border">
+      {notifications.map((n) => {
+        const isRead = n.is_read;
+        const { Icon, color } = getNotifVisual(n.type);
+
+        return (
+          <button
+            key={n.id}
+            onClick={() => markRead(n.id, n.reference_id, n.type)}
+            className="w-full flex items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/50 active:bg-muted"
+            style={{ background: isRead ? "transparent" : "rgba(196,18,48,0.04)" }}
+          >
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5" style={{ background: color + "18" }}>
+              <Icon size={18} style={{ color: color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <p className={`text-sm leading-snug ${isRead ? "text-foreground font-medium" : "text-foreground font-bold"}`}>
+                  {n.title}
+                </p>
+                {!isRead && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
+              </div>
+              <p className="text-muted-foreground text-xs leading-relaxed mt-0.5 line-clamp-2">{n.body}</p>
+              <p className="text-muted-foreground text-[10px] mt-1.5 flex items-center gap-1">
+                <Clock size={9} /> {formatTime(n.created_at)}
+              </p>
+            </div>
+          </button>
+        );
+      })}
+
+      {notifications.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+          <p className="text-muted-foreground text-sm">Tidak ada notifikasi saat ini.</p>
+        </div>
+      )}
+    </div>
+  );
+
+  if (variant === "dropdown") {
+    return (
+      <>
+        {/* Backdrop transparan, cuma untuk menangkap klik-di-luar */}
+        <div className="fixed inset-0 z-[70]" onClick={(e) => { e.stopPropagation(); setShowNotif(false); }} />
+
+        <div className="absolute right-0 top-full mt-2 z-[80] bg-card border border-border rounded-2xl shadow-xl flex flex-col w-[360px] max-h-[480px] overflow-hidden" onClick={e => e.stopPropagation()}>
+          {/* Header */}
+          <div className="px-4 py-3.5 border-b border-border flex items-center justify-between shrink-0">
+            <div>
+              <h2 className="text-foreground font-bold text-sm">Notifikasi</h2>
+              <p className="text-muted-foreground text-[11px] mt-0.5">
+                {unreadCount > 0 ? `${unreadCount} belum dibaca` : "Semua sudah dibaca"}
+              </p>
+            </div>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="text-primary text-xs font-bold shrink-0">
+                Tandai semua dibaca
+              </button>
+            )}
+          </div>
+
+          {renderList()}
+        </div>
+      </>
+    );
+  }
+
+  // ══ VARIANT: DRAWER (mobile/tablet, slide dari kanan, full height) ══
   return (
-    <>
+    <div className="lg:hidden contents">
       {/* Backdrop */}
       <div className="fixed inset-0 z-[70]" onClick={() => setShowNotif(false)} />
 
@@ -103,45 +161,8 @@ export default function NotifPanel() {
           </button>
         )}
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-border">
-          {notifications.map((n) => {
-            const isRead = n.is_read;
-            const { Icon, color } = getNotifVisual(n.type);
-
-            return (
-              <button
-                key={n.id}
-                onClick={() => markRead(n.id, n.reference_id, n.type)}
-                className="w-full flex items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/50 active:bg-muted"
-                style={{ background: isRead ? "transparent" : "rgba(196,18,48,0.04)" }}
-              >
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5" style={{ background: color + "18" }}>
-                  <Icon size={18} style={{ color: color }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className={`text-sm leading-snug ${isRead ? "text-foreground font-medium" : "text-foreground font-bold"}`}>
-                      {n.title}
-                    </p>
-                    {!isRead && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
-                  </div>
-                  <p className="text-muted-foreground text-xs leading-relaxed mt-0.5 line-clamp-2">{n.body}</p>
-                  <p className="text-muted-foreground text-[10px] mt-1.5 flex items-center gap-1">
-                    <Clock size={9} /> {formatTime(n.created_at)}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-
-          {notifications.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-              <p className="text-muted-foreground text-sm">Tidak ada notifikasi saat ini.</p>
-            </div>
-          )}
-        </div>
+        {renderList()}
       </div>
-    </>
+    </div>
   );
 }
