@@ -44,21 +44,112 @@ export default function MarketplaceFeed() {
       <div className="lg:max-w-[1600px] lg:mx-auto">
         {/* ── HEADER ── */}
         <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-lg">
-          <div className="px-4 lg:px-12 pt-4 pb-3">
-          {/* Top row */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
-                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+          {/* ── MOBILE/TABLET: layout asli, blok 3-baris ── */}
+          <div className="lg:hidden px-4 pt-4 pb-3">
+            {/* Top row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                  <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-[10px] leading-none mb-0.5">Selamat datang 👋</p>
+                  <p className="text-white font-bold text-sm leading-none">{profile?.full_name || "Mahasiswa UMM"}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-white/70 text-[10px] leading-none mb-0.5">Selamat datang 👋</p>
-                <p className="text-white font-bold text-sm leading-none">{profile?.full_name || "Mahasiswa UMM"}</p>
+              <div className="flex items-center gap-3 relative z-20">
+                <button className="relative p-1.5 cursor-pointer" onClick={() => setShowNotif(true)}>
+                  <Bell size={20} className="text-white" />
+                  {notifications.filter((n) => !n.is_read).length > 0 && (
+                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">
+                      <span className="text-[9px] font-black text-foreground">
+                        {notifications.filter((n) => !n.is_read).length}
+                      </span>
+                    </span>
+                  )}
+                </button>
+                <button className="relative p-1.5" onClick={() => navigate('/wishlist')}>
+                  <Heart size={20} className="text-white" />
+                  {wishlist.length > 0 && (
+                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">
+                      <span className="text-[9px] font-black text-foreground">{wishlist.length}</span>
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-3 relative z-20">
+
+            {/* Location row */}
+            <div className="flex items-center gap-1 mb-3">
+              <MapPin size={12} className="text-white/60" />
+              <span className="text-white/70 text-xs">Universitas Muhammadiyah Malang</span>
+            </div>
+
+            {/* Search bar */}
+            <div
+              className="flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 shadow-sm"
+              style={{ border: searchFocused ? "2px solid #f59e0b" : "2px solid transparent", transition: "border 0.2s" }}
+            >
+              <Search size={16} className="text-muted-foreground shrink-0" />
+              <input
+                type="text"
+                value={globalSearch}
+                placeholder="Cari buku, elektronik, kos..."
+                className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
+                onFocus={() => { setSearchFocused(true); navigate('/search'); }}
+                onBlur={() => setSearchFocused(false)}
+                onChange={(e) => { setGlobalSearch(e.target.value); navigate('/search'); }}
+                onKeyDown={(e) => { if (e.key === "Enter") navigate('/search'); }}
+              />
+              <button
+                onClick={() => navigate('/search')}
+                className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-lg"
+              >
+                Cari
+              </button>
+            </div>
+          </div>
+
+          {/* ── DESKTOP (lg+): satu baris ramping ── */}
+          <div className="hidden lg:flex items-center gap-6 px-12 h-14">
+            {/* Welcome + lokasi, dikecilkan jadi satu kolom teks kecil */}
+            <div className="shrink-0">
+              <p className="text-white font-bold text-xs leading-none">
+                Hai, {profile?.full_name?.split(" ")[0] || "Mahasiswa"} 👋
+              </p>
+              <p className="text-white/60 text-[10px] leading-none mt-0.5 flex items-center gap-1">
+                <MapPin size={9} /> UMM
+              </p>
+            </div>
+
+            {/* Search bar mengambil sisa ruang */}
+            <div
+              className="flex-1 max-w-2xl flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-sm"
+              style={{ border: searchFocused ? "2px solid #f59e0b" : "2px solid transparent", transition: "border 0.2s" }}
+            >
+              <Search size={15} className="text-muted-foreground shrink-0" />
+              <input
+                type="text"
+                value={globalSearch}
+                placeholder="Cari buku, elektronik, kos..."
+                className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
+                onFocus={() => { setSearchFocused(true); navigate('/search'); }}
+                onBlur={() => setSearchFocused(false)}
+                onChange={(e) => { setGlobalSearch(e.target.value); navigate('/search'); }}
+                onKeyDown={(e) => { if (e.key === "Enter") navigate('/search'); }}
+              />
+              <button
+                onClick={() => navigate('/search')}
+                className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0"
+              >
+                Cari
+              </button>
+            </div>
+
+            {/* Notif + wishlist di kanan */}
+            <div className="flex items-center gap-4 shrink-0 ml-auto">
               <button className="relative p-1.5 cursor-pointer" onClick={() => setShowNotif(true)}>
-                <Bell size={20} className="text-white" />
+                <Bell size={19} className="text-white" />
                 {notifications.filter((n) => !n.is_read).length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">
                     <span className="text-[9px] font-black text-foreground">
@@ -68,7 +159,7 @@ export default function MarketplaceFeed() {
                 )}
               </button>
               <button className="relative p-1.5" onClick={() => navigate('/wishlist')}>
-                <Heart size={20} className="text-white" />
+                <Heart size={19} className="text-white" />
                 {wishlist.length > 0 && (
                   <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent rounded-full flex items-center justify-center border border-primary">
                     <span className="text-[9px] font-black text-foreground">{wishlist.length}</span>
@@ -77,38 +168,7 @@ export default function MarketplaceFeed() {
               </button>
             </div>
           </div>
-
-          {/* Location row */}
-          <div className="flex items-center gap-1 mb-3">
-            <MapPin size={12} className="text-white/60" />
-            <span className="text-white/70 text-xs">Universitas Muhammadiyah Malang</span>
-          </div>
-
-          {/* Search bar */}
-          <div
-            className="flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 shadow-sm lg:max-w-xl"
-            style={{ border: searchFocused ? "2px solid #f59e0b" : "2px solid transparent", transition: "border 0.2s" }}
-          >
-            <Search size={16} className="text-muted-foreground shrink-0" />
-            <input
-              type="text"
-              value={globalSearch}
-              placeholder="Cari buku, elektronik, kos..."
-              className="flex-1 text-sm text-foreground bg-transparent outline-none placeholder:text-muted-foreground"
-              onFocus={() => { setSearchFocused(true); navigate('/search'); }}
-              onBlur={() => setSearchFocused(false)}
-              onChange={(e) => { setGlobalSearch(e.target.value); navigate('/search'); }}
-              onKeyDown={(e) => { if (e.key === "Enter") navigate('/search'); }}
-            />
-            <button
-              onClick={() => navigate('/search')}
-              className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-lg"
-            >
-              Cari
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
 
       <div className="lg:flex lg:gap-8 lg:px-12 lg:pt-6">
         {/* SIDEBAR — hanya tampil di desktop */}
