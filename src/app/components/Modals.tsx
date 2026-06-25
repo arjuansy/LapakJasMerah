@@ -35,7 +35,7 @@ export function PostRequestModal() {
     if (!category) { setError("Pilih kategori terlebih dahulu"); return; }
     if (!desc.trim() || desc.length < 10) { setError("Deskripsi minimal 10 karakter"); return; }
     if (!user) { setError("Anda harus login untuk memposting permintaan"); return; }
-    
+
     setError("");
     setLoading(true);
 
@@ -83,9 +83,8 @@ export function PostRequestModal() {
       setLoading(false);
       return;
     }
-    
+
     if (savedRequest) {
-      // Reload UI directly with new item logic so UI updates immediately
       const newReq: RequestItem = {
         id: savedRequest.id,
         title: savedRequest.title,
@@ -101,7 +100,7 @@ export function PostRequestModal() {
         urgency: savedRequest.urgency,
         offers: editingRequest ? editingRequest.offers : 0,
         categoryColor: reqCategories.indexOf(category) >= 0
-          ? ["#8B5CF6","#3B82F6","#EC4899","#F97316","#10B981","#06B6D4","#F59E0B","#6B7280"][reqCategories.indexOf(category)]
+          ? ["#8B5CF6", "#3B82F6", "#EC4899", "#F97316", "#10B981", "#06B6D4", "#F59E0B", "#6B7280"][reqCategories.indexOf(category)]
           : "#6B7280",
       };
 
@@ -111,25 +110,25 @@ export function PostRequestModal() {
         setRequests(prev => [newReq, ...prev]);
       }
     }
-    
+
     setLoading(false);
     setSubmitted(true);
   }
 
   return (
-    <div className="fixed inset-0 z-[90] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
+    <div className="fixed inset-0 z-[90] flex flex-col justify-end sm:items-center sm:justify-center sm:p-4">
       <div className="absolute inset-0 bg-black/50" onClick={() => setShowPostRequestModal(false)} />
-      <div className="relative bg-card rounded-t-3xl shadow-2xl max-h-[93vh] flex flex-col z-10">
-        <div className="pt-4 pb-2 px-5 shrink-0">
-          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+      <div className="relative bg-card rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[93vh] sm:max-h-[85vh] w-full sm:max-w-xl flex flex-col z-10">
+        <div className="pt-4 pb-2 px-5 sm:px-6 shrink-0">
+          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
           {!submitted && (
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-foreground font-black text-lg">
+                <h3 className="text-foreground font-black text-lg sm:text-xl">
                   {editingRequest ? "Edit Permintaan" : "Buat Permintaan Baru"}
                 </h3>
               </div>
-              <button onClick={() => { setShowPostRequestModal(false); setEditingRequest(null); }} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+              <button onClick={() => { setShowPostRequestModal(false); setEditingRequest(null); }} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center shrink-0">
                 <X size={15} className="text-foreground" />
               </button>
             </div>
@@ -147,12 +146,12 @@ export function PostRequestModal() {
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               {editingRequest ? "Papan permintaan Anda berhasil diperbarui." : "Permintaanmu sudah ditayangkan di Papan Permintaan. Penjual yang cocok akan segera menghubungimu!"}
             </p>
-            <button onClick={() => { setShowPostRequestModal(false); setEditingRequest(null); }} className="w-full bg-primary text-white font-black py-3.5 rounded-2xl text-sm">
+            <button onClick={() => { setShowPostRequestModal(false); setEditingRequest(null); }} className="w-full sm:max-w-xs bg-primary text-white font-black py-3.5 rounded-2xl text-sm">
               Lihat Papan Permintaan
             </button>
           </div>
         ) : (
-          <div className="overflow-y-auto flex-1 px-5 pb-8 space-y-4">
+          <div className="overflow-y-auto flex-1 px-5 sm:px-6 pb-8 space-y-4">
             {/* Title */}
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2 mt-2">Judul Permintaan <span className="text-primary">*</span></p>
@@ -169,7 +168,7 @@ export function PostRequestModal() {
             {/* Category */}
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Kategori <span className="text-primary">*</span></p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {reqCategories.map((c) => (
                   <button
                     key={c}
@@ -323,10 +322,10 @@ export function PostRequestModal() {
               style={{ opacity: loading ? 0.8 : 1 }}
             >
               {loading
-                ? <><svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Memposting...</>
+                ? <><svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Memposting...</>
                 : submitted
-                ? <><CheckCircle2 size={16} /> Tersimpan!</>
-                : <><Banknote size={16} /> {requestDuration === "1" ? "Pasang Permintaan" : "Bayar Rp 500 & Pasang"}</>}
+                  ? <><CheckCircle2 size={16} /> Tersimpan!</>
+                  : <><Banknote size={16} /> {requestDuration === "1" ? "Pasang Permintaan" : "Bayar Rp 500 & Pasang"}</>}
             </button>
           </div>
         )}
@@ -377,17 +376,17 @@ export function SuggestionBoxModal() {
         const fileExt = imageFile.name.split('.').pop() || 'jpg';
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
         const filePath = `suggestions/${fileName}`;
-        
+
         const { error: uploadError } = await supabase.storage
-          .from('products') // using existing public bucket
+          .from('products')
           .upload(filePath, imageFile);
-          
+
         if (uploadError) throw uploadError;
-        
+
         const { data: publicUrlData } = supabase.storage
           .from('products')
           .getPublicUrl(filePath);
-          
+
         imageUrl = publicUrlData.publicUrl;
       }
 
@@ -402,10 +401,10 @@ export function SuggestionBoxModal() {
       if (user && user.id && !anonymous) {
         payload.user_id = user.id;
       }
-      
+
       const { error: dbErr } = await supabase.from('suggestions').insert(payload);
       if (dbErr) throw dbErr;
-      
+
       setSubmitted(true);
     } catch (err) {
       console.error(err);
@@ -416,18 +415,18 @@ export function SuggestionBoxModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[90] flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
+    <div className="fixed inset-0 z-[90] flex flex-col justify-end sm:items-center sm:justify-center sm:p-4">
       <div className="absolute inset-0 bg-black/50" onClick={() => setShowSuggestionBox(false)} />
-      <div className="relative bg-card rounded-t-3xl shadow-2xl max-h-[92vh] flex flex-col z-10">
-        <div className="pt-4 pb-2 px-5 shrink-0">
-          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+      <div className="relative bg-card rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] sm:max-h-[85vh] w-full sm:max-w-xl flex flex-col z-10">
+        <div className="pt-4 pb-2 px-5 sm:px-6 shrink-0">
+          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
           {!submitted && (
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-foreground font-black text-lg">Kotak Saran</h3>
+                <h3 className="text-foreground font-black text-lg sm:text-xl">Kotak Saran</h3>
                 <p className="text-muted-foreground text-xs">Bantu kami jadi lebih baik</p>
               </div>
-              <button onClick={() => setShowSuggestionBox(false)} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+              <button onClick={() => setShowSuggestionBox(false)} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center shrink-0">
                 <X size={15} className="text-foreground" />
               </button>
             </div>
@@ -447,12 +446,12 @@ export function SuggestionBoxModal() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">Kategori</p>
               <p className="text-foreground font-semibold text-sm">{categories.find((c) => c.id === category)?.label}</p>
             </div>
-            <button onClick={() => setShowSuggestionBox(false)} className="w-full bg-primary text-white font-black py-3.5 rounded-2xl text-sm">
+            <button onClick={() => setShowSuggestionBox(false)} className="w-full sm:max-w-xs bg-primary text-white font-black py-3.5 rounded-2xl text-sm">
               Tutup
             </button>
           </div>
         ) : (
-          <div className="overflow-y-auto flex-1 px-5 pb-8">
+          <div className="overflow-y-auto flex-1 px-5 sm:px-6 pb-8">
             {/* Category grid */}
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3 mt-2">Kategori Saran <span className="text-primary">*</span></p>
             <div className="grid grid-cols-3 gap-2 mb-5">
@@ -499,7 +498,7 @@ export function SuggestionBoxModal() {
             ) : (
               <div className="relative w-full mb-5 rounded-2xl overflow-hidden border border-border group">
                 <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover" />
-                <button 
+                <button
                   onClick={() => { setImageFile(null); setImagePreview(null); }}
                   className="absolute top-2 right-2 bg-black/60 p-1.5 rounded-full text-white hover:bg-red-500 transition-colors backdrop-blur-md"
                 >
@@ -538,7 +537,7 @@ export function SuggestionBoxModal() {
               style={{ opacity: loading ? 0.8 : 1 }}
             >
               {loading
-                ? <><svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Mengirim...</>
+                ? <><svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Mengirim...</>
                 : <><Send size={16} /> Kirim Saran</>}
             </button>
           </div>
@@ -560,10 +559,10 @@ export function GlobalReportModal() {
       toast.error("Alasan pelaporan wajib diisi.");
       return;
     }
-    
+
     setLoading(true);
     const targetId = showReportModal.id || "00000000-0000-0000-0000-000000000000";
-    
+
     const { error } = await supabase.from('reports').insert({
       reporter_id: user?.id,
       reported_id: showReportModal.seller_id || targetId,
@@ -573,7 +572,7 @@ export function GlobalReportModal() {
     });
 
     setLoading(false);
-    
+
     if (error) {
       console.error(error);
       toast.error("Gagal mengirim laporan.");
@@ -586,27 +585,27 @@ export function GlobalReportModal() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200">
       <div className="absolute inset-0 bg-black/50" onClick={() => setShowReportModal(null)} />
-      <div className="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="relative bg-white rounded-3xl w-full max-w-sm sm:max-w-md overflow-hidden flex flex-col shadow-2xl">
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between">
           <h2 className="font-black text-gray-900 text-lg capitalize">Laporkan {showReportModal.type}</h2>
           <button onClick={() => setShowReportModal(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-5 flex-1 overflow-y-auto">
+        <div className="p-5 sm:p-6 flex-1 overflow-y-auto">
           <p className="text-sm font-bold text-gray-700 mb-3">Anda melaporkan <span className="text-red-600">{showReportModal.name}</span></p>
           <div className="mb-4">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">Alasan Pelaporan</label>
-            <textarea 
-              value={reason} 
-              onChange={e => setReason(e.target.value)} 
-              placeholder="Jelaskan masalah secara detail..." 
-              className="w-full h-32 px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-gray-50 resize-none font-medium" 
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="Jelaskan masalah secara detail..."
+              className="w-full h-32 px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-gray-50 resize-none font-medium"
             />
           </div>
-          <button 
-            onClick={handleSubmit} 
-            disabled={loading} 
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
             className="w-full bg-red-600 text-white font-black py-3.5 rounded-xl text-sm hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100"
           >
             {loading ? "Mengirim..." : "Kirim Laporan"}
@@ -616,4 +615,3 @@ export function GlobalReportModal() {
     </div>
   );
 }
-
