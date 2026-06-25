@@ -1077,9 +1077,9 @@ export default function AdminDashboard({
               </div>
 
               {/* REVENUE & CHARTS BLOCK */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {/* Monthly growth Chart (SaaS Aesthetic SVG Chart) */}
-                <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm lg:col-span-2">
+                <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h4 className="font-extrabold text-sm text-gray-900">
@@ -1148,28 +1148,7 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
-                {/* Premium highlight Packages Earning */}
-                <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-extrabold text-sm text-gray-900">Dana Premium Terkumpul</h4>
-                    <p className="text-[11px] text-gray-400 font-semibold mt-0.5">Total pendapatan iklan standard highlight</p>
-                    
-                    <div className="mt-8 flex flex-col items-center">
-                      <div className="w-24 h-24 rounded-full border-8 border-red-500 border-t-red-100 flex items-center justify-center shadow-inner relative">
-                        <DollarSign className="w-8 h-8 text-red-600" />
-                      </div>
-                      <h2 className="text-2xl font-black text-gray-900 mt-4 leading-none">
-                        {formatIDR(stats.totalPremiumSubEarnings * 1000)}
-                      </h2>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1.5">Dari {subscriptions.filter((s)=>s.status==="Disetujui").length} Penjual premium</p>
-                    </div>
-                  </div>
 
-                  <div className="bg-red-50/50 rounded-xl p-3 border border-red-100/50 mt-4 flex items-center justify-between text-xs font-semibold text-red-700">
-                    <span>Target Bulan Ini</span>
-                    <span className="font-black">Rp 1.000.000</span>
-                  </div>
-                </div>
               </div>
 
               {/* RECENT ACTIVITIES & RECENT REGISTRATIONS */}
@@ -3756,6 +3735,19 @@ export default function AdminDashboard({
                   const doDeleteListing = async () => {
                     const { error } = await supabase.from('products').delete().eq('id', selectedListing.id);
                     if (error) {
+                      if (error.code === '23503') {
+                        // Soft delete / suspend if it has orders
+                        const { error: updateError } = await supabase.from('products').update({ status: 'SUSPENDED' }).eq('id', selectedListing.id);
+                        if (updateError) {
+                          console.error("Update Error:", updateError);
+                          showToast(`Gagal menghapus iklan: ${updateError.message}`, "error");
+                        } else {
+                          fetchAllData();
+                          showToast(`Iklan '${selectedListing.title}' tidak dapat dihapus permanen karena memiliki riwayat transaksi. Iklan telah dinonaktifkan.`, "info");
+                          setModalType(null);
+                        }
+                        return;
+                      }
                       console.error("Delete Error:", error);
                       showToast(`Gagal menghapus iklan: ${error.message}`, "error");
                       return;

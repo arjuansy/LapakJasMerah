@@ -584,13 +584,7 @@ export default function AuthPage({ mode, isAdminLogin }: { mode: "login" | "regi
             </>
           ) : (
             <>
-              <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl mb-4 flex items-start gap-3 text-amber-800 shadow-sm">
-                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
-                <p className="text-xs font-semibold leading-relaxed">
-                  Kode OTP sedang uji coba. Tolong gunakan tombol <strong>Daftar dengan Webmail UMM</strong> di bawah jika kode OTP tidak masuk ke email Anda.
-                </p>
-              </div>
-              
+
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Email Webmail UMM / Khusus</label>
                 <div className={`flex items-center gap-2.5 bg-card rounded-2xl px-4 py-3.5 border-2 transition-colors ${errors.email ? "border-primary" : "border-border focus-within:border-primary/50"}`}>
