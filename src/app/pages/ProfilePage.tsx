@@ -2279,8 +2279,9 @@ export default function ProfilePage() {
         setIsProcessingPayment(false);
         setBadgePaid(true);
         toast.success("Pengajuan badge penjual berhasil, menunggu persetujuan Admin");
-      } catch (err) {
-        toast.error("Gagal memproses pembayaran");
+      } catch (err: any) {
+        console.error("Payment error:", err);
+        toast.error("Gagal memproses pembayaran: " + (err.message || "Unknown error"));
         setIsProcessingPayment(false);
       }
     }, 2000);
@@ -2571,104 +2572,128 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isProcessingPayment && setShowBadgePay(false)} />
           
-          <div className="bg-background w-full max-w-sm rounded-3xl p-6 relative z-10 shadow-2xl animate-in slide-in-from-bottom-8">
+          <div className="bg-background w-full max-w-2xl rounded-3xl p-6 md:p-8 relative z-10 shadow-2xl animate-in slide-in-from-bottom-8">
             <button 
               onClick={() => !isProcessingPayment && setShowBadgePay(false)}
-              className="absolute top-4 right-4 w-8 h-8 bg-secondary rounded-full flex items-center justify-center"
+              className="absolute top-4 right-4 w-8 h-8 bg-secondary rounded-full flex items-center justify-center hover:bg-secondary/80 transition-colors"
             >
               <X size={16} className="text-muted-foreground" />
             </button>
             
             {badgePaid ? (
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCheck size={32} className="text-green-500" />
+              <div className="text-center py-8">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <CheckCheck size={40} className="text-green-500" />
                 </div>
-                <h3 className="text-foreground font-black text-xl mb-2">Pembayaran Berhasil!</h3>
-                <p className="text-muted-foreground text-sm mb-6">Pembayaran Anda sedang diverifikasi. Badge akan aktif setelah Admin menyetujui.</p>
+                <h3 className="text-foreground font-black text-2xl mb-2">Pembayaran Berhasil!</h3>
+                <p className="text-muted-foreground text-sm mb-8 max-w-sm mx-auto">Pembayaran Anda sedang diverifikasi. Badge akan aktif setelah Admin menyetujui.</p>
                 <button
                   onClick={() => setShowBadgePay(false)}
-                  className="w-full bg-primary text-white font-bold py-3.5 rounded-xl"
+                  className="w-full max-w-xs mx-auto block bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors"
                 >
                   Tutup
                 </button>
               </div>
             ) : (
-              <>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                    <BadgeCheck size={24} className="text-blue-500" />
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Bagian Kiri: Detail Pembayaran & Form */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center shrink-0">
+                      <BadgeCheck size={24} className="text-blue-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-foreground font-black text-lg md:text-xl leading-tight">Badge Terverifikasi</h3>
+                      <p className="text-muted-foreground text-[11px] md:text-xs">Berlaku selamanya untuk akun ini</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-foreground font-black text-lg">Badge Terverifikasi</h3>
-                    <p className="text-muted-foreground text-[11px]">Berlaku selamanya untuk akun ini</p>
+                  
+                  <div className="bg-secondary/50 rounded-2xl p-4 mb-6 border border-border">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-muted-foreground text-sm font-medium">Harga</span>
+                      <span className="text-foreground font-bold text-sm">Rp 5.000</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-muted-foreground text-sm font-medium">Biaya Admin</span>
+                      <span className="text-foreground font-bold text-sm">Rp 0</span>
+                    </div>
+                    <div className="w-full h-px bg-border my-3" />
+                    <div className="flex justify-between items-center">
+                      <span className="text-foreground font-black">Total Tagihan</span>
+                      <span className="text-primary font-black text-lg">Rp 5.000</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="bg-secondary rounded-2xl p-4 mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-muted-foreground text-sm">Harga</span>
-                    <span className="text-foreground font-bold text-sm">Rp 5.000</span>
-                  </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-muted-foreground text-sm">Biaya Admin</span>
-                    <span className="text-foreground font-bold text-sm">Rp 0</span>
-                  </div>
-                  <div className="w-full h-px bg-border my-3" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-foreground font-black">Total Tagihan</span>
-                    <span className="text-primary font-black text-lg">Rp 5.000</span>
-                  </div>
-                </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-bold text-foreground mb-2">
-                    Unggah Foto KTM/KTP <span className="text-red-500">*</span>
-                  </label>
-                  <p className="text-xs text-muted-foreground mb-3">Foto akan diperiksa oleh Admin untuk memverifikasi identitas Anda.</p>
-                  <div className="flex items-center gap-3">
-                    <div className="relative overflow-hidden w-full h-12 bg-secondary rounded-xl flex items-center justify-center cursor-pointer border-2 border-dashed border-border hover:border-primary transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            setKtmFile(e.target.files[0]);
-                          }
-                        }}
-                      />
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Upload size={18} />
-                        <span className="font-medium text-sm">
-                          {ktmFile ? ktmFile.name : "Pilih Foto"}
-                        </span>
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold text-foreground mb-1.5">
+                      Unggah Bukti Transfer <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-xs text-muted-foreground mb-3">Foto akan diperiksa oleh Admin untuk memverifikasi pembayaran Anda.</p>
+                    <div className="flex items-center gap-3">
+                      <div className="relative overflow-hidden w-full h-12 bg-background rounded-xl flex items-center justify-center cursor-pointer border-2 border-dashed border-border hover:border-primary/50 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              setKtmFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Upload size={16} />
+                          <span className="font-medium text-sm truncate max-w-[200px]">
+                            {ktmFile ? ktmFile.name : "Pilih Foto Bukti Transfer"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowBadgePay(false)}
+                      disabled={isProcessingPayment}
+                      className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-bold py-3.5 rounded-xl disabled:opacity-50 transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={handlePurchaseBadge}
+                      disabled={isProcessingPayment}
+                      className="flex-[2] bg-primary text-white font-black py-3.5 rounded-xl hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100 shadow-md shadow-primary/20"
+                    >
+                      {isProcessingPayment ? (
+                        <span className="animate-pulse">Memproses...</span>
+                      ) : (
+                        <>Bayar Sekarang</>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowBadgePay(false)}
-                    disabled={isProcessingPayment}
-                    className="flex-1 bg-secondary text-foreground font-bold py-3.5 rounded-xl disabled:opacity-50"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handlePurchaseBadge}
-                    disabled={isProcessingPayment}
-                    className="flex-[2] bg-primary text-white font-black py-3.5 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100"
-                  >
-                    {isProcessingPayment ? (
-                      <span className="animate-pulse">Memproses...</span>
-                    ) : (
-                      <>Bayar Sekarang</>
-                    )}
-                  </button>
+                {/* Bagian Kanan: QR Code */}
+                <div className="hidden md:flex w-[260px] shrink-0 flex-col items-center justify-center border-l border-border pl-8">
+                  <p className="text-sm font-bold text-foreground mb-1 text-center">Scan QR Code</p>
+                  <p className="text-[11px] text-muted-foreground mb-4 text-center">Gunakan e-Wallet atau Mobile Banking Anda</p>
+                  
+                  <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm w-48 h-48 flex items-center justify-center mb-4">
+                    {/* Menggunakan API pihak ketiga atau gambar statis untuk QR, karena tidak ada library qrcode */}
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY_BADGE_5000`} 
+                      alt="QR Code Pembayaran" 
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  </div>
+                  
+                  <div className="bg-secondary/50 rounded-xl p-3 w-full border border-border">
+                    <p className="text-[10px] text-muted-foreground text-center mb-1 uppercase font-bold tracking-wider">Atau Transfer ke</p>
+                    <p className="text-sm font-black text-foreground text-center">123-456-7890</p>
+                    <p className="text-[10px] text-muted-foreground text-center">Bank BCA a.n Lapak Jas Merah</p>
+                  </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
