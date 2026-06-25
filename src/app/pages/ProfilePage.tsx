@@ -2626,9 +2626,9 @@ export default function ProfilePage() {
 
                   <div className="mb-6">
                     <label className="block text-sm font-bold text-foreground mb-1.5">
-                      Unggah Bukti Transfer <span className="text-red-500">*</span>
+                      Unggah Foto KTM/KTP <span className="text-red-500">*</span>
                     </label>
-                    <p className="text-xs text-muted-foreground mb-3">Foto akan diperiksa oleh Admin untuk memverifikasi pembayaran Anda.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Foto akan diperiksa oleh Admin untuk memverifikasi identitas Anda.</p>
                     <div className="flex items-center gap-3">
                       <div className="relative overflow-hidden w-full h-12 bg-background rounded-xl flex items-center justify-center cursor-pointer border-2 border-dashed border-border hover:border-primary/50 transition-colors">
                         <input
@@ -2644,7 +2644,7 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Upload size={16} />
                           <span className="font-medium text-sm truncate max-w-[200px]">
-                            {ktmFile ? ktmFile.name : "Pilih Foto Bukti Transfer"}
+                            {ktmFile ? ktmFile.name : "Pilih Foto"}
                           </span>
                         </div>
                       </div>
