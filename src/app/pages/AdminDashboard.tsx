@@ -691,12 +691,51 @@ export default function AdminDashboard({
       .filter((s) => s.status === "Disetujui")
       .reduce((sum, s) => sum + s.price, 0);
 
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+    const isCurrent = (d: string) => {
+      if (!d) return false;
+      const date = new Date(d);
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    };
+    const isPrev = (d: string) => {
+      if (!d) return false;
+      const date = new Date(d);
+      return date.getMonth() === prevMonth && date.getFullYear() === prevYear;
+    };
+
+    const currentUsers = users.filter(u => isCurrent(u.registeredAt)).length;
+    const prevUsers = users.filter(u => isPrev(u.registeredAt)).length;
+    
+    const currentSellers = sellers.filter(s => s.status === "Disetujui" && isCurrent(s.registeredAt)).length;
+    const prevSellers = sellers.filter(s => s.status === "Disetujui" && isPrev(s.registeredAt)).length;
+    
+    const currentListings = listings.filter(l => l.status === "Disetujui" && isCurrent(l.createdAt)).length;
+    const prevListings = listings.filter(l => l.status === "Disetujui" && isPrev(l.createdAt)).length;
+
+    const currentTrans = transactions.filter(t => t.status === "Sukses" && isCurrent(t.createdAt)).length;
+    const prevTrans = transactions.filter(t => t.status === "Sukses" && isPrev(t.createdAt)).length;
+
+    const calcGrowth = (curr: number, prev: number) => {
+      if (prev === 0) return curr > 0 ? "+100%" : "0%";
+      const diff = ((curr - prev) / prev) * 100;
+      return `${diff > 0 ? '+' : ''}${diff.toFixed(0)}%`;
+    };
+
     return {
       totalUsers,
       totalSellers,
       totalActiveListings,
       totalTransactions,
       totalPremiumSubEarnings,
+      usersGrowth: calcGrowth(currentUsers, prevUsers) + " bln ini",
+      sellersGrowth: calcGrowth(currentSellers, prevSellers) + " bln ini",
+      listingsGrowth: calcGrowth(currentListings, prevListings) + " bln ini",
+      transactionsGrowth: calcGrowth(currentTrans, prevTrans) + " bln ini",
     };
   }, [users, sellers, listings, transactions, subscriptions]);
 
@@ -1014,10 +1053,10 @@ export default function AdminDashboard({
               {/* KPI CARDS */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[
-                  { label: "Total Pengguna", val: stats.totalUsers, change: "+14% bln ini", icon: Users, color: "bg-blue-50 text-blue-600" },
-                  { label: "Penjual Terverifikasi", val: stats.totalSellers, change: "+8% bln ini", icon: Store, color: "bg-green-50 text-green-600" },
-                  { label: "Iklan Aktif", val: stats.totalActiveListings, change: "+24% bln ini", icon: Tag, color: "bg-purple-50 text-purple-600" },
-                  { label: "Total Transaksi Sukses", val: stats.totalTransactions, change: "+12% bln ini", icon: ArrowRightLeft, color: "bg-yellow-50 text-yellow-600" },
+                  { label: "Total Pengguna", val: stats.totalUsers, change: stats.usersGrowth, icon: Users, color: "bg-blue-50 text-blue-600", changeColor: stats.usersGrowth.startsWith('+') ? "text-green-600 bg-green-50" : stats.usersGrowth.startsWith('-') ? "text-red-600 bg-red-50" : "text-gray-600 bg-gray-100" },
+                  { label: "Penjual Terverifikasi", val: stats.totalSellers, change: stats.sellersGrowth, icon: Store, color: "bg-green-50 text-green-600", changeColor: stats.sellersGrowth.startsWith('+') ? "text-green-600 bg-green-50" : stats.sellersGrowth.startsWith('-') ? "text-red-600 bg-red-50" : "text-gray-600 bg-gray-100" },
+                  { label: "Iklan Aktif", val: stats.totalActiveListings, change: stats.listingsGrowth, icon: Tag, color: "bg-purple-50 text-purple-600", changeColor: stats.listingsGrowth.startsWith('+') ? "text-green-600 bg-green-50" : stats.listingsGrowth.startsWith('-') ? "text-red-600 bg-red-50" : "text-gray-600 bg-gray-100" },
+                  { label: "Total Transaksi Sukses", val: stats.totalTransactions, change: stats.transactionsGrowth, icon: ArrowRightLeft, color: "bg-yellow-50 text-yellow-600", changeColor: stats.transactionsGrowth.startsWith('+') ? "text-green-600 bg-green-50" : stats.transactionsGrowth.startsWith('-') ? "text-red-600 bg-red-50" : "text-gray-600 bg-gray-100" },
                 ].map((kpi) => {
                   const Icon = kpi.icon;
                   return (
@@ -1025,7 +1064,7 @@ export default function AdminDashboard({
                       <div>
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{kpi.label}</p>
                         <h3 className="text-2xl font-black text-gray-900 mt-2 leading-none">{kpi.val}</h3>
-                        <span className="text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded mt-2.5 inline-block">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded mt-2.5 inline-block ${kpi.changeColor}`}>
                           {kpi.change}
                         </span>
                       </div>
@@ -1083,13 +1122,17 @@ export default function AdminDashboard({
                           const heightPct = maxCount > 0 ? (data.count / maxCount) * 100 : 0;
                           return (
                             <div key={idx} className="flex flex-col items-center justify-end h-full flex-1 group min-w-[20px]">
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-[9px] py-1 px-2 rounded mb-1 whitespace-nowrap absolute -mt-8">
-                                {data.count} Akun
-                              </div>
+                              <span className="text-[10px] font-bold text-gray-600 mb-1">
+                                {data.count}
+                              </span>
                               <div 
-                                className="w-full bg-red-500 rounded-t-sm transition-all duration-500"
+                                className="w-full bg-red-500 rounded-t-sm transition-all duration-500 relative"
                                 style={{ height: `${heightPct}%`, minHeight: '4px' }}
-                              ></div>
+                              >
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-[9px] py-1 px-2 rounded absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-10">
+                                  {data.count} Akun
+                                </div>
+                              </div>
                               <span className="text-[8px] text-gray-400 mt-2 truncate w-full text-center">
                                 {data.date.substring(5)}
                               </span>

@@ -1,4 +1,4 @@
-import { Shield, Tag, MessageSquare, MapPin, Star, Zap, ShoppingBag } from "lucide-react";
+import { Shield, Tag, MessageSquare, MapPin, Star, Zap, ShoppingBag, Quote } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context";
@@ -8,7 +8,6 @@ import { supabase } from "../../config/supabaseClient";
 
 export default function LandingPage() {
   const navigate = useNavigate();
-
   const { setScreen, products } = useApp();
 
   const [dbStats, setDbStats] = React.useState({ products: 0, transactions: 0, users: 0, avgRating: 4.9 });
@@ -40,32 +39,27 @@ export default function LandingPage() {
     { name: "Sari W.", prodi: "Manajemen '21", text: "Cari kost deket kampus 3 nemu di sini. Pemiliknya ramah, harga pas.", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&auto=format" },
   ];
 
-  const stats = [
-    { value: "12.4K+", label: "Produk Aktif" },
-    { value: "8.2K+", label: "Pengguna" },
-    { value: "4.9K+", label: "Transaksi" },
-    { value: "4.9★", label: "Rating App" },
-  ];
-
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
       {/* ── HERO ── */}
-      <div className="relative overflow-hidden" style={{ background: "linear-gradient(160deg, #c41230 0%, #8b0d22 55%, #1a1a2e 100%)", minHeight: 520 }}>
-        {/* Decorative circles */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10" style={{ background: "#f59e0b" }} />
-        <div className="absolute top-32 -left-20 w-48 h-48 rounded-full opacity-10" style={{ background: "#fff" }} />
-        <div className="absolute bottom-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: "#f59e0b" }} />
+      <div className="relative overflow-hidden" style={{ background: "radial-gradient(120% 100% at 20% 0%, #e0273f 0%, #c41230 35%, #7a0a1c 70%, #1a1a2e 100%)", minHeight: 560 }}>
+        {/* Decorative blobs */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-2xl opacity-20" style={{ background: "#f59e0b" }} />
+        <div className="absolute top-40 -left-24 w-56 h-56 rounded-full blur-2xl opacity-15" style={{ background: "#fff" }} />
+        <div className="absolute bottom-10 right-10 w-44 h-44 rounded-full blur-xl opacity-10" style={{ background: "#f59e0b" }} />
+        {/* subtle grid texture */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
 
-        <div className="relative z-10 px-6 pt-14 pb-8">
+        <div className="relative z-10 px-6 pt-14 pb-10">
           {/* Logo row */}
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+              <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden ring-2 ring-white/30">
                 <img src={logo} alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
-                <p className="text-white font-black text-lg leading-none">LapakJasMerah</p>
+                <p className="text-white font-black text-lg leading-none tracking-tight">LapakJasMerah</p>
                 <p className="text-white/60 text-[11px]">Universitas Muhammadiyah Malang</p>
               </div>
             </div>
@@ -73,17 +67,17 @@ export default function LandingPage() {
 
           {/* Headline */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-3 py-1.5 mb-4">
-              <Zap size={12} className="text-accent" />
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.25)]">
+              <Zap size={12} className="text-accent fill-accent" />
               <span className="text-white text-[11px] font-bold">Platform #1 Mahasiswa UMM</span>
             </div>
-            <h1 className="text-white font-black text-4xl leading-tight mb-3">
+            <h1 className="text-white font-black text-4xl leading-[1.1] mb-3 tracking-tight">
               Jual &amp; Beli<br />
-              <span style={{ color: "#f59e0b" }}>Sesama</span><br />
+              <span className="bg-gradient-to-r from-accent to-yellow-300 bg-clip-text text-transparent">Sesama</span><br />
               Mahasiswa UMM
             </h1>
-            <p className="text-white/75 text-sm leading-relaxed">
-              Marketplace khusus civitas akademika UMM. Aman, terpercaya, dan harga terjangkau - semua terverifikasi email UMM.
+            <p className="text-white/75 text-sm leading-relaxed max-w-[320px]">
+              Marketplace khusus civitas akademika UMM. Aman, terpercaya, dan harga terjangkau — semua terverifikasi email UMM.
             </p>
           </div>
 
@@ -91,13 +85,13 @@ export default function LandingPage() {
           <div className="flex gap-3">
             <button
               onClick={() => navigate("/register")}
-              className="flex-1 bg-accent text-foreground font-black py-3.5 rounded-2xl text-sm shadow-lg active:scale-95 transition-transform"
+              className="flex-1 bg-accent text-foreground font-black py-3.5 rounded-2xl text-sm shadow-[0_8px_24px_rgba(245,158,11,0.35)] active:scale-95 transition-transform"
             >
               Daftar Gratis
             </button>
             <button
               onClick={() => navigate("/login")}
-              className="flex-1 bg-white/15 border border-white/30 text-white font-bold py-3.5 rounded-2xl text-sm active:scale-95 transition-transform"
+              className="flex-1 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-bold py-3.5 rounded-2xl text-sm active:scale-95 transition-transform hover:bg-white/15"
             >
               Masuk
             </button>
@@ -115,9 +109,9 @@ export default function LandingPage() {
         </div>
 
         {/* Product preview strip */}
-        <div className="flex gap-3 px-6 pb-8 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-3 px-6 pb-16 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {products.slice(0, 5).map((p) => (
-            <div key={p.id} className="shrink-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden" style={{ width: 120 }}>
+            <div key={p.id} className="shrink-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden hover:bg-white/15 transition-colors" style={{ width: 120 }}>
               <img src={p.image} alt={p.name} className="w-full h-20 object-cover" />
               <div className="p-2">
                 <p className="text-white text-[10px] font-semibold line-clamp-1">{p.name}</p>
@@ -126,38 +120,46 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-        {/* ── STATS ── */}
-      <div className="px-5 py-6 bg-card border-b border-border">
-        {(() => {
-          const dynamicStats = [
-            { value: `${dbStats.products}`, label: "Produk Aktif" },
-            { value: `${dbStats.users}`, label: "Pengguna" },
-            { value: `${dbStats.transactions}`, label: "Transaksi" },
-            { value: `${dbStats.avgRating}★`, label: "Rating App" },
-          ];
+      </div>
 
-          return (
-            <div className="grid grid-cols-4 gap-2">
-              {dynamicStats.map(({ value, label }) => (
-                <div key={label} className="text-center">
-                  <p className="text-primary font-black text-sm">{value}</p>
-                  <p className="text-muted-foreground text-[9px] font-semibold uppercase tracking-wider">{label}</p>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
-      </div>    
+      {/* ── STATS (floating card, overlaps hero) ── */}
+      <div className="px-5 -mt-10 relative z-20">
+        <div className="bg-card rounded-3xl border border-border shadow-xl px-5 py-5">
+          {(() => {
+            const dynamicStats = [
+              { value: `${dbStats.products}`, label: "Produk Aktif" },
+              { value: `${dbStats.users}`, label: "Pengguna" },
+              { value: `${dbStats.transactions}`, label: "Transaksi" },
+              { value: `${dbStats.avgRating}★`, label: "Rating App" },
+            ];
+            return (
+              <div className="grid grid-cols-4 gap-2">
+                {dynamicStats.map(({ value, label }, i) => (
+                  <div key={label} className={`text-center ${i !== 0 ? "border-l border-border" : ""}`}>
+                    <p className="text-primary font-black text-base">{value}</p>
+                    <p className="text-muted-foreground text-[9px] font-semibold uppercase tracking-wider mt-0.5">{label}</p>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
       </div>
 
       {/* ── FEATURES ── */}
-      <div className="px-5 py-8">
-        <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">Kenapa Lapak Jas Merah?</p>
-        <h2 className="text-foreground font-black text-2xl mb-6">Dirancang untuk<br />Mahasiswa UMM</h2>
+      <div className="px-5 pt-10 pb-8">
+        <p className="text-primary text-xs font-bold uppercase tracking-widest mb-1">Kenapa Lapak Jas Merah?</p>
+        <h2 className="text-foreground font-black text-2xl mb-6 tracking-tight">Dirancang untuk<br />Mahasiswa UMM</h2>
         <div className="grid grid-cols-2 gap-3">
           {features.map(({ icon: Icon, title, desc, color }) => (
-            <div key={title} className="bg-card rounded-2xl border border-border p-4 shadow-sm">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: color + "18" }}>
+            <div
+              key={title}
+              className="bg-card rounded-2xl border border-border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+            >
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
+                style={{ background: `linear-gradient(135deg, ${color}25, ${color}10)` }}
+              >
                 <Icon size={20} style={{ color }} />
               </div>
               <p className="text-foreground font-bold text-sm mb-1">{title}</p>
@@ -169,17 +171,23 @@ export default function LandingPage() {
 
       {/* ── HOW IT WORKS ── */}
       <div className="px-5 pb-8">
-        <div className="bg-secondary rounded-3xl p-5">
-          <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">Cara Kerja</p>
-          <h2 className="text-foreground font-black text-xl mb-5">Mudah dalam<br />3 Langkah</h2>
-          <div className="space-y-4">
+        <div className="bg-secondary rounded-3xl p-5 relative overflow-hidden">
+          <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full opacity-[0.06] bg-primary" />
+          <p className="text-primary text-xs font-bold uppercase tracking-widest mb-1">Cara Kerja</p>
+          <h2 className="text-foreground font-black text-xl mb-5 tracking-tight">Mudah dalam<br />3 Langkah</h2>
+          <div className="relative space-y-5">
+            {/* connector line */}
+            <div className="absolute left-5 top-5 bottom-5 w-px bg-border" />
             {[
               { step: "01", title: "Daftar dengan NIM", desc: "Verifikasi identitas mahasiswa UMM aktif untuk akses penuh", color: "#c41230" },
               { step: "02", title: "Cari atau Pasang Iklan", desc: "Temukan produk impian atau jual barangmu gratis tanpa komisi", color: "#f59e0b" },
               { step: "03", title: "COD & Transaksi Aman", desc: "Bayar via UMM Pay, ketemu langsung di kampus, selesai!", color: "#10B981" },
             ].map(({ step, title, desc, color }) => (
-              <div key={step} className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-black text-white text-sm" style={{ background: color }}>
+              <div key={step} className="flex items-start gap-4 relative">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-black text-white text-sm shadow-md ring-4 ring-secondary"
+                  style={{ background: color }}
+                >
                   {step}
                 </div>
                 <div className="flex-1 pt-1">
@@ -194,22 +202,28 @@ export default function LandingPage() {
 
       {/* ── TESTIMONIALS ── */}
       <div className="px-5 pb-8">
-        <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">Testimoni</p>
-        <h2 className="text-foreground font-black text-xl mb-5">Kata Mereka</h2>
+        <p className="text-primary text-xs font-bold uppercase tracking-widest mb-1">Testimoni</p>
+        <h2 className="text-foreground font-black text-xl mb-5 tracking-tight">Kata Mereka</h2>
         <div className="space-y-3">
           {testimonials.map(({ name, prodi, text, avatar }) => (
-            <div key={name} className="bg-card rounded-2xl border border-border p-4 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <img src={avatar} alt={name} className="w-10 h-10 rounded-full object-cover" />
+            <div key={name} className="bg-card rounded-2xl border border-border p-4 shadow-sm relative overflow-hidden">
+              <Quote size={48} className="absolute -top-2 -right-2 text-primary/[0.06]" />
+              <div className="flex items-center gap-3 mb-3 relative">
+                <img
+                  src={avatar}
+                  alt={name}
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-offset-2 ring-offset-card"
+                  style={{ "--tw-ring-color": "#f59e0b" } as React.CSSProperties}
+                />
                 <div>
                   <p className="text-foreground font-bold text-sm">{name}</p>
                   <p className="text-muted-foreground text-[11px]">{prodi}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-0.5">
-                  {[1,2,3,4,5].map((s) => <Star key={s} size={10} className="text-accent fill-accent" />)}
+                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} size={10} className="text-accent fill-accent" />)}
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed">"{text}"</p>
+              <p className="text-muted-foreground text-sm leading-relaxed relative">"{text}"</p>
             </div>
           ))}
         </div>
@@ -217,36 +231,42 @@ export default function LandingPage() {
 
       {/* ── FINAL CTA ── */}
       <div className="px-5 pb-12">
-        <div className="bg-gradient-to-br from-primary to-[#8b0d22] rounded-3xl p-6 text-center shadow-xl">
-          <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <ShoppingBag size={28} className="text-white" />
+        <div className="rounded-3xl p-6 text-center shadow-xl relative overflow-hidden" style={{ background: "linear-gradient(160deg, #c41230 0%, #7a0a1c 100%)" }}>
+          <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full opacity-10 bg-accent" />
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full opacity-10 bg-white" />
+          <div className="relative">
+            <div className="w-14 h-14 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-white/20">
+              <ShoppingBag size={28} className="text-white" />
+            </div>
+            <h2 className="text-white font-black text-2xl mb-2 tracking-tight">Siap Bergabung?</h2>
+            <p className="text-white/75 text-sm mb-6">Daftar sekarang, gratis selamanya. Khusus mahasiswa UMM aktif.</p>
+            <button
+              onClick={() => navigate("/register")}
+              className="w-full bg-accent text-foreground font-black py-4 rounded-2xl text-base mb-3 shadow-[0_8px_24px_rgba(245,158,11,0.4)] active:scale-95 transition-transform"
+            >
+              Daftar Sekarang — Gratis
+            </button>
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full bg-white/10 backdrop-blur-sm border border-white/30 text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-white/15"
+            >
+              Sudah punya akun? Masuk
+            </button>
           </div>
-          <h2 className="text-white font-black text-2xl mb-2">Siap Bergabung?</h2>
-          <p className="text-white/75 text-sm mb-6">Daftar sekarang, gratis selamanya. Khusus mahasiswa UMM aktif.</p>
-          <button
-            onClick={() => navigate("/register")}
-            className="w-full bg-accent text-foreground font-black py-4 rounded-2xl text-base mb-3 shadow-lg active:scale-95 transition-transform"
-          >
-            Daftar Sekarang — Gratis
-          </button>
-          <button
-            onClick={() => navigate("/login")}
-            className="w-full bg-white/15 border border-white/30 text-white font-bold py-3.5 rounded-2xl text-sm"
-          >
-            Sudah punya akun? Masuk
-          </button>
         </div>
       </div>
 
       {/* ── FOOTER / TEAM ── */}
       <div className="px-5 pb-12 text-center">
         <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-4">Dikembangkan Oleh</p>
-        <div className="bg-card rounded-3xl border border-border p-6 shadow-sm inline-block w-full">
-          <p className="text-primary font-black text-sm mb-3">Informatika 2024 UMM</p>
-          <div className="flex flex-col gap-2 text-foreground font-semibold text-[13px]">
-            <p>Akhmad Arjuan Syuhada</p>
-            <p>Jingga Maulidhina</p>
-            <p>Umi Fadilah</p>
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-sm">
+          <p className="text-primary font-black text-sm mb-4">Informatika 2024 UMM</p>
+          <div className="flex flex-col gap-2">
+            {["Akhmad Arjuan Syuhada", "Jingga Maulidhina", "Umi Fadilah"].map((name) => (
+              <div key={name} className="bg-secondary rounded-xl py-2.5 px-3 text-foreground font-semibold text-[13px]">
+                {name}
+              </div>
+            ))}
           </div>
         </div>
       </div>
