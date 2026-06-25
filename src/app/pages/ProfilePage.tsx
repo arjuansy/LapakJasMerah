@@ -1126,12 +1126,30 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
     }
   }
 
-  function handleDelete() {
-    setListings((prevListings) => prevListings.filter((l) => l.id !== item.id));
-    setProducts((prevProducts) => prevProducts.filter((p) => p.id !== item.id));
-    triggerToast("Iklan berhasil dihapus");
-    setShowDeleteConfirm(false);
-    onBack();
+  async function handleDelete() {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', item.id);
+      if (error) {
+        if (error.code === '23503') {
+          // If product has transactions, soft-delete instead
+          const { error: updateErr } = await supabase.from('products').update({ status: 'SUSPENDED' }).eq('id', item.id);
+          if (updateErr) throw updateErr;
+        } else {
+          throw error;
+        }
+      }
+      setListings((prevListings) => prevListings.filter((l) => l.id !== item.id));
+      setProducts((prevProducts) => prevProducts.filter((p) => p.id !== item.id));
+      triggerToast("Iklan berhasil dihapus");
+      setShowDeleteConfirm(false);
+      onBack();
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err?.message || "Gagal menghapus iklan", "error");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const DropdownField = ({ label, value, open, onToggle, options, onSelect, error }: {

@@ -22,6 +22,18 @@ export function PostRequestModal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [requestDuration, setRequestDuration] = useState<"1" | "7">("1");
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
+
+  function handleProofUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPaymentProofFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => setPaymentProofPreview(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  }
 
   const reqCategories = ["Elektronik", "Buku & Modul", "Fashion", "Makanan", "Jasa", "Kendaraan", "Kost & Kontrakan", "Lainnya"];
   const urgencies: { key: "normal" | "segera" | "mendesak"; label: string; color: string }[] = [
@@ -36,11 +48,35 @@ export function PostRequestModal() {
     if (!desc.trim() || desc.length < 10) { setError("Deskripsi minimal 10 karakter"); return; }
     if (!user) { setError("Anda harus login untuk memposting permintaan"); return; }
 
+    const budgetMinNum = parseInt(budgetMin.replace(/\D/g, "")) || 0;
+    const budgetMaxNum = budgetMax ? parseInt(budgetMax.replace(/\D/g, "")) : null;
+
+    if (requestDuration === "7" && !paymentProofFile) {
+      setError("Mohon unggah bukti pembayaran untuk pemasangan 7 hari");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
-    const budgetMinNum = parseInt(budgetMin.replace(/\D/g, "")) || 0;
-    const budgetMaxNum = budgetMax ? parseInt(budgetMax.replace(/\D/g, "")) : null;
+    let proofUrl = "";
+    if (requestDuration === "7" && paymentProofFile) {
+      const fileExt = paymentProofFile.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const filePath = `payments/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, paymentProofFile);
+
+      if (uploadError) {
+        setError(`Gagal unggah bukti: ${uploadError.message}`);
+        setLoading(false);
+        return;
+      }
+      const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(filePath);
+      proofUrl = publicUrlData.publicUrl;
+    }
 
     const requestPayload = {
       user_id: user.id,
@@ -82,6 +118,18 @@ export function PostRequestModal() {
       setError(`Gagal: ${resultError.message}`);
       setLoading(false);
       return;
+    }
+
+    if (requestDuration === "7" && savedRequest) {
+      await supabase.from('package_transactions').insert({
+        user_id: user.id,
+        transaction_type: 'request_package',
+        request_id: savedRequest.id,
+        package_name: 'Papan Permintaan 7 Hari',
+        amount: 500,
+        payment_proof_url: proofUrl,
+        status: 'PENDING'
+      });
     }
 
     if (savedRequest) {
@@ -314,6 +362,39 @@ export function PostRequestModal() {
                 {requestDuration === "1" ? "Gratis" : "Rp 500"}
               </p>
             </div>
+
+            {requestDuration === "7" && (
+              <div className="bg-amber-50/50 rounded-2xl p-4 border-2 border-dashed border-amber-200 mt-2 mb-2">
+                <p className="font-extrabold text-sm text-foreground text-center mb-1">Pindai QRIS untuk Membayar</p>
+                <p className="text-[10px] text-muted-foreground text-center mb-3">Rp 500 akan dipotong dari saldo Anda</p>
+                <div className="w-32 h-32 bg-white rounded-xl mx-auto flex items-center justify-center p-2 mb-4 shadow-sm border border-gray-100">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_REQUEST_500`}
+                    alt="QRIS Payment"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Unggah Bukti Pembayaran <span className="text-primary">*</span></label>
+                  {!paymentProofPreview ? (
+                    <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-black/5 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                        <ImagePlus className="w-5 h-5 mb-1 text-muted-foreground" />
+                        <p className="text-[10px] text-muted-foreground">Klik untuk unggah foto</p>
+                      </div>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleProofUpload} />
+                    </label>
+                  ) : (
+                    <div className="relative w-full h-24 rounded-xl overflow-hidden border border-border">
+                      <img src={paymentProofPreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => { setPaymentProofFile(null); setPaymentProofPreview(null); }} className="absolute top-1 right-1 w-6 h-6 bg-black/50 backdrop-blur text-white rounded-full flex items-center justify-center">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <button
               onClick={handleSubmit}

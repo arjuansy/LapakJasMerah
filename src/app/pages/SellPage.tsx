@@ -15,6 +15,7 @@ import {
   ToggleRight,
   BadgeCheck,
   Info,
+  ImagePlus,
 } from "lucide-react";
 import { useApp } from "../context";
 import { formatPrice } from "../data";
@@ -32,6 +33,18 @@ export default function SellPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [step, setStep] = useState<"form" | "success">("form");
   const [adPackage, setAdPackage] = useState<"gratis" | "standard">("gratis");
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
+
+  function handleProofUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPaymentProofFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => setPaymentProofPreview(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  }
   const [form, setForm] = useState({
     title: "",
     category: "",
@@ -132,6 +145,9 @@ export default function SellPage() {
     if (photos.length > maxPhotos) {
       e.photos = `Paket gratis maksimal ${maxPhotos} foto (Anda memiliki ${photos.length} foto)`;
     }
+    if (adPackage === 'standard' && !paymentProofFile) {
+      e.paymentProof = "Mohon unggah bukti pembayaran";
+    }
     return e;
   }
 
@@ -195,12 +211,18 @@ export default function SellPage() {
         if (insertError) throw insertError;
 
         if (adPackage === 'standard') {
+          let proofUrl = "";
+          if (paymentProofFile) {
+            proofUrl = await storageService.uploadProductImage(paymentProofFile) || "";
+          }
+
           const { error: pkgError } = await supabase.from('package_transactions').insert({
             user_id: user.id,
             transaction_type: 'ad_package',
             product_id: newProduct.id,
             package_name: 'Highlight Pencarian 14 Hari',
             amount: 5000,
+            payment_proof_url: proofUrl,
             status: 'PENDING'
           });
           if (pkgError) throw pkgError;
@@ -747,10 +769,45 @@ export default function SellPage() {
         {/* ── SUBMIT BUTTON (fixed) ── */}
         <div className="absolute bottom-0 left-0 right-0 w-full bg-card border-t border-border px-4 py-3 z-40 shadow-2xl">
           {Object.keys(errors).length > 0 && (
-            <p className={`text-primary text-[11px] font-semibold text-center mb-2 flex items-center justify-center gap-1 ${shake ? "animate-shake" : ""}`}>
-              <AlertCircle size={11} /> Mohon lengkapi data yang masih kosong
+            <p className={`text-primary text-[11px] font-semibold text-center mb-2 flex flex-col items-center justify-center gap-1 ${shake ? "animate-shake" : ""}`}>
+              <span className="flex items-center gap-1"><AlertCircle size={11} /> Mohon perbaiki data yang kosong/salah</span>
+              {errors.paymentProof && <span className="text-red-500 font-bold">{errors.paymentProof}</span>}
             </p>
           )}
+
+          {adPackage === "standard" && (
+            <div className="bg-blue-50/50 rounded-2xl p-4 border-2 border-dashed border-blue-200 mb-4">
+              <p className="font-extrabold text-sm text-foreground text-center mb-1">Pindai QRIS untuk Membayar</p>
+              <p className="text-[10px] text-muted-foreground text-center mb-3">Selesaikan pembayaran Rp 5.000</p>
+              <div className="w-32 h-32 bg-white rounded-xl mx-auto flex items-center justify-center p-2 mb-4 shadow-sm border border-gray-100">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_PREMIUM_5000`}
+                  alt="QRIS Payment"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Unggah Bukti Pembayaran <span className="text-primary">*</span></label>
+                {!paymentProofPreview ? (
+                  <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-black/5 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                      <ImagePlus className="w-5 h-5 mb-1 text-muted-foreground" />
+                      <p className="text-[10px] text-muted-foreground">Klik untuk unggah foto</p>
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleProofUpload} />
+                  </label>
+                ) : (
+                  <div className="relative w-full h-24 rounded-xl overflow-hidden border border-border">
+                    <img src={paymentProofPreview} alt="Preview" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => { setPaymentProofFile(null); setPaymentProofPreview(null); }} className="absolute top-1 right-1 w-6 h-6 bg-black/50 backdrop-blur text-white rounded-full flex items-center justify-center">
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Price summary */}
           <div className="flex justify-between items-center mb-3 px-1 pt-1 border-t border-border">
             <span className="text-foreground font-bold text-sm">Total</span>
