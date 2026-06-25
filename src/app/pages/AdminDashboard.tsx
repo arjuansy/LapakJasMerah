@@ -219,6 +219,7 @@ export default function AdminDashboard({
   const [suggestions, setSuggestions] = useState<SuggestionType[]>([]);
   const [whitelistedEmails, setWhitelistedEmails] = useState<{id: string, email: string, added_at: string}[]>([]);
   const [bannersData, setBannersData] = useState<any[]>([]);
+  const [showUserChart, setShowUserChart] = useState(false);
 
   // Fetch Data from Supabase
   const fetchAllData = async () => {
@@ -699,6 +700,19 @@ export default function AdminDashboard({
     };
   }, [users, sellers, listings, transactions, subscriptions]);
 
+  const userRegistrationData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    users.forEach(u => {
+      counts[u.registeredAt] = (counts[u.registeredAt] || 0) + 1;
+    });
+    // Sort by date
+    const sortedDates = Object.keys(counts).sort();
+    return sortedDates.map(date => ({
+      date,
+      count: counts[date]
+    }));
+  }, [users]);
+
   // Profile Settings form states
   const [profileName, setProfileName] = useState(currentAdmin.name);
   const [profileEmail, setProfileEmail] = useState(currentAdmin.email);
@@ -1029,18 +1043,65 @@ export default function AdminDashboard({
                 <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm lg:col-span-2">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h4 className="font-extrabold text-sm text-gray-900">Performa Transaksi Bulanan</h4>
-                      <p className="text-[11px] text-gray-400 font-semibold mt-0.5">Pertumbuhan nominal transaksi sukses semester ini</p>
+                      <h4 className="font-extrabold text-sm text-gray-900">
+                        {showUserChart ? "Pendaftaran Akun Harian" : "Performa Transaksi Bulanan"}
+                      </h4>
+                      <p className="text-[11px] text-gray-400 font-semibold mt-0.5">
+                        {showUserChart ? "Jumlah akun yang mendaftar hari ke hari" : "Pertumbuhan nominal transaksi sukses semester ini"}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
-                      <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />
-                      <span className="text-gray-800 text-[10px]">Nominal (Juta Rp)</span>
+                    <div className="flex items-center gap-4">
+                      {/* Switch Button */}
+                      <label className="flex items-center cursor-pointer gap-2">
+                        <div className="relative">
+                          <input type="checkbox" className="sr-only" checked={showUserChart} onChange={() => setShowUserChart(!showUserChart)} />
+                          <div className={`block w-10 h-6 rounded-full transition-colors ${showUserChart ? 'bg-red-500' : 'bg-gray-300'}`}></div>
+                          <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showUserChart ? 'translate-x-4' : ''}`}></div>
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-500">Tampilkan Pendaftar</span>
+                      </label>
+                      
+                      {!showUserChart && (
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
+                          <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />
+                          <span className="text-gray-800 text-[10px]">Nominal (Juta Rp)</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Aesthetic Custom Vector Chart */}
-                  <div className="relative h-64 w-full flex items-center justify-center bg-gray-50/50 rounded-xl mt-4 border border-dashed border-gray-200">
-                    <p className="text-xs font-bold text-gray-400">Belum ada data transaksi untuk semester ini.</p>
+                  {/* Chart Container */}
+                  <div className="relative h-64 w-full flex items-end justify-center bg-gray-50/50 rounded-xl mt-4 border border-dashed border-gray-200 p-4 gap-2 overflow-hidden">
+                    {!showUserChart ? (
+                      <div className="flex items-center justify-center h-full w-full">
+                        <p className="text-xs font-bold text-gray-400">Belum ada data transaksi untuk semester ini.</p>
+                      </div>
+                    ) : (
+                      userRegistrationData.length > 0 ? (
+                        userRegistrationData.map((data, idx) => {
+                          const maxCount = Math.max(...userRegistrationData.map(d => d.count));
+                          const heightPct = maxCount > 0 ? (data.count / maxCount) * 100 : 0;
+                          return (
+                            <div key={idx} className="flex flex-col items-center justify-end h-full flex-1 group min-w-[20px]">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-[9px] py-1 px-2 rounded mb-1 whitespace-nowrap absolute -mt-8">
+                                {data.count} Akun
+                              </div>
+                              <div 
+                                className="w-full bg-red-500 rounded-t-sm transition-all duration-500"
+                                style={{ height: `${heightPct}%`, minHeight: '4px' }}
+                              ></div>
+                              <span className="text-[8px] text-gray-400 mt-2 truncate w-full text-center">
+                                {data.date.substring(5)}
+                              </span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="flex items-center justify-center h-full w-full">
+                          <p className="text-xs font-bold text-gray-400">Belum ada data pendaftar.</p>
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
