@@ -15,7 +15,7 @@ import type { PurchaseOrder, SalesOrder, EditingItem, TrackingOrder } from "./co
 
 import Layout from "./components/Layout";
 import { Toaster, toast } from "react-hot-toast";
-import { PostRequestModal, SuggestionBoxModal } from "./components/Modals";
+import { PostRequestModal, SuggestionBoxModal, GlobalReportModal } from "./components/Modals";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -544,6 +544,7 @@ export default function App() {
       )}
       {showPostRequestModal && <PostRequestModal />}
       {showSuggestionBox && <SuggestionBoxModal />}
+      <GlobalReportModal />
       <Toaster position="top-center" />
       <Analytics />
     </AppContext.Provider>

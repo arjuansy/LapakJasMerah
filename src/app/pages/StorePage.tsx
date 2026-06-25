@@ -123,10 +123,12 @@ export default function StorePage() {
                 </button>
               )}
               <button
-                onClick={() => { setShowReportModal({ type: "penjual", name: sellerName }); }}
-                className="w-10 h-10 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center shrink-0"
+                onClick={() => { setShowReportModal({ type: "toko", name: sellerName }); }}
+                className="w-10 h-10 md:w-auto md:px-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center gap-1.5 shrink-0 text-red-500 font-bold text-sm hover:bg-red-100 transition-colors"
+                title="Laporkan Toko"
               >
-                <Flag size={15} className="text-red-500" />
+                <Flag size={15} />
+                <span className="hidden md:inline">Laporkan Toko</span>
               </button>
             </div>
           </div>

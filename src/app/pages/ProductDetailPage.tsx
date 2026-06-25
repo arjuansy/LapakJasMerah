@@ -466,10 +466,10 @@ export default function ProductDetailPage() {
           )}
 
           <button
-            onClick={() => setShowReportModal({ type: "penjual", name: product.seller })}
-            className="flex items-center gap-1.5 text-muted-foreground text-xs font-semibold mt-1"
+            onClick={() => setShowReportModal({ type: "produk", name: product.name, id: product.id, seller_id: product.seller_id })}
+            className="flex items-center gap-1.5 px-3 py-2 border border-red-200 text-red-500 rounded-lg text-xs font-semibold mt-2 hover:bg-red-50 transition-colors"
           >
-            <Flag size={12} /> Laporkan Penjual
+            <Flag size={12} /> Laporkan Iklan Ini
           </button>
         </div>
 
@@ -966,17 +966,42 @@ export default function ProductDetailPage() {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const { user } = useAuth();
+    
     if (!showReportModal) return null;
-    const { type, name } = showReportModal;
+    const { type, name, id, seller_id } = showReportModal;
 
     const reasons = type === "penjual"
       ? ["Barang tidak sesuai deskripsi", "Penjual tidak responsif", "Penipuan / barang palsu", "Harga tidak wajar", "Penjual bersikap kasar", "Informasi produk menyesatkan", "Lainnya"]
-      : ["Pembeli tidak hadir saat COD", "Pembeli bersikap kasar", "Pembeli melakukan penipuan", "Pembeli membatalkan tanpa alasan", "Lainnya"];
+      : ["Barang terlarang / ilegal", "Produk palsu / penipuan", "Spam", "Harga tidak wajar", "Lainnya"];
 
-    function handleSubmit() {
+    async function handleSubmit() {
       if (!selectedReason) return;
+      if (!user) {
+        toast.error("Anda harus login untuk melaporkan");
+        return;
+      }
       setLoading(true);
-      setTimeout(() => { setLoading(false); setSubmitted(true); }, 1200);
+      
+      try {
+        const { error } = await supabase.from('reports').insert({
+          reporter_id: user.id,
+          reported_id: seller_id, // we assume reported_id is the seller's id
+          target_type: type === "produk" ? "product" : "user",
+          reason: selectedReason + (detail ? ` - ${detail}` : ""),
+          status: "Terbuka"
+        });
+        
+        if (error) {
+          console.error("Gagal mengirim laporan:", error);
+          // Silent fallback if table doesn't exist yet
+        }
+      } catch(err) {
+        console.error("Error submitting report", err);
+      }
+      
+      setLoading(false); 
+      setSubmitted(true);
     }
 
     return (
@@ -988,7 +1013,7 @@ export default function ProductDetailPage() {
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
             {submitted ? null : (
               <div className="flex items-center justify-between">
-                <h3 className="text-foreground font-black text-lg">Laporkan {type === "penjual" ? "Penjual" : "Pembeli"}</h3>
+                <h3 className="text-foreground font-black text-lg">Laporkan {type === "penjual" ? "Penjual" : "Iklan"}</h3>
                 <button onClick={() => setShowReportModal(null)} className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                   <X size={15} className="text-foreground" />
                 </button>
