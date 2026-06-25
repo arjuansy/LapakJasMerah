@@ -201,16 +201,15 @@ export default function SellPage() {
             product_id: newProduct.id,
             package_name: 'Highlight Pencarian 14 Hari',
             amount: 5000,
-            payment_method: 'Transfer',
             status: 'PENDING'
           });
           if (pkgError) throw pkgError;
         }
 
         setStep("success");
-      } catch (err) {
+      } catch (err: any) {
         console.error("Gagal mengunggah produk", err);
-        toast.error("Gagal memposting iklan. Pastikan Anda sudah login.");
+        toast.error(`Gagal memposting iklan: ${err.message || "Terjadi kesalahan"}`);
       } finally {
         setIsSubmitting(false);
       }
