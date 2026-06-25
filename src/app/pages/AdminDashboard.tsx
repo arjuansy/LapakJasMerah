@@ -3369,9 +3369,18 @@ export default function AdminDashboard({
                   <button
                     onClick={() => {
                       const doApprove = async () => {
-                        await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                        const { error } = await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                        if (error) {
+                          console.warn("Supabase RLS issue:", error);
+                          showToast(`Gagal menyetujui: ${error.message}`, "error");
+                          return;
+                        }
+
                         if (selectedSeller.transactionId) {
-                          await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
+                          const { error: txError } = await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
+                          if (txError) {
+                            showToast(`Berhasil menyetujui, tapi gagal update transaksi: ${txError.message}`, "error");
+                          }
                         }
                         fetchAllData();
                         showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
@@ -3386,7 +3395,16 @@ export default function AdminDashboard({
                   <button
                     onClick={() => {
                       const doReject = async () => {
-                        await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                        const { error } = await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                        if (error) {
+                          showToast(`Gagal menolak: ${error.message}`, "error");
+                          return;
+                        }
+                        
+                        if (selectedSeller.transactionId) {
+                          await supabase.from('package_transactions').update({ status: 'FAILED' }).eq('id', selectedSeller.transactionId);
+                        }
+                        
                         fetchAllData();
                         showToast(`Pengajuan ${selectedSeller.shopName} ditolak!`, "error");
                         setModalType(null);
@@ -3448,7 +3466,11 @@ export default function AdminDashboard({
                 onClick={() => {
                   const doApproveModal = async () => {
                     const { error } = await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
-                    if (error) console.warn("Supabase RLS issue:", error);
+                    if (error) {
+                      console.warn("Supabase RLS issue:", error);
+                      showToast(`Gagal menyetujui: ${error.message}`, "error");
+                      return;
+                    }
 
                     if (selectedSeller.transactionId) {
                       await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
@@ -3506,7 +3528,12 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doRejectModal = async () => {
-                    await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                    const { error } = await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                    if (error) {
+                      showToast(`Gagal menolak: ${error.message}`, "error");
+                      return;
+                    }
+
                     if (selectedSeller.transactionId) {
                       await supabase.from('package_transactions').update({ status: 'FAILED' }).eq('id', selectedSeller.transactionId);
                     }
