@@ -547,5 +547,73 @@ export function SuggestionBoxModal() {
     </div>
   );
 }
- 
- 
+
+export function GlobalReportModal() {
+  const { showReportModal, setShowReportModal, user, triggerToast } = useApp();
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (!showReportModal) return null;
+
+  const handleSubmit = async () => {
+    if (!reason.trim()) {
+      toast.error("Alasan pelaporan wajib diisi.");
+      return;
+    }
+    
+    setLoading(true);
+    const targetId = showReportModal.id || "00000000-0000-0000-0000-000000000000";
+    
+    const { error } = await supabase.from('reports').insert({
+      reporter_id: user?.id,
+      reported_id: showReportModal.seller_id || targetId,
+      target_type: showReportModal.type,
+      reason: reason,
+      status: 'Pending'
+    });
+
+    setLoading(false);
+    
+    if (error) {
+      console.error(error);
+      toast.error("Gagal mengirim laporan.");
+    } else {
+      triggerToast("Laporan berhasil dikirim");
+      setShowReportModal(null);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200">
+      <div className="absolute inset-0 bg-black/50" onClick={() => setShowReportModal(null)} />
+      <div className="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-black text-gray-900 text-lg capitalize">Laporkan {showReportModal.type}</h2>
+          <button onClick={() => setShowReportModal(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-5 flex-1 overflow-y-auto">
+          <p className="text-sm font-bold text-gray-700 mb-3">Anda melaporkan <span className="text-red-600">{showReportModal.name}</span></p>
+          <div className="mb-4">
+            <label className="block text-xs font-bold text-gray-700 mb-1.5">Alasan Pelaporan</label>
+            <textarea 
+              value={reason} 
+              onChange={e => setReason(e.target.value)} 
+              placeholder="Jelaskan masalah secara detail..." 
+              className="w-full h-32 px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-gray-50 resize-none font-medium" 
+            />
+          </div>
+          <button 
+            onClick={handleSubmit} 
+            disabled={loading} 
+            className="w-full bg-red-600 text-white font-black py-3.5 rounded-xl text-sm hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100"
+          >
+            {loading ? "Mengirim..." : "Kirim Laporan"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
