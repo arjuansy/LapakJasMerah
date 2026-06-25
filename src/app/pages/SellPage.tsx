@@ -776,8 +776,15 @@ export default function SellPage() {
           )}
 
           {adPackage === "standard" && (
-            <div className="bg-blue-50/50 rounded-2xl p-4 border-2 border-dashed border-blue-200 mb-4">
-              <p className="font-extrabold text-sm text-foreground text-center mb-1">Pindai QRIS untuk Membayar</p>
+            <div className="bg-blue-50/50 rounded-2xl p-4 border-2 border-dashed border-blue-200 mb-4 relative">
+              <button
+                type="button"
+                onClick={() => setAdPackage("gratis")}
+                className="absolute top-3 right-3 w-7 h-7 bg-white border border-blue-200 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors shadow-sm z-10"
+              >
+                <X size={14} />
+              </button>
+              <p className="font-extrabold text-sm text-foreground text-center mb-1 mt-1">Pindai QRIS untuk Membayar</p>
               <p className="text-[10px] text-muted-foreground text-center mb-3">Selesaikan pembayaran Rp 5.000</p>
               <div className="w-32 h-32 bg-white rounded-xl mx-auto flex items-center justify-center p-2 mb-4 shadow-sm border border-gray-100">
                 <img
