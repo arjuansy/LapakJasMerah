@@ -116,6 +116,58 @@ export default function ProductDetailPage() {
     dana: "DANA", cod: "COD (Bayar di Tempat)",
   };
 
+  const handleChatClick = async () => {
+    if (!product) return;
+    if (!user) {
+      toast.error("Anda harus login terlebih dahulu untuk chat.");
+      navigate("/auth");
+      return;
+    }
+    
+    try {
+      const { data: existingChat, error: checkError } = await supabase.from('chats')
+        .select('id')
+        .eq('buyer_id', user.id)
+        .eq('seller_id', product.seller_id)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingChat) {
+        await supabase.from('chats')
+          .update({ product_id: product.id })
+          .eq('id', existingChat.id);
+
+        navigate(`/chat/${existingChat.id}`);
+      } else {
+        const { data: newChat, error } = await supabase.from('chats').insert({
+          buyer_id: user.id,
+          seller_id: product.seller_id,
+          product_id: product.id
+        }).select().single();
+        
+        if (error) {
+          if (error.code === '23505') {
+            const { data: retryChat } = await supabase.from('chats')
+              .select('id')
+              .eq('buyer_id', user.id)
+              .eq('seller_id', product.seller_id)
+              .maybeSingle();
+            if (retryChat) {
+              navigate(`/chat/${retryChat.id}`);
+              return;
+            }
+          }
+          throw error;
+        }
+        if (newChat) navigate(`/chat/${newChat.id}`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal membuka chat");
+    }
+  };
+
   function handleShareProduct(p: any) {
     const url = window.location.origin + `/product/${p.id}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -443,12 +495,23 @@ export default function ProductDetailPage() {
                 <span className="text-[10px] text-muted-foreground">Mahasiswa Terverifikasi &#183; Online sekarang</span>
               </div>
             </div>
-            <button
-              onClick={() => navigate('/store/' + product.seller_id)}
-              className="bg-secondary text-primary text-xs font-bold px-3 py-2 rounded-xl border border-primary/20"
-            >
-              Lihat Toko
-            </button>
+            <div className="flex items-center gap-2">
+              {user?.id !== product.seller_id && (
+                <button
+                  onClick={handleChatClick}
+                  className="bg-primary text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm hidden lg:flex"
+                >
+                  <MessageSquare size={14} />
+                  Chat Penjual
+                </button>
+              )}
+              <button
+                onClick={() => navigate('/store/' + product.seller_id)}
+                className="bg-secondary text-primary text-xs font-bold px-3 py-2 rounded-xl border border-primary/20"
+              >
+                Lihat Toko
+              </button>
+            </div>
           </div>
         </div>
 
@@ -484,57 +547,8 @@ export default function ProductDetailPage() {
           <div className="flex gap-2">
             {user?.id !== product.seller_id && (
               <button
-                onClick={async () => { 
-                  if (!user) {
-                    toast.error("Anda harus login terlebih dahulu untuk chat.");
-                    navigate("/auth");
-                    return;
-                  }
-                  
-                  try {
-                    const { data: existingChat, error: checkError } = await supabase.from('chats')
-                      .select('id')
-                      .eq('buyer_id', user.id)
-                      .eq('seller_id', product.seller_id)
-                      .maybeSingle();
-
-                    if (checkError) throw checkError;
-
-                    if (existingChat) {
-                      await supabase.from('chats')
-                        .update({ product_id: product.id })
-                        .eq('id', existingChat.id);
-
-                      navigate(`/chat/${existingChat.id}`);
-                    } else {
-                      const { data: newChat, error } = await supabase.from('chats').insert({
-                        buyer_id: user.id,
-                        seller_id: product.seller_id,
-                        product_id: product.id
-                      }).select().single();
-                      
-                      if (error) {
-                        if (error.code === '23505') {
-                          const { data: retryChat } = await supabase.from('chats')
-                            .select('id')
-                            .eq('buyer_id', user.id)
-                            .eq('seller_id', product.seller_id)
-                            .maybeSingle();
-                          if (retryChat) {
-                            navigate(`/chat/${retryChat.id}`);
-                            return;
-                          }
-                        }
-                        throw error;
-                      }
-                      if (newChat) navigate(`/chat/${newChat.id}`);
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    toast.error("Gagal membuka chat");
-                  }
-                }}
-                className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2"
+                onClick={handleChatClick}
+                className="flex-1 bg-secondary border border-primary/20 text-primary font-bold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 lg:hidden"
               >
                 <MessageSquare size={15} />
                 Chat

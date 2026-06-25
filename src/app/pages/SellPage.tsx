@@ -24,7 +24,7 @@ import { useAuth } from "../../hooks/useAuth";
 
 export default function SellPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const { setActiveTab, setProducts, setListings } = useApp();
 
@@ -188,7 +188,7 @@ export default function SellPage() {
           image_url: imageUrl,
           status: 'AVAILABLE',
           ad_package: adPackage,
-          is_premium: false, // Will be activated by Admin
+          is_premium: adPackage === 'standard', // Otomatis aktif untuk banner jika beli standard
           expires_at: expiresAt
         }).select('id').single();
 
@@ -222,6 +222,26 @@ export default function SellPage() {
   function formatRupiah(val: string) {
     const num = val.replace(/\D/g, "");
     return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  if (profile?.status === 'SUSPENDED') {
+    return (
+      <div className="flex flex-col h-full bg-background items-center justify-center px-8 pb-10">
+        <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
+          <AlertCircle size={48} className="text-red-500" />
+        </div>
+        <h2 className="text-foreground font-black text-2xl text-center mb-2">Toko Ditangguhkan</h2>
+        <p className="text-muted-foreground text-sm text-center mb-6">
+          Toko Anda telah ditangguhkan karena melanggar ketentuan Lapak Jas Merah. Anda tidak dapat menawarkan barang/jasa baru. Silakan hubungi Administrator untuk informasi lebih lanjut.
+        </p>
+        <button
+          onClick={() => navigate("/marketplace")}
+          className="w-full max-w-[300px] bg-primary text-white font-bold py-3.5 rounded-2xl text-sm"
+        >
+          Kembali ke Beranda
+        </button>
+      </div>
+    );
   }
 
   if (step === "success") {

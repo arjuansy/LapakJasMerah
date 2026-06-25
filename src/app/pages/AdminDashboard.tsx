@@ -1570,16 +1570,28 @@ export default function AdminDashboard({
                                     </>
                                   )}
                                   {s.status === "Disetujui" && (
-                                    <button
-                                      onClick={() => {
-                                        setSelectedSeller(s);
-                                        setModalType("suspendSeller");
-                                      }}
-                                      className="p-1 text-yellow-600 hover:bg-yellow-50 rounded-lg"
-                                      title="Tangguhkan Toko"
-                                    >
-                                      <UserX className="w-4.5 h-4.5" />
-                                    </button>
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedSeller(s);
+                                          setModalType("revokeBadgeSeller");
+                                        }}
+                                        className="p-1 text-orange-600 hover:bg-orange-50 rounded-lg"
+                                        title="Cabut Badge Verifikasi"
+                                      >
+                                        <ShieldAlert className="w-4.5 h-4.5" />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedSeller(s);
+                                          setModalType("suspendSeller");
+                                        }}
+                                        className="p-1 text-red-600 hover:bg-red-50 rounded-lg"
+                                        title="Tangguhkan Toko"
+                                      >
+                                        <UserX className="w-4.5 h-4.5" />
+                                      </button>
+                                    </>
                                   )}
                                   {s.status === "Ditangguhkan" && (
                                     <button
@@ -3492,6 +3504,47 @@ export default function AdminDashboard({
                 className="bg-red-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-red-700"
               >
                 Tolak Pengajuan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Revoke Badge Seller Confirmation */}
+      {modalType === "revokeBadgeSeller" && selectedSeller && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-left">
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mx-auto border border-orange-200">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-gray-900 text-sm">Cabut Badge Verifikasi?</h3>
+                <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                  Apakah Anda yakin ingin mencabut badge verifikasi dari <span className="font-bold">{selectedSeller.shopName}</span>? Penjual ini akan kembali menjadi pengguna reguler namun tidak dibekukan.
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2.5">
+              <button
+                onClick={() => setModalType(null)}
+                className="bg-white border border-gray-200 text-gray-700 font-bold text-xs px-4 py-2 rounded-lg"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => {
+                  const doRevokeBadge = async () => {
+                    await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                    fetchAllData();
+                    showToast(`Badge verifikasi toko ${selectedSeller.shopName} berhasil dicabut!`, "info");
+                    setModalType(null);
+                  };
+                  doRevokeBadge();
+                }}
+                className="bg-orange-600 text-white font-extrabold text-xs px-4 py-2 rounded-lg hover:bg-orange-700"
+              >
+                Cabut Badge
               </button>
             </div>
           </div>
