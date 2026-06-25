@@ -2246,6 +2246,22 @@ export default function ProfilePage() {
   const [badgePaid, setBadgePaid] = useState(false);
   const [ktmFile, setKtmFile] = useState<File | null>(null);
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [isPendingBadge, setIsPendingBadge] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      supabase.from('package_transactions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('transaction_type', 'seller_verification')
+        .eq('status', 'PENDING')
+        .single()
+        .then(({ data }) => {
+          if (data) setIsPendingBadge(true);
+        });
+    }
+  }, [user]);
+
 
   const handlePurchaseBadge = async () => {
     if (!user) {
@@ -2284,6 +2300,7 @@ export default function ProfilePage() {
         
         setIsProcessingPayment(false);
         setBadgePaid(true);
+        setIsPendingBadge(true);
         toast.success("Pengajuan badge penjual berhasil, menunggu persetujuan Admin");
       } catch (err: any) {
         console.error("Payment error:", err);
@@ -2542,17 +2559,26 @@ export default function ProfilePage() {
       {/* ── BADGE PENJUAL TERVERIFIKASI ── */}
       <div className="px-4 mb-5">
         <button
-          onClick={() => !profile?.is_verified_seller && setShowBadgePay(true)}
+          onClick={() => {
+            if (!profile?.is_verified_seller && !isPendingBadge) setShowBadgePay(true);
+          }}
+          disabled={isPendingBadge}
           className={`w-full rounded-2xl border-2 p-4 flex items-center gap-3 text-left transition-all shadow-sm ${
             profile?.is_verified_seller
               ? "bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800"
+              : isPendingBadge
+              ? "bg-amber-50 border-amber-100 opacity-80 cursor-not-allowed dark:bg-amber-900/20 dark:border-amber-800"
               : "bg-card border-border active:scale-[0.98] hover:border-blue-200 dark:hover:border-blue-800"
           }`}
         >
           <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-            profile?.is_verified_seller ? "bg-blue-500" : "bg-secondary"
+            profile?.is_verified_seller ? "bg-blue-500" : isPendingBadge ? "bg-amber-500" : "bg-secondary"
           }`}>
-            <BadgeCheck size={20} className={profile?.is_verified_seller ? "text-white" : "text-muted-foreground"} />
+            {isPendingBadge && !profile?.is_verified_seller ? (
+              <Clock size={20} className="text-white" />
+            ) : (
+              <BadgeCheck size={20} className={profile?.is_verified_seller ? "text-white" : "text-muted-foreground"} />
+            )}
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
@@ -2562,12 +2588,19 @@ export default function ProfilePage() {
             <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
               {profile?.is_verified_seller 
                 ? "Kepercayaan pembeli meningkat dengan lencana ini." 
+                : isPendingBadge
+                ? "Menunggu verifikasi oleh Admin. Harap bersabar."
                 : "Tingkatkan kepercayaan pembeli dengan lencana biru di profilmu."}
             </p>
           </div>
-          {!profile?.is_verified_seller && (
+          {!profile?.is_verified_seller && !isPendingBadge && (
             <div className="shrink-0 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-xs font-bold">
               Beli
+            </div>
+          )}
+          {isPendingBadge && !profile?.is_verified_seller && (
+            <div className="shrink-0 bg-amber-100 text-amber-600 px-3 py-1.5 rounded-full text-[10px] font-bold">
+              Sedang Menunggu
             </div>
           )}
         </button>

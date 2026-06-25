@@ -3369,7 +3369,7 @@ export default function AdminDashboard({
                   <button
                     onClick={() => {
                       const doApprove = async () => {
-                        const { error } = await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                        const { error } = await supabase.from('profiles').update({ is_verified_seller: true }).eq('id', selectedSeller.id);
                         if (error) {
                           console.warn("Supabase RLS issue:", error);
                           showToast(`Gagal menyetujui: ${error.message}`, "error");
@@ -3465,7 +3465,7 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doApproveModal = async () => {
-                    const { error } = await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                    const { error } = await supabase.from('profiles').update({ is_verified_seller: true }).eq('id', selectedSeller.id);
                     if (error) {
                       console.warn("Supabase RLS issue:", error);
                       showToast(`Gagal menyetujui: ${error.message}`, "error");
