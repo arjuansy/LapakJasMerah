@@ -2245,6 +2245,7 @@ export default function ProfilePage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [badgePaid, setBadgePaid] = useState(false);
   const [ktmFile, setKtmFile] = useState<File | null>(null);
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
 
   const handlePurchaseBadge = async () => {
     if (!user) {
@@ -2257,20 +2258,25 @@ export default function ProfilePage() {
       return;
     }
     
+    if (!paymentProofFile) {
+      toast.error("Harap unggah Bukti Transfer terlebih dahulu");
+      return;
+    }
+    
     setIsProcessingPayment(true);
     
     // Simulasi proses payment gateway
     setTimeout(async () => {
       try {
         const ktmUrl = await storageService.uploadProductImage(ktmFile);
+        const proofUrl = await storageService.uploadProductImage(paymentProofFile);
 
         const { error: insertError } = await supabase.from('package_transactions').insert({
           user_id: user.id,
           transaction_type: 'seller_verification',
           package_name: 'Verifikasi Penjual',
           amount: 5000,
-          payment_method: 'Transfer',
-          payment_proof_url: ktmUrl,
+          payment_proof_url: ktmUrl + "," + proofUrl,
           status: 'PENDING'
         });
 
@@ -2687,10 +2693,34 @@ export default function ProfilePage() {
                     />
                   </div>
                   
-                  <div className="bg-secondary/50 rounded-xl p-3 w-full border border-border">
+                  <div className="bg-secondary/50 rounded-xl p-3 w-full border border-border mb-4">
                     <p className="text-[10px] text-muted-foreground text-center mb-1 uppercase font-bold tracking-wider">Atau Transfer ke</p>
                     <p className="text-sm font-black text-foreground text-center">123-456-7890</p>
                     <p className="text-[10px] text-muted-foreground text-center">Bank BCA a.n Lapak Jas Merah</p>
+                  </div>
+                  
+                  <div className="w-full mt-2">
+                    <label className="block text-xs font-bold text-foreground mb-2 text-center">
+                      Bukti Transfer <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative overflow-hidden w-full h-10 bg-background rounded-lg flex items-center justify-center cursor-pointer border border-dashed border-border hover:border-primary/50 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setPaymentProofFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Upload size={14} />
+                        <span className="font-medium text-[11px] truncate max-w-[150px]">
+                          {paymentProofFile ? paymentProofFile.name : "Pilih Foto"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

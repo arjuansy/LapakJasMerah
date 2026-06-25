@@ -69,6 +69,7 @@ type SellerType = {
   rating: number;
   transactionId?: string;
   ktmUrl?: string;
+  paymentProofUrl?: string;
 };
 
 type ListingType = {
@@ -271,18 +272,20 @@ export default function AdminDashboard({
       if (pendingSellerVerifications) {
         const pendingSellers = pendingSellerVerifications.map((tx: any) => {
           const s = tx.user;
-          return {
-            id: s.id, // the user's id
-            nim: s?.nim || '-',
-            shopName: s?.username || s?.full_name || 'Toko',
-            ownerName: s?.full_name || '-',
-            major: s?.major || '-',
-            status: 'Pending',
-            registeredAt: new Date(tx.created_at).toISOString().split('T')[0],
-            rating: 0,
-            transactionId: tx.id, // Store transaction ID
-            ktmUrl: tx.payment_proof_url // Store the KTM photo URL
-          };
+            const urls = (tx.payment_proof_url || "").split(",");
+            return {
+              id: s.id, // the user's id
+              nim: s?.nim || '-',
+              shopName: s?.username || s?.full_name || 'Toko',
+              ownerName: s?.full_name || '-',
+              major: s?.major || '-',
+              status: 'Pending',
+              registeredAt: new Date(tx.created_at).toISOString().split('T')[0],
+              rating: 0,
+              transactionId: tx.id, // Store transaction ID
+              ktmUrl: urls[0], // Store the KTM photo URL
+              paymentProofUrl: urls[1] // Store the Payment Proof URL
+            };
         });
         // Avoid duplicate if somehow user is already verified but has pending transaction
         const existingIds = new Set(allSellers.map(s => s.id));
@@ -3302,14 +3305,33 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {selectedSeller.ktmUrl && (
-                <div className="border-t border-gray-100 pt-4">
-                  <h4 className="font-extrabold text-xs text-gray-900 mb-2">Foto KTM / KTP</h4>
-                  <img
-                    src={selectedSeller.ktmUrl}
-                    alt="KTM/KTP"
-                    className="w-full h-40 object-cover rounded-xl border border-gray-200"
-                  />
+              {(selectedSeller.ktmUrl || selectedSeller.paymentProofUrl) && (
+                <div className="mt-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-xs font-bold text-gray-500 mb-3">Dokumen Lampiran</p>
+                  <div className="flex gap-4">
+                    {selectedSeller.ktmUrl && (
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold text-gray-400 mb-1.5 uppercase">Foto KTM</p>
+                        <img
+                          src={selectedSeller.ktmUrl}
+                          alt="KTM"
+                          className="w-full h-40 object-cover rounded-xl border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(selectedSeller.ktmUrl, '_blank')}
+                        />
+                      </div>
+                    )}
+                    {selectedSeller.paymentProofUrl && (
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold text-gray-400 mb-1.5 uppercase">Bukti Pembayaran</p>
+                        <img
+                          src={selectedSeller.paymentProofUrl}
+                          alt="Bukti Pembayaran"
+                          className="w-full h-40 object-cover rounded-xl border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(selectedSeller.paymentProofUrl, '_blank')}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
