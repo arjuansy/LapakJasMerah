@@ -955,12 +955,15 @@ export default function ProductDetailPage() {
             </>
           );
         })()}
+
+        {/* Render Report Modal */}
+        <ReportModal showReportModal={showReportModal} setShowReportModal={setShowReportModal} />
       </div>
     );
   }
 
   // ── REPORT MODAL ──
-  function ReportModal() {
+  function ReportModal({ showReportModal, setShowReportModal }: { showReportModal: any, setShowReportModal: any }) {
     const [selectedReason, setSelectedReason] = useState("");
     const [detail, setDetail] = useState("");
     const [submitted, setSubmitted] = useState(false);
