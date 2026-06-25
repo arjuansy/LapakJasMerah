@@ -150,19 +150,19 @@ export default function AdminDashboard({
 }: {
   onLogout: () => void;
   defaultTab?:
-    | "dashboard"
-    | "users"
-    | "sellers"
-    | "listings"
-    | "categories"
-    | "reports"
-    | "suggestions"
-    | "transactions"
-    | "subscriptions"
-    | "settings"
-    | "admins"
-    | "whitelisted_users"
-    | "banners";
+  | "dashboard"
+  | "users"
+  | "sellers"
+  | "listings"
+  | "categories"
+  | "reports"
+  | "suggestions"
+  | "transactions"
+  | "subscriptions"
+  | "settings"
+  | "admins"
+  | "whitelisted_users"
+  | "banners";
 }) {
   const { user, profile } = useAuth();
 
@@ -217,7 +217,7 @@ export default function AdminDashboard({
   const [subscriptions, setSubscriptions] = useState<SubscriptionType[]>([]);
   const [admins, setAdmins] = useState<AdminType[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>([]);
-  const [whitelistedEmails, setWhitelistedEmails] = useState<{id: string, email: string, added_at: string}[]>([]);
+  const [whitelistedEmails, setWhitelistedEmails] = useState<{ id: string, email: string, added_at: string }[]>([]);
   const [bannersData, setBannersData] = useState<any[]>([]);
   const [showUserChart, setShowUserChart] = useState(false);
 
@@ -246,7 +246,7 @@ export default function AdminDashboard({
         .from('profiles')
         .select('*')
         .eq('is_verified_seller', true);
-        
+
       const { data: pendingSellerVerifications } = await supabase
         .from('package_transactions')
         .select('*, user:profiles(*)')
@@ -288,7 +288,7 @@ export default function AdminDashboard({
         const existingIds = new Set(allSellers.map(s => s.id));
         allSellers = [...allSellers, ...pendingSellers.filter(s => !existingIds.has(s.id))];
       }
-      
+
       setSellers(allSellers);
 
       // 3. Fetch Listings (Products)
@@ -503,7 +503,7 @@ export default function AdminDashboard({
   const [selectedAdminToDelete, setSelectedAdminToDelete] = useState<AdminType | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminType | null>(null);
-  const [selectedWhitelistEmail, setSelectedWhitelistEmail] = useState<{id: string, email: string} | null>(null);
+  const [selectedWhitelistEmail, setSelectedWhitelistEmail] = useState<{ id: string, email: string } | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<any | null>(null);
 
   // Dynamic Premium Packages configuration state
@@ -531,7 +531,7 @@ export default function AdminDashboard({
   const [packageForm, setPackageForm] = useState({ name: "", price: 300, desc: "", durationDays: 3 });
   const [whitelistEmailForm, setWhitelistEmailForm] = useState({ email: "" });
   const [bannerForm, setBannerForm] = useState({ title: "", sub: "", badge: "", bg: "", img: "", is_active: true });
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
   const [currentPage, setCurrentPage] = useState(1);
@@ -710,10 +710,10 @@ export default function AdminDashboard({
 
     const currentUsers = users.filter(u => isCurrent(u.registeredAt)).length;
     const prevUsers = users.filter(u => isPrev(u.registeredAt)).length;
-    
+
     const currentSellers = sellers.filter(s => s.status === "Disetujui" && isCurrent(s.registeredAt)).length;
     const prevSellers = sellers.filter(s => s.status === "Disetujui" && isPrev(s.registeredAt)).length;
-    
+
     const currentListings = listings.filter(l => l.status === "Disetujui" && isCurrent(l.createdAt)).length;
     const prevListings = listings.filter(l => l.status === "Disetujui" && isPrev(l.createdAt)).length;
 
@@ -773,9 +773,8 @@ export default function AdminDashboard({
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-lg text-sm text-white transform translate-y-0 transition-all duration-300 ${
-              t.type === "success" ? "bg-green-600" : t.type === "error" ? "bg-red-600" : "bg-blue-600"
-            }`}
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-lg text-sm text-white transform translate-y-0 transition-all duration-300 ${t.type === "success" ? "bg-green-600" : t.type === "error" ? "bg-red-600" : "bg-blue-600"
+              }`}
           >
             {t.type === "success" && <Check className="w-5 h-5 shrink-0" />}
             {t.type === "error" && <X className="w-5 h-5 shrink-0" />}
@@ -787,9 +786,8 @@ export default function AdminDashboard({
 
       {/* ── SIDEBAR NAVIGATION ── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-white border-r border-gray-200 transition-transform duration-300 lg:translate-x-0 lg:static shrink-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-white border-r border-gray-200 transition-transform duration-300 lg:translate-x-0 lg:static shrink-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Brand logo header */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 bg-white">
@@ -853,13 +851,12 @@ export default function AdminDashboard({
                     setSidebarOpen(false);
                   }
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
-                  isRestricted
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all relative ${isRestricted
                     ? "opacity-50 cursor-not-allowed hover:bg-transparent text-gray-400"
                     : isActive
-                    ? "bg-red-50 text-red-600 border-l-4 border-red-600 pl-2"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
+                      ? "bg-red-50 text-red-600 border-l-4 border-red-600 pl-2"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
               >
                 <Icon className={`w-4.5 h-4.5 ${isActive && !isRestricted ? "text-red-600" : "text-gray-400"}`} />
                 <span className="flex-1 text-left">{item.label}</span>
@@ -1099,7 +1096,7 @@ export default function AdminDashboard({
                         </div>
                         <span className="text-[10px] font-bold text-gray-500">Tampilkan Pendaftar</span>
                       </label>
-                      
+
                       {!showUserChart && (
                         <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
                           <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />
@@ -1125,7 +1122,7 @@ export default function AdminDashboard({
                               <span className="text-[10px] font-bold text-gray-600 mb-1">
                                 {data.count}
                               </span>
-                              <div 
+                              <div
                                 className="w-full bg-red-500 rounded-t-sm transition-all duration-500 relative"
                                 style={{ height: `${heightPct}%`, minHeight: '4px' }}
                               >
@@ -1163,22 +1160,21 @@ export default function AdminDashboard({
                   <div className="space-y-4">
                     {[] as any[].length > 0 ? (
                       [].map((act: any, idx: number) => (
-                        <div key={idx} className="flex gap-3 text-xs leading-relaxed">
-                          <div className="pt-0.5">
-                            <span className={`w-2 h-2 rounded-full block ${
-                              act.type === "success" ? "bg-green-500" : act.type === "error" ? "bg-red-500" : "bg-blue-500"
-                            }`} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-700">{act.text}</p>
-                            <span className="text-[9px] text-gray-400 font-bold block mt-0.5">{act.time}</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-6">
-                        <p className="text-xs font-bold text-gray-400">Belum ada aktivitas moderasi.</p>
+                    <div key={idx} className="flex gap-3 text-xs leading-relaxed">
+                      <div className="pt-0.5">
+                        <span className={`w-2 h-2 rounded-full block ${act.type === "success" ? "bg-green-500" : act.type === "error" ? "bg-red-500" : "bg-blue-500"
+                          }`} />
                       </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-700">{act.text}</p>
+                        <span className="text-[9px] text-gray-400 font-bold block mt-0.5">{act.time}</span>
+                      </div>
+                    </div>
+                    ))
+                    ) : (
+                    <div className="text-center py-6">
+                      <p className="text-xs font-bold text-gray-400">Belum ada aktivitas moderasi.</p>
+                    </div>
                     )}
                   </div>
                 </div>
@@ -1306,11 +1302,10 @@ export default function AdminDashboard({
                               <td className="px-6 py-4 font-semibold text-gray-600">{u.major}</td>
                               <td className="px-6 py-4">
                                 <span
-                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                                    u.status === "Aktif"
+                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${u.status === "Aktif"
                                       ? "bg-green-50 text-green-700 border border-green-150"
                                       : "bg-red-50 text-red-700 border border-red-150"
-                                  }`}
+                                    }`}
                                 >
                                   {u.status}
                                 </span>
@@ -1389,32 +1384,32 @@ export default function AdminDashboard({
                   </table>
                 </div>
 
-              {/* Pagination block */}
-              <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500 bg-gray-50/50">
-                <span>
-                  Menampilkan {Math.min(filteredUsersList.length, (currentPage - 1) * itemsPerPage + 1)} sampai{" "}
-                  {Math.min(filteredUsersList.length, currentPage * itemsPerPage)} dari {filteredUsersList.length} data
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((c) => Math.max(c - 1, 1))}
-                    className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Sebelumnya
-                  </button>
-                  <button
-                    disabled={currentPage * itemsPerPage >= filteredUsersList.length}
-                    onClick={() => setCurrentPage((c) => c + 1)}
-                    className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Berikutnya
-                  </button>
+                {/* Pagination block */}
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500 bg-gray-50/50">
+                  <span>
+                    Menampilkan {Math.min(filteredUsersList.length, (currentPage - 1) * itemsPerPage + 1)} sampai{" "}
+                    {Math.min(filteredUsersList.length, currentPage * itemsPerPage)} dari {filteredUsersList.length} data
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((c) => Math.max(c - 1, 1))}
+                      className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Sebelumnya
+                    </button>
+                    <button
+                      disabled={currentPage * itemsPerPage >= filteredUsersList.length}
+                      onClick={() => setCurrentPage((c) => c + 1)}
+                      className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Berikutnya
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
           {/* ──────────────────────────────────────────────────────────── */}
           {/* TAB: 3. SELLER MANAGEMENT */}
@@ -1514,23 +1509,22 @@ export default function AdminDashboard({
                               <td className="px-6 py-4 text-gray-500 font-semibold">{s.registeredAt}</td>
                               <td className="px-6 py-4">
                                 <span
-                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                                    s.status === "Disetujui"
+                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${s.status === "Disetujui"
                                       ? "bg-green-50 text-green-700 border border-green-150"
                                       : s.status === "Pending"
-                                      ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
-                                      : s.status === "Ditangguhkan"
-                                      ? "bg-red-50 text-red-700 border border-red-150"
-                                      : "bg-gray-100 text-gray-500 border border-gray-200"
-                                  }`}
+                                        ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
+                                        : s.status === "Ditangguhkan"
+                                          ? "bg-red-50 text-red-700 border border-red-150"
+                                          : "bg-gray-100 text-gray-500 border border-gray-200"
+                                    }`}
                                 >
                                   {s.status === "Disetujui"
                                     ? "Terverifikasi"
                                     : s.status === "Pending"
-                                    ? "Menunggu Review"
-                                    : s.status === "Ditangguhkan"
-                                    ? "Ditangguhkan"
-                                    : "Pengajuan Ditolak"}
+                                      ? "Menunggu Review"
+                                      : s.status === "Ditangguhkan"
+                                        ? "Ditangguhkan"
+                                        : "Pengajuan Ditolak"}
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-right">
@@ -1610,38 +1604,38 @@ export default function AdminDashboard({
                                 </div>
                               </td>
                             </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Pagination */}
-              <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500 bg-gray-50/50">
-                <span>
-                  Menampilkan {Math.min(filteredSellersList.length, (currentPage - 1) * itemsPerPage + 1)} sampai{" "}
-                  {Math.min(filteredSellersList.length, currentPage * itemsPerPage)} dari {filteredSellersList.length} data
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((c) => Math.max(c - 1, 1))}
-                    className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Sebelumnya
-                  </button>
-                  <button
-                    disabled={currentPage * itemsPerPage >= filteredSellersList.length}
-                    onClick={() => setCurrentPage((c) => c + 1)}
-                    className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Berikutnya
-                  </button>
+                {/* Pagination */}
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500 bg-gray-50/50">
+                  <span>
+                    Menampilkan {Math.min(filteredSellersList.length, (currentPage - 1) * itemsPerPage + 1)} sampai{" "}
+                    {Math.min(filteredSellersList.length, currentPage * itemsPerPage)} dari {filteredSellersList.length} data
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((c) => Math.max(c - 1, 1))}
+                      className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Sebelumnya
+                    </button>
+                    <button
+                      disabled={currentPage * itemsPerPage >= filteredSellersList.length}
+                      onClick={() => setCurrentPage((c) => c + 1)}
+                      className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Berikutnya
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
           {/* ──────────────────────────────────────────────────────────── */}
           {/* TAB: 4. LISTING MANAGEMENT */}
@@ -1739,13 +1733,12 @@ export default function AdminDashboard({
                             <td className="px-6 py-4 font-black text-gray-800">{formatPrice(l.price)}</td>
                             <td className="px-6 py-4">
                               <span
-                                className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                                  l.status === "Disetujui"
+                                className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${l.status === "Disetujui"
                                     ? "bg-green-50 text-green-700 border border-green-150"
                                     : l.status === "Pending"
-                                    ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
-                                    : "bg-red-50 text-red-700 border border-red-150"
-                                }`}
+                                      ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
+                                      : "bg-red-50 text-red-700 border border-red-150"
+                                  }`}
                               >
                                 {l.status === "Disetujui" ? "Aktif" : l.status === "Pending" ? "Menunggu Verifikasi" : "Ditolak"}
                               </span>
@@ -2006,11 +1999,10 @@ export default function AdminDashboard({
                             <td className="px-6 py-4 font-medium text-gray-600 max-w-xs truncate">{r.reason}</td>
                             <td className="px-6 py-4">
                               <span
-                                className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                                  r.status === "Selesai"
+                                className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${r.status === "Selesai"
                                     ? "bg-green-50 text-green-700 border border-green-150"
                                     : "bg-yellow-50 text-yellow-700 border border-yellow-150"
-                                }`}
+                                  }`}
                               >
                                 {r.status === "Selesai" ? "Diselesaikan" : "Butuh Tindakan"}
                               </span>
@@ -2135,11 +2127,10 @@ export default function AdminDashboard({
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                              s.status === "Selesai" ? "bg-green-50 text-green-700 border border-green-150" :
-                              s.status === "Ditolak" ? "bg-red-50 text-red-700 border border-red-150" :
-                              "bg-yellow-50 text-yellow-700 border border-yellow-150"
-                            }`}>
+                            <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${s.status === "Selesai" ? "bg-green-50 text-green-700 border border-green-150" :
+                                s.status === "Ditolak" ? "bg-red-50 text-red-700 border border-red-150" :
+                                  "bg-yellow-50 text-yellow-700 border border-yellow-150"
+                              }`}>
                               {s.status}
                             </span>
                           </td>
@@ -2291,101 +2282,100 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
-              {/* Data Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-[9px] font-black">
-                      <th className="px-6 py-4">ID Transaksi</th>
-                      <th className="px-6 py-4">Nama Produk</th>
-                      <th className="px-6 py-4">Pembeli / Penjual</th>
-                      <th className="px-6 py-4">Total Bayar</th>
-                      <th className="px-6 py-4">Metode Bayar</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Tanggal Transaksi</th>
-                      <th className="px-6 py-4 text-right">Tindakan</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredTransactionsList.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="px-6 py-12 text-center text-gray-400 font-semibold">
-                          Tidak ditemukan data transaksi.
-                        </td>
+                {/* Data Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-[9px] font-black">
+                        <th className="px-6 py-4">ID Transaksi</th>
+                        <th className="px-6 py-4">Nama Produk</th>
+                        <th className="px-6 py-4">Pembeli / Penjual</th>
+                        <th className="px-6 py-4">Total Bayar</th>
+                        <th className="px-6 py-4">Metode Bayar</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Tanggal Transaksi</th>
+                        <th className="px-6 py-4 text-right">Tindakan</th>
                       </tr>
-                    ) : (
-                      filteredTransactionsList
-                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                        .map((t) => (
-                          <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-6 py-4 font-bold text-gray-500">{t.id}</td>
-                            <td className="px-6 py-4 font-extrabold text-gray-800">{t.productTitle}</td>
-                            <td className="px-6 py-4">
-                              <div className="text-gray-700 font-semibold leading-relaxed">
-                                <p>B: {t.buyerName}</p>
-                                <p className="text-[10px] text-gray-400">P: {t.sellerName}</p>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 font-black text-gray-900">{formatPrice(t.amount)}</td>
-                            <td className="px-6 py-4 font-semibold text-gray-500">{t.paymentMethod}</td>
-                            <td className="px-6 py-4">
-                              <span
-                                className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                                  t.status === "Sukses"
-                                    ? "bg-green-50 text-green-700 border border-green-150"
-                                    : t.status === "Pending"
-                                    ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
-                                    : "bg-red-50 text-red-700 border border-red-150"
-                                }`}
-                              >
-                                {t.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-gray-500 font-semibold">{t.createdAt}</td>
-                            <td className="px-6 py-4 text-right">
-                              <button
-                                onClick={() => {
-                                  setSelectedTransaction(t);
-                                  setModalType("viewTransaction");
-                                }}
-                                className="p-1.5 text-blue-650 hover:bg-blue-50 rounded-lg font-bold"
-                              >
-                                Invoice
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredTransactionsList.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="px-6 py-12 text-center text-gray-400 font-semibold">
+                            Tidak ditemukan data transaksi.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredTransactionsList
+                          .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                          .map((t) => (
+                            <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-6 py-4 font-bold text-gray-500">{t.id}</td>
+                              <td className="px-6 py-4 font-extrabold text-gray-800">{t.productTitle}</td>
+                              <td className="px-6 py-4">
+                                <div className="text-gray-700 font-semibold leading-relaxed">
+                                  <p>B: {t.buyerName}</p>
+                                  <p className="text-[10px] text-gray-400">P: {t.sellerName}</p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 font-black text-gray-900">{formatPrice(t.amount)}</td>
+                              <td className="px-6 py-4 font-semibold text-gray-500">{t.paymentMethod}</td>
+                              <td className="px-6 py-4">
+                                <span
+                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${t.status === "Sukses"
+                                      ? "bg-green-50 text-green-700 border border-green-150"
+                                      : t.status === "Pending"
+                                        ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
+                                        : "bg-red-50 text-red-700 border border-red-150"
+                                    }`}
+                                >
+                                  {t.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 font-semibold">{t.createdAt}</td>
+                              <td className="px-6 py-4 text-right">
+                                <button
+                                  onClick={() => {
+                                    setSelectedTransaction(t);
+                                    setModalType("viewTransaction");
+                                  }}
+                                  className="p-1.5 text-blue-650 hover:bg-blue-50 rounded-lg font-bold"
+                                >
+                                  Invoice
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Pagination */}
-              <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500 bg-gray-50/50">
-                <span>
-                  Menampilkan {Math.min(filteredTransactionsList.length, (currentPage - 1) * itemsPerPage + 1)} sampai{" "}
-                  {Math.min(filteredTransactionsList.length, currentPage * itemsPerPage)} dari {filteredTransactionsList.length} data
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((c) => Math.max(c - 1, 1))}
-                    className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Sebelumnya
-                  </button>
-                  <button
-                    disabled={currentPage * itemsPerPage >= filteredTransactionsList.length}
-                    onClick={() => setCurrentPage((c) => c + 1)}
-                    className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Berikutnya
-                  </button>
+                {/* Pagination */}
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500 bg-gray-50/50">
+                  <span>
+                    Menampilkan {Math.min(filteredTransactionsList.length, (currentPage - 1) * itemsPerPage + 1)} sampai{" "}
+                    {Math.min(filteredTransactionsList.length, currentPage * itemsPerPage)} dari {filteredTransactionsList.length} data
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((c) => Math.max(c - 1, 1))}
+                      className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Sebelumnya
+                    </button>
+                    <button
+                      disabled={currentPage * itemsPerPage >= filteredTransactionsList.length}
+                      onClick={() => setCurrentPage((c) => c + 1)}
+                      className="px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Berikutnya
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
           {/* ──────────────────────────────────────────────────────────── */}
           {/* TAB: 8. SUBSCRIPTIONS PREMIUM */}
@@ -2510,13 +2500,12 @@ export default function AdminDashboard({
                               <td className="px-6 py-4 text-gray-500 font-semibold">{s.requestedAt}</td>
                               <td className="px-6 py-4">
                                 <span
-                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                                    s.status === "Disetujui"
+                                  className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${s.status === "Disetujui"
                                       ? "bg-green-50 text-green-700 border border-green-150"
                                       : s.status === "Pending"
-                                      ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
-                                      : "bg-red-50 text-red-700 border border-red-150"
-                                  }`}
+                                        ? "bg-yellow-50 text-yellow-700 border border-yellow-150"
+                                        : "bg-red-50 text-red-700 border border-red-150"
+                                    }`}
                                 >
                                   {s.status === "Disetujui" ? "Aktif" : s.status === "Pending" ? "Review Bayar" : "Ditolak"}
                                 </span>
@@ -2829,11 +2818,10 @@ export default function AdminDashboard({
                           <td className="px-6 py-4 font-semibold text-gray-600">{adm.email}</td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
-                                adm.role === "Super Admin"
+                              className={`inline-flex px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${adm.role === "Super Admin"
                                   ? "bg-red-50 text-red-700 border-red-200"
                                   : "bg-blue-50 text-blue-700 border-blue-200"
-                              }`}
+                                }`}
                             >
                               {adm.role}
                             </span>
@@ -3317,9 +3305,9 @@ export default function AdminDashboard({
               {selectedSeller.ktmUrl && (
                 <div className="border-t border-gray-100 pt-4">
                   <h4 className="font-extrabold text-xs text-gray-900 mb-2">Foto KTM / KTP</h4>
-                  <img 
-                    src={selectedSeller.ktmUrl} 
-                    alt="KTM/KTP" 
+                  <img
+                    src={selectedSeller.ktmUrl}
+                    alt="KTM/KTP"
                     className="w-full h-40 object-cover rounded-xl border border-gray-200"
                   />
                 </div>
@@ -3418,9 +3406,9 @@ export default function AdminDashboard({
                 {selectedSeller.ktmUrl && (
                   <div className="mt-4">
                     <p className="text-xs font-bold text-gray-700 mb-2">Foto KTM / KTP:</p>
-                    <img 
-                      src={selectedSeller.ktmUrl} 
-                      alt="KTM/KTP" 
+                    <img
+                      src={selectedSeller.ktmUrl}
+                      alt="KTM/KTP"
                       className="w-full h-40 object-cover rounded-xl border border-gray-200"
                     />
                   </div>
@@ -3439,14 +3427,14 @@ export default function AdminDashboard({
                   const doApproveModal = async () => {
                     const { error } = await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
                     if (error) console.warn("Supabase RLS issue:", error);
-                    
+
                     if (selectedSeller.transactionId) {
                       await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
                     }
-                    
+
                     // Update UI locally
                     setSellers((prev) => prev.map((s) => s.id === selectedSeller.id ? { ...s, status: "Disetujui" } : s));
-                    
+
                     showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
                     setModalType(null);
                   };
@@ -3477,9 +3465,9 @@ export default function AdminDashboard({
                 {selectedSeller.ktmUrl && (
                   <div className="mt-4">
                     <p className="text-xs font-bold text-gray-700 mb-2">Foto KTM / KTP:</p>
-                    <img 
-                      src={selectedSeller.ktmUrl} 
-                      alt="KTM/KTP" 
+                    <img
+                      src={selectedSeller.ktmUrl}
+                      alt="KTM/KTP"
                       className="w-full h-40 object-cover rounded-xl border border-gray-200"
                     />
                   </div>
@@ -3542,10 +3530,10 @@ export default function AdminDashboard({
                   const doRevokeBadge = async () => {
                     const { error } = await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
                     if (error) console.warn("Supabase RLS issue:", error);
-                    
+
                     // Update UI locally since RLS might block actual update
                     setSellers((prev) => prev.filter((s) => s.id !== selectedSeller.id));
-                    
+
                     showToast(`Badge verifikasi toko ${selectedSeller.shopName} berhasil dicabut!`, "info");
                     setModalType(null);
                   };
@@ -3898,14 +3886,14 @@ export default function AdminDashboard({
                         category_id: catObj.id,
                         price: listingForm.price
                       }).eq('id', selectedListing.id);
-                      
+
                       if (error) {
                         console.error("Gagal update produk:", error);
                         showToast("Gagal memperbarui iklan di database", "error");
                         return;
                       }
                     }
-                    
+
                     fetchAllData();
                     showToast("Iklan berhasil diperbarui!", "success");
                     setModalType(null);
@@ -4583,7 +4571,7 @@ export default function AdminDashboard({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Invoice Content */}
             <div id="invoice-sheet" className="p-6 space-y-6 bg-white">
               {/* Header */}
@@ -4852,12 +4840,12 @@ export default function AdminDashboard({
                     prev.map((pkg) =>
                       pkg.id === selectedSub.id
                         ? {
-                            ...pkg,
-                            name: packageForm.name.trim(),
-                            price: packageForm.price,
-                            desc: packageForm.desc.trim(),
-                            durationDays: packageForm.durationDays,
-                          }
+                          ...pkg,
+                          name: packageForm.name.trim(),
+                          price: packageForm.price,
+                          desc: packageForm.desc.trim(),
+                          durationDays: packageForm.durationDays,
+                        }
                         : pkg
                     )
                   );
