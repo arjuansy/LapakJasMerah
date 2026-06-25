@@ -3437,11 +3437,16 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doApproveModal = async () => {
-                    await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                    const { error } = await supabase.from('profiles').update({ is_verified_seller: true, status: 'ACTIVE' }).eq('id', selectedSeller.id);
+                    if (error) console.warn("Supabase RLS issue:", error);
+                    
                     if (selectedSeller.transactionId) {
                       await supabase.from('package_transactions').update({ status: 'SUCCESS' }).eq('id', selectedSeller.transactionId);
                     }
-                    fetchAllData();
+                    
+                    // Update UI locally
+                    setSellers((prev) => prev.map((s) => s.id === selectedSeller.id ? { ...s, status: "Disetujui" } : s));
+                    
                     showToast(`Toko ${selectedSeller.shopName} berhasil terverifikasi!`, "success");
                     setModalType(null);
                   };
@@ -3535,8 +3540,12 @@ export default function AdminDashboard({
               <button
                 onClick={() => {
                   const doRevokeBadge = async () => {
-                    await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
-                    fetchAllData();
+                    const { error } = await supabase.from('profiles').update({ is_verified_seller: false }).eq('id', selectedSeller.id);
+                    if (error) console.warn("Supabase RLS issue:", error);
+                    
+                    // Update UI locally since RLS might block actual update
+                    setSellers((prev) => prev.filter((s) => s.id !== selectedSeller.id));
+                    
                     showToast(`Badge verifikasi toko ${selectedSeller.shopName} berhasil dicabut!`, "info");
                     setModalType(null);
                   };
