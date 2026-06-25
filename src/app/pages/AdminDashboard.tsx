@@ -1227,7 +1227,7 @@ export default function AdminDashboard({
                   { label: "Total Mahasiswa", val: users.length, color: "border-blue-500 text-blue-600" },
                   { label: "Mahasiswa Aktif", val: users.filter((u) => u.status === "Aktif").length, color: "border-green-500 text-green-600" },
                   { label: "Akun Ditangguhkan", val: users.filter((u) => u.status === "Ditangguhkan").length, color: "border-red-500 text-red-600" },
-                  { label: "Registrasi Baru (Minggu Ini)", val: 3, color: "border-purple-500 text-purple-600" },
+                  { label: "Registrasi Baru (Minggu Ini)", val: users.filter((u) => { const diff = new Date().getTime() - new Date(u.registeredAt).getTime(); return Math.ceil(diff / (1000 * 60 * 60 * 24)) <= 7; }).length, color: "border-purple-500 text-purple-600" },
                 ].map((stat) => (
                   <div key={stat.label} className={`border-l-4 ${stat.color} rounded-xl p-4 bg-white shadow-sm border border-gray-200 flex flex-col justify-center`}>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
