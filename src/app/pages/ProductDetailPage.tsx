@@ -586,7 +586,49 @@ export default function ProductDetailPage() {
       {/* ── DESKRIPSI ── */}
       <div className="px-4 lg:px-0 py-4 lg:pt-8 lg:max-w-3xl">
         <h3 className="text-foreground font-bold text-sm mb-2">Deskripsi Produk</h3>
-        <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
+        <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{desc}</p>
+      </div>
+
+      <div className="h-2 bg-muted lg:hidden" />
+
+      {/* ── REKOMENDASI LOKASI COD (PETA) ── */}
+      <div className="px-4 lg:px-0 py-4 lg:max-w-3xl">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-foreground font-bold text-sm">Rekomendasi Lokasi COD</h3>
+          <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Aman & Ramai</span>
+        </div>
+        <div className="relative w-full h-40 lg:h-64 rounded-xl overflow-hidden bg-muted border border-border group cursor-pointer shadow-sm">
+          {/* Simulated Map Image */}
+          <img 
+            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop" 
+            alt="Map View" 
+            className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
+            style={{ filter: "saturate(1.2)" }}
+          />
+          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+          
+          {/* Pin */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+            <div className="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-md shadow-lg mb-1 whitespace-nowrap animate-bounce">
+              {product.location}
+            </div>
+            <MapPin size={32} className="text-primary drop-shadow-xl" fill="#fff" />
+          </div>
+
+          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 backdrop-blur-sm p-2.5 rounded-xl shadow border border-white/50">
+            <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+              <Shield size={16} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-foreground leading-tight">Zona COD Aman Kampus</p>
+              <p className="text-[9px] text-muted-foreground line-clamp-1 mt-0.5">Area terpantau CCTV & satpam kampus.</p>
+            </div>
+            <button className="ml-auto bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg">
+              Rute
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="h-2 bg-muted lg:hidden" />
