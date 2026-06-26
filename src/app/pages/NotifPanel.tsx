@@ -129,7 +129,7 @@ export default function NotifPanel({ variant = "drawer" }: { variant?: "drawer" 
 
   // ══ VARIANT: DRAWER (mobile/tablet, slide dari kanan, full height) ══
   return (
-    <div className="lg:hidden contents">
+    <div className="lg:hidden">
       {/* Backdrop */}
       <div className="fixed inset-0 z-[70]" onClick={() => setShowNotif(false)} />
 

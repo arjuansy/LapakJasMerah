@@ -15,6 +15,7 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
+import type { CodSpot } from "../types/cod";
 
 export const categories = [
   { icon: BookOpen, label: "Buku & Modul", color: "#3B82F6" },
@@ -208,6 +209,7 @@ export interface Product {
   isNew?: boolean;
   is_premium?: boolean;
   images_raw?: string;
+  codLocations?: CodSpot[];
 }
 
 export const extraProducts: Product[] = [
