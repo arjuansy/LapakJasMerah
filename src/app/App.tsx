@@ -135,6 +135,7 @@ export default function App() {
           seller:profiles!products_seller_id_fkey(full_name, avatar_url),
           category:categories(name)
         `)
+        .neq('status', 'SUSPENDED')
         .or(`expires_at.gte.${new Date().toISOString()},expires_at.is.null`)
         .order('is_premium', { ascending: false })
         .order('created_at', { ascending: false });
@@ -197,6 +198,7 @@ export default function App() {
             sold: totalSold,
             description: p.description || "",
             stock: p.stock ?? 1,
+            status: p.status,
             is_premium: p.is_premium
           };
         });

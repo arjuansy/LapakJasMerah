@@ -4,25 +4,18 @@ import L from "leaflet";
 import { MapPin, Shield, Navigation, X } from "lucide-react";
 import type { CodSpot } from "../../types/cod";
 
-// Fix default marker icon (Leaflet's default icons break with bundlers like Vite/Webpack)
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
 // Custom maroon pin icon untuk titik COD aman (LapakJasMerah brand color)
-const safeIcon = new L.Icon({
-  iconUrl:
-    "data:image/svg+xml;base64," +
-    btoa(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
-        <path d="M16 0C7.16 0 0 7.16 0 16c0 11 16 26 16 26s16-15 16-26C32 7.16 24.84 0 16 0z" fill="#c41230"/>
-        <circle cx="16" cy="16" r="8" fill="white"/>
-        <path d="M16 11l2.5 5h5.5l-4.5 3.5 1.7 5.5L16 21.5l-5.2 3.5 1.7-5.5L8 16h5.5z" fill="#c41230" transform="scale(0.55) translate(13,12)"/>
-      </svg>
-    `),
+// Pakai divIcon (HTML/SVG langsung di DOM) — lebih stabil daripada Icon base64
+// karena tidak depend ke loading file gambar eksternal dari unpkg.
+const safeIcon = L.divIcon({
+  html: `
+    <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+      <path d="M16 0C7.16 0 0 7.16 0 16c0 11 16 26 16 26s16-15 16-26C32 7.16 24.84 0 16 0z" fill="#c41230"/>
+      <circle cx="16" cy="16" r="8" fill="white"/>
+      <path d="M16 11.5l2 4 4.4.6-3.2 3 .8 4.3L16 21.3l-3.9 2.1.8-4.3-3.2-3 4.4-.6z" fill="#c41230"/>
+    </svg>
+  `,
+  className: "cod-marker-icon", // custom class, BUKAN default leaflet-div-icon yang punya border/background bawaan
   iconSize: [32, 42],
   iconAnchor: [16, 42],
   popupAnchor: [0, -38],
@@ -78,6 +71,7 @@ export default function CodLocationMap({
   initialCenter = [-7.9215, 112.5975], // pusat kampus UMM
   height = 280,
 }: CodLocationMapProps) {
+  console.log("spots received:", spots, spots?.length);
   const [selected, setSelected] = useState<CodSpot | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
