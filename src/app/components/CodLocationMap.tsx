@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { MapPin, Shield, Navigation, X } from "lucide-react";
+import type { CodSpot } from "../../types/cod";
 
 // Fix default marker icon (Leaflet's default icons break with bundlers like Vite/Webpack)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -26,8 +27,6 @@ const safeIcon = new L.Icon({
   iconAnchor: [16, 42],
   popupAnchor: [0, -38],
 });
-
-import type { CodSpot } from "../../types/cod";
 
 // Titik-titik COD aman di sekitar kampus UMM (Universitas Muhammadiyah Malang)
 // Ganti / sesuaikan koordinat ini dengan lokasi nyata yang sudah divalidasi tim kamu
