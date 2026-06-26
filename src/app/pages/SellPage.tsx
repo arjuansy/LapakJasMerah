@@ -22,6 +22,8 @@ import { formatPrice } from "../data";
 import { supabase } from "../../config/supabaseClient";
 import { storageService } from "../../services/storageService";
 import { useAuth } from "../../hooks/useAuth";
+import CodLocationPicker from "../components/CodLocationPicker";
+import type { CodSpot } from "../../types/cod";
 
 export default function SellPage() {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ export default function SellPage() {
   const [adPackage, setAdPackage] = useState<"gratis" | "standard">("gratis");
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
+  const [codLocations, setCodLocations] = useState<CodSpot[]>([]);
 
   function handleProofUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
@@ -203,6 +206,7 @@ export default function SellPage() {
           location: actualLocation,
           image_url: imageUrl,
           status: 'AVAILABLE',
+          cod_locations: codLocations,
           ad_package: adPackage,
           is_premium: adPackage === 'standard', // Otomatis aktif untuk banner jika beli standard
           expires_at: expiresAt
@@ -654,6 +658,15 @@ export default function SellPage() {
 
               {/* Tempat COD */}
               <div className="px-4 py-3.5">
+                <CodLocationPicker
+                  value={codLocations}
+                  onChange={setCodLocations}
+                  height={300}
+                />
+              </div>
+
+              {/* Detail Tempat Temu (tetap dipertahankan kalau ingin input teks bebas juga) */}
+              <div className="px-4 py-3.5 border-t border-border mt-2">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">
                   Detail Tempat Temu (opsional)
                 </label>

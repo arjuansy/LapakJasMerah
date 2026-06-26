@@ -52,6 +52,8 @@ import { storageService } from "../../services/storageService";
 import { formatPrice, productDescriptions } from "../data";
 import { supabase } from "../../config/supabaseClient";
 import { parseImageUrls } from "../../utils/imageParser";
+import CodLocationPicker from "../components/CodLocationPicker";
+import type { CodSpot } from "../../types/cod";
 
 // ── DAFTAR PENJUALAN ──
 function SalesPage({ onBack }: { onBack: () => void }) {
@@ -996,6 +998,16 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  const [codLocations, setCodLocations] = useState<CodSpot[]>([]);
+
+  useEffect(() => {
+    if ((item as any).cod_locations) {
+      setCodLocations((item as any).cod_locations);
+    } else if ((item as any).codLocations) {
+      setCodLocations((item as any).codLocations);
+    }
+  }, [item]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [conditionOpen, setConditionOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -1077,7 +1089,8 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
           location: form.location,
           image_url: updatedImage,
           category_id: categoryId,
-          status: newStatus
+          status: newStatus,
+          cod_locations: codLocations
         })
         .eq('id', item.id);
 
@@ -1357,6 +1370,13 @@ function EditItemPage({ onBack }: { onBack: () => void }) {
               onToggle={() => { setLocationOpen((o) => !o); setCategoryOpen(false); setConditionOpen(false); }}
               options={locationOptions} onSelect={(v) => { setForm((f) => ({ ...f, location: v })); setLocationOpen(false); }}
               error={errors.location} />
+            <div className="px-4 py-3.5">
+              <CodLocationPicker
+                value={codLocations}
+                onChange={setCodLocations}
+                height={300}
+              />
+            </div>
             <div className="px-4 py-3.5">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block mb-1.5">Detail Tempat Temu (opsional)</label>
               <input type="text" value={form.meetup} onChange={(e) => setForm((f) => ({ ...f, meetup: e.target.value }))}
