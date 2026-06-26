@@ -89,6 +89,8 @@ export default function ProductDetailPage() {
         setReviews([]);
       }
 
+      console.log("[ProductDetailPage] raw p.cod_locations:", p.cod_locations, typeof p.cod_locations);
+
       setProduct({
         id: p.id,
         name: p.name,
@@ -107,7 +109,7 @@ export default function ProductDetailPage() {
         description: p.description || "",
         stock: p.stock ?? 0,
         status: p.status || "AVAILABLE",
-        codLocations: Array.isArray(p.cod_locations) 
+        codLocations: Array.isArray(p.cod_locations) && p.cod_locations.length > 0 
           ? p.cod_locations.filter(isValidCodSpot) 
           : undefined,
       });
