@@ -196,7 +196,7 @@ export default function App() {
             ratingCount: rCount,
             sold: totalSold,
             description: p.description || "",
-            stock: p.stock || 1,
+            stock: p.stock ?? 1,
             is_premium: p.is_premium
           };
         });
