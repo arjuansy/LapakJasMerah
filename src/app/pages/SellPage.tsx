@@ -308,13 +308,13 @@ export default function SellPage() {
         </div>
 
         <button
-          onClick={() => { setStep("form"); setForm({ title: "", category: "", condition: "", price: "", negotiable: true, stock: "1", description: "", location: "", customLocation: "", meetup: "", phone: "" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); navigate("/marketplace"); }}
+          onClick={() => { setStep("form"); setForm({ title: "", category: "", condition: "", price: "", negotiable: true, stock: "1", description: "", location: "", customLocation: "", meetup: "", phone: "" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); setCodLocations([]); navigate("/marketplace"); }}
           className="w-full bg-primary text-white font-bold py-3.5 rounded-2xl text-sm mb-3"
         >
           Kembali ke Beranda
         </button>
         <button
-          onClick={() => { setStep("form"); setForm({ title: "", category: "", condition: "", price: "", negotiable: true, stock: "1", description: "", location: "", customLocation: "", meetup: "", phone: "" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); }}
+          onClick={() => { setStep("form"); setForm({ title: "", category: "", condition: "", price: "", negotiable: true, stock: "1", description: "", location: "", customLocation: "", meetup: "", phone: "" }); setPhotos([]); setErrors({}); setAdPackage("gratis"); setCodLocations([]); }}
           className="w-full bg-secondary text-primary font-bold py-3.5 rounded-2xl text-sm border border-primary/20"
         >
           Pasang Iklan Lagi
@@ -940,4 +940,3 @@ export default function SellPage() {
     </div>
   );
 }
-//tes
